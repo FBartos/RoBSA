@@ -3,6 +3,7 @@
 
   # load runjags
   requireNamespace("runjags")
+  requireNamespace("survival")
 
   hereIsTheModule <- file.path(libname, pkgname)
   path <- file.path(hereIsTheModule, paste0("libs", Sys.getenv("R_ARCH")))

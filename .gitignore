@@ -17,5 +17,5 @@ src-i386
 src/boost
 doc
 Meta
-RoSA.Rcheck
+RoBSA.Rcheck
 .Rhistory

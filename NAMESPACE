@@ -1,1 +1,7 @@
 exportPattern("^[[:alpha:]]+")
+
+S3method(print, RoBSA)
+S3method(print, RoBSA.prior)
+S3method(print, summary.RoBSA)
+S3method(summary, RoBSA)
+S3method(update, RoBSA)

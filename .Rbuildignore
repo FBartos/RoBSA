@@ -1,2 +1,13 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^trash$
+^prefitted$
+^tests/figs/.*$
+^tests/results/.*$
+^..Rcheck
+^.*\.o
+^docs$
+^doc$
+^Meta$
+^RoBSA.Rcheck$
+README.Rmd
