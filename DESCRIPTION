@@ -1,11 +1,45 @@
 Package: RoBSA
 Type: Package
 Title: Robust Bayesian Survival Analysis
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Version: 0.3.0
+Maintainer: František Bartoš <f.bartos96@gmail.com>
+Authors@R: c( 
+    person("František", "Bartoš",     role = c("aut", "cre"),
+    email   = "f.bartos96@gmail.com", comment = c(ORCID = "0000-0002-0018-5573")),
+    person("Julia", "Haaf", role = "ths",
+    comment = c(ORCID = "0000-0001-5122-706X"))
+    )
+Description: A framework for estimating ensembles of parametric survival models
+    and using Bayesian model averaging to combine them. The
+    ensembles use Bayes factors to test for the presence or absence of the
+    individual components (e.g., treatment effect, parametric family, etc...) and 
+    model-averages parameter estimates based on posterior model probabilities. 
+    The user can define a wide range of informative priors for all parameters 
+    of interest. The package provides convenient functions for summary, visualizations, 
+    fit diagnostics, and prior distribution calibration.
+URL: https://fbartos.github.io/RoBSA/
+BugReports: https://github.com/FBartos/RoBSA/issues
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports:
+    runjags,
+    bridgesampling,
+    rjags,
+    coda,
+    psych,
+    stats,
+    graphics,
+    Rdpack
+Suggests:
+    ggplot2,
+    parallel,
+    metaBMA,
+    testthat,
+    vdiffr,
+    knitr,
+    rmarkdown
+RdMacros: Rdpack
+VignetteBuilder: knitr

@@ -1,3 +1,8 @@
+#' @title Plots a fitted RoBSA object
+#'
+#' @param x a fitted RoBSA object.
+#' @param ... additional arguments.
+#' @export
 predict.RoBSA        <- function(object, newdata, type = c("survival", "hazard", "density", "mean", "sd"), summarize = TRUE, models = FALSE, conditional = FALSE, samples = 10000){
 
   if(!(is.matrix(newdata) | is.data.frame(newdata))){

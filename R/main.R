@@ -1,11 +1,47 @@
+#' @title Fit Robust Bayesian Survival Analysis
+#'
+#' @description Fits a RoBSA model. Please note
+#' that the fitting function only supports dummy
+#' coded predictors and cannot deal with factors.
+#'
+#' @param formula formula for the survival model
+#' @param data data frame containing the data
+#' @param distributions distributions of parametric
+#' survival models
+#' @param test_predictors vector of predictor names
+#' to be tested with Bayesian model-averaged testing.
+#' Defaults to \code{NULL}, no parameters are tested.
+#' @param distributions_odds prior odds for the competing
+#' distributions
+#' @param prior_beta_null named list containing null prior
+#' distribution for the predictors (with names corresponding
+#' to the predictors)
+#' @param prior_beta_alt named list containing prior
+#' distribution for the predictors (with names corresponding
+#' to the predictors)
+#' @param prior_intercept named list containing prior
+#' distribution for the intercepts (with names corresponding
+#' to the distributions)
+#' @param prior_aux named list containing prior
+#' distribution for the auxiliary parameters (with names corresponding
+#' to the distributions)
+#' @param chains number of chains
+#' @param iter number of sampling iterations
+#' @param burnin number of burnin iterations
+#' @param thin thinning of the chains
+#' @param parallel whether the models should be fit in parallel
+#' @param ... additional arguments.
+#'
+#' @rdname RoBSA
+#' @aliases RoBSA
+#' @export
 RoBSA <- function(formula, data, priors = NULL, test_predictors = NULL,
                   distributions = c("exp-aft", "weibull-aft", "lnorm-aft", "llogis-aft", "gamma-aft"),
                   distributions_odds       = rep(1, length(distributions)),
-                  default_prior_beta_null  = get_default_prior_beta_null(),
-                  default_prior_beta_alt   = get_default_prior_beta_alt(),
-                  default_prior_intercept  = get_default_prior_intercept(),
-                  default_prior_aux        = get_default_prior_aux(),
-                  prior_prob_distributions = rep(1/length(distributions), length(distributions)),
+                  prior_beta_null  = get_default_prior_beta_null(),
+                  prior_beta_alt   = get_default_prior_beta_alt(),
+                  prior_intercept  = get_default_prior_intercept(),
+                  prior_aux        = get_default_prior_aux(),
                   chains = 2, iter = 5000, burnin = 1000, thin = 1, parallel = FALSE,
                   control = NULL, save = "all", seed = NULL){
 
@@ -14,8 +50,8 @@ RoBSA <- function(formula, data, priors = NULL, test_predictors = NULL,
 
   object$data    <- .prepare_data(formula, data)
   object$priors  <- .prepare_priors(priors, distributions, attr(object$data, "predictors"), test_predictors,
-                                   default_prior_beta_null, default_prior_beta_alt,
-                                   default_prior_intercept, default_prior_aux,
+                                   prior_beta_null, prior_beta_alt,
+                                   prior_intercept, prior_aux,
                                    distributions_odds)
   object$models  <- .prepare_models(object$priors)
   object$control <- .set_control(control, chains, iter, burnin, thin, seed, parallel)
@@ -199,7 +235,7 @@ update.RoBSA <- function(object, refit_failed = TRUE,
 
 
 .prepare_data   <- function(formula, data){
-  ### adapted from rstanarm stan_surv
+  ### adapted from rstanarm::stan_surv
 
   if (!requireNamespace("survival"))
     stop("the 'survival' package must be installed to use this function.")

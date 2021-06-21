@@ -1,26 +1,27 @@
-##' RoBSA: Robust Bayesian survival analysis
-##'
-##' RoBSA: Bayesian model-averaged parametric survival models with informed prior
-##' prior distributions and inclusion Bayes factors.
-##'
-##' \code{\link{RoBSA}} fits parametric models ....
-##'
-##'
-##' @name RoBSA-package
-##' @aliases RoBSA-package RoBSA
-##' @docType package
-##' @section User guide: The \bold{RoBSA user guide} vignette explains the
-##' methods in detail, and gives several worked examples.  A further vignette
-##' \bold{RoBSA-examples} gives a few more complicated examples, and users
-##' are encouraged to submit their own.
-##' @author František Bartoš \email{f.bartos96@@gmail.com}
-##' @references
-##' @keywords package
-##' @useDynLib RoBSA, .registration = TRUE
-##' @importFrom survival Surv
-
+#' RoBSA: Robust Bayesian survival analysis
+#'
+#' A framework for estimating ensembles of parametric survival models
+#' and using Bayesian model averaging to combine them. The
+#' ensembles use Bayes factors to test for the presence or absence of the
+#' individual components (e.g., treatment effect, parametric family, etc...) and
+#' model-averages parameter estimates based on posterior model probabilities.
+#' The user can define a wide range of informative priors for all parameters
+#' of interest. The package provides convenient functions for summary, visualizations,
+#' fit diagnostics, and prior distribution calibration.
+#'
+#' \code{\link{RoBSA}} fits parametric models ....
+#'
+#'
+#' @name RoBSA-package
+#' @aliases RoBSA-package
+#' @docType package
+#' @section User guide: The \bold{RoBSA user guide} vignette explains the
+#' methods in detail, and gives several worked examples.  A further vignette
+#' \bold{RoBSA-examples} gives a few more complicated examples, and users
+#' are encouraged to submit their own.
+#' @author František Bartoš \email{f.bartos96@@gmail.com}
+#' @references
+#' @keywords package
+#' @importFrom survival Surv
 "_PACKAGE"
 
-.onUnload <- function(libpath) {
-  library.dynam.unload("RoBSA", libpath)
-}

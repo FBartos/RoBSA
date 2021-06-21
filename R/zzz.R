@@ -13,7 +13,6 @@
 
 .onAttach <- function(libname, pkgname){
 
-  packageStartupMessage(
-    "Hello :)")
+  packageStartupMessage("Hello :)")
 
 }
