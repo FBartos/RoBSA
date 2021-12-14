@@ -26,8 +26,6 @@
     }
   }
 
-  requireNamespace("mvtnorm")
-
 }
 
 .onAttach <- function(libname, pkgname){

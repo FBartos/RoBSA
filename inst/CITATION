@@ -1,0 +1,12 @@
+citHeader("To cite the RoBSA package in publications use:")
+
+note <- sprintf("R package version %s", meta$Version)
+
+bibentry(
+  bibtype = "misc",
+  title   = "RoBSA: An R Package for Robust Bayesian Survival Analyses",
+  author  = person("František", "Bartoš"),
+  year    = 2021,
+  note    = note,
+  url     = "https://github.com/FBartos/RoBSA"
+)
