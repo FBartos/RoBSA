@@ -1,4 +1,4 @@
-sequential_RoBSA <- function(formula, data, priors = NULL, test_predictors = NULL,
+.sequential_RoBSA <- function(formula, data, priors = NULL, test_predictors = NULL,
                              distributions = c("exp-aft", "weibull-aft", "lnorm-aft", "llogis-aft", "gamma-aft"),
                              distributions_odds       = rep(1, length(distributions)),
                              default_prior_beta_null  = get_default_prior_beta_null(),

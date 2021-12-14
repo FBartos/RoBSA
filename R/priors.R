@@ -1,5 +1,5 @@
-# from RoBMA (with removal of some arguments)
-
+# based on RoBMA (with removal of some arguments)
+# to be rewritten with BayesTools
 
 #' @title Creates a RoBSA prior
 #'

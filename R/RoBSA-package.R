@@ -25,3 +25,8 @@
 #' @importFrom survival Surv
 "_PACKAGE"
 
+
+#' @name Surv
+#' @inherit survival::Surv
+#' @export
+Surv <- survival::Surv
