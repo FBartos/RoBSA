@@ -16,8 +16,8 @@ for the effect size, intercepts, and auxiliary parameters. The package
 provides convenient functions for summary, visualizations, and fit
 diagnostics.
 
-See our pre-print Bartoš et al. (2021) (XXX) introducing the
-methodology.
+See our pre-print Bartoš et al. (2021)
+(<https://arxiv.org/abs/2112.08311>) introducing the methodology.
 
 ## Installation
 
@@ -89,8 +89,8 @@ priors
 #> LogNormal(-0.53, 0.63)[0, Inf]
 ```
 
-We create a new data.frame object containing a fit ready data set. We
-(1) transform the survival times to years, (2) dummy code the treatment
+We create new data.frame object containing a fit ready data set. We (1)
+transform the survival times to years, (2) dummy code the treatment
 variable, so 0 corresponds to the standard treatment and 1 to the test
 treatment (i.e., the intercept of the model corresponds to the standard
 treatment and the treatment estimate to the improvement in the test
@@ -184,7 +184,7 @@ the change from prior to posterior model probabilities.
 The second table then summarizes the model-averaged coefficient
 estimates. Here, in the RoBSA ensemble intended for testing, we are
 primary interested in the inclusion Bayes factor for the treatment
-effect. We find value of 0.147, indicating that there is moderate
+effect. We find Bayes factor 0.147, indicating that there is moderate
 evidence in favor of no treatment effect (1/0.147 = 6.8) in comparison
 to our informed hypothesis of a positive treatment effect.
 
@@ -192,10 +192,10 @@ to our informed hypothesis of a positive treatment effect.
 
 Now we try to estimate the model-averaged estimate of the difference
 between the two treatments. To do that, we change the prior distribution
-from the the informed positive treatment effect to a neutral standard
-normal prior distribution allowing for both positive and negative
-treatment effect. We further set `test_predictors` to `""` in order to
-omit models assuming zero treatment effect.
+from the informed positive treatment effect to a neutral standard normal
+prior distribution allowing for both positive and negative treatment
+effect. We further set `test_predictors` to `""` in order to omit models
+assuming zero treatment effect.
 
 ``` r
 fit.est <- RoBSA(
@@ -243,9 +243,9 @@ summary(fit.est)
 ```
 
 We again use the `summary()` function to obtain information about the
-fitted model. We find out that the the experimental treatment actually
-led to notably shorter survival times with the mean model-averaged
-log(AF) = -0.18, 95% CI\[-0.56, -0.18\]. Furthermore, we observe a huge
+fitted model. We find out that the experimental treatment actually led
+to notably shorter survival times with the mean model-averaged log(AF) =
+-0.18, 95% CI\[-0.56, -0.18\]. Furthermore, we observe an enormous
 effect of the scaled Karnofsky performance score, showing that moving
 from 0 to 1 increases the survival times with the mean model-averaged
 log(AF) = 2.54, 95% CI \[1.74, 3.31\].
@@ -309,17 +309,17 @@ summary(fit.est, diagnostics = TRUE)
 
 We find that while the R-hat and max MCMC error is satisfactory for all
 models from the RoBSA estimation ensemble, we might wish for a larger
-ESS. To achieve that, we would simple increase the number of sampling
+ESS. To achieve that, we would simply increase the number of sampling
 MCMC iterations by using the `iter` argument in the `RoBSA()` function.
 
 ### Visualizing Predicted Survival
 
 To visualize the predicted model-averaged survival for each group, we
-first need to create a data.frame specifying the values for which we
-want to predict the survival. Here, we create a monthly based prediction
-for the first 20 years for the standard treatment (`df_standard`) and
-the experimental treatment (`df_experimental`) for the median level of
-the Karnofsky performance score.
+first need to create data.frame specifying the values for which we want
+to predict the survival. Here, we create a monthly based prediction for
+the first 20 years for the standard treatment (`df_standard`) and the
+experimental treatment (`df_experimental`) for the median level of the
+Karnofsky performance score.
 
 ``` r
 df_standard <- data.frame(
@@ -374,8 +374,8 @@ line-spacing="2">
 
 <div id="ref-bartos2021informed" class="csl-entry">
 
-Bartoš, F., Haaf, J. M., & Aust, F. (2021). *Informed Bayesian survival
-analysis*. PsyArXiv. <https://doi.org/XXX>
+Bartoš, F., Aust, F., & Haaf, J. M. (2021). *Informed Bayesian survival
+analysis*. arXiv. <https://arxiv.org/abs/2112.08311>
 
 </div>
 

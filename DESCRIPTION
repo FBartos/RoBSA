@@ -6,7 +6,7 @@ Maintainer: František Bartoš <f.bartos96@gmail.com>
 Authors@R: c( 
     person("František", "Bartoš",     role = c("aut", "cre"),
     email   = "f.bartos96@gmail.com", comment = c(ORCID = "0000-0002-0018-5573")),
-    person("Julia", "Haaf", role = "ths",
+    person("Julia M.", "Haaf", role = "ths",
     comment = c(ORCID = "0000-0001-5122-706X"))
     )
 Description: A framework for estimating ensembles of parametric survival models
