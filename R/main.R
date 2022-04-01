@@ -11,7 +11,7 @@
 #' @param test_predictors vector of predictor names
 #' to be tested with Bayesian model-averaged testing.
 #' Defaults to \code{NULL}, no parameters are tested.
-#' @param distributions_odds prior odds for the competing
+#' @param distributions_weights prior odds for the competing
 #' distributions
 #' @param prior_beta_null named list containing null prior
 #' distribution for the predictors (with names corresponding
@@ -25,53 +25,100 @@
 #' @param prior_aux named list containing prior
 #' distribution for the auxiliary parameters (with names corresponding
 #' to the distributions)
-#' @param chains number of chains
-#' @param iter number of sampling iterations
-#' @param burnin number of burnin iterations
-#' @param thin thinning of the chains
-#' @param parallel whether the models should be fit in parallel
+#' @param chains a number of chains of the MCMC algorithm.
+#' @param sample a number of sampling iterations of the MCMC algorithm.
+#' Defaults to \code{5000}.
+#' @param burnin a number of burnin iterations of the MCMC algorithm.
+#' Defaults to \code{2000}.
+#' @param adapt a number of adaptation iterations of the MCMC algorithm.
+#' Defaults to \code{500}.
+#' @param thin a thinning of the chains of the MCMC algorithm. Defaults to
+#' \code{1}.
+#' @param parallel whether the individual models should be fitted in parallel.
+#' Defaults to \code{FALSE}. The implementation is not completely stable
+#' and might cause a connection error.
+#' @param autofit whether the model should be fitted until the convergence
+#' criteria (specified in \code{autofit_control}) are satisfied. Defaults to
+#' \code{TRUE}.
+#' @param autofit_control allows to pass autofit control settings with the
+#' [set_autofit_control()] function. See \code{?set_autofit_control} for
+#' options and default settings.
+#' @param convergence_checks automatic convergence checks to assess the fitted
+#' models, passed with [set_convergence_checks()] function. See
+#' \code{?set_convergence_checks} for options and default settings.
+#' @param save whether all models posterior distributions should be kept
+#' after obtaining a model-averaged result. Defaults to \code{"all"} which
+#' does not remove anything. Set to \code{"min"} to significantly reduce
+#' the size of final object, however, some model diagnostics and further
+#' manipulation with the object will not be possible.
+#' @param seed a seed to be set before model fitting, marginal likelihood
+#' computation, and posterior mixing for reproducibility of results. Defaults
+#' to \code{NULL} - no seed is set.
+#' @param silent whether all print messages regarding the fitting process
+#' should be suppressed. Defaults to \code{TRUE}. Note that \code{parallel = TRUE}
+#' also suppresses all messages.
 #' @param ... additional arguments.
 #'
 #' @rdname RoBSA
 #' @aliases RoBSA
 #' @export
-RoBSA <- function(formula, data, priors = NULL, test_predictors = NULL,
-                  distributions = c("exp-aft", "weibull-aft", "lnorm-aft", "llogis-aft", "gamma-aft"),
-                  distributions_odds       = rep(1, length(distributions)),
-                  prior_beta_null  = get_default_prior_beta_null(),
-                  prior_beta_alt   = get_default_prior_beta_alt(),
-                  prior_intercept  = get_default_prior_intercept(),
-                  prior_aux        = get_default_prior_aux(),
-                  chains = 2, iter = 5000, burnin = 1000, thin = 1, parallel = FALSE,
-                  control = NULL, save = "all", seed = NULL){
+RoBSA <- function(
+  formula, data, priors = NULL, test_predictors = NULL,
+  distributions = c("exp-aft", "weibull-aft", "lnorm-aft", "llogis-aft", "gamma-aft"),
+  distributions_weights = rep(1, length(distributions)),
+  prior_beta_null  = get_default_prior_beta_null(),
+  prior_beta_alt   = get_default_prior_beta_alt(),
+  prior_intercept  = get_default_prior_intercept(),
+  prior_aux        = get_default_prior_aux(),
 
+  # MCMC fitting settings
+  chains = 3, sample = 5000, burnin = 2000, adapt = 500, thin = 1, parallel = FALSE,
+  autofit = TRUE, autofit_control = set_autofit_control(), convergence_checks = set_convergence_checks(),
+
+  # additional settings
+  save = "all", seed = NULL, silent = TRUE, ...){
+
+  dots         <- .RoBSA_collect_dots(...)
   object       <- NULL
   object$call  <- match.call()
 
-  object$data    <- .prepare_data(formula, data)
-  object$priors  <- .prepare_priors(priors, distributions, attr(object$data, "predictors"), test_predictors,
-                                   prior_beta_null, prior_beta_alt,
-                                   prior_intercept, prior_aux,
-                                   distributions_odds)
-  object$models  <- .prepare_models(object$priors)
-  object$control <- .set_control(control, chains, iter, burnin, thin, seed, parallel)
+  ### prepare & check the data
+  object$data  <- .prepare_data(formula, data)
+
+  ### check MCMC settings
+  object$fit_control        <- BayesTools::JAGS_check_and_list_fit_settings(chains = chains, adapt = adapt, burnin = burnin, sample = sample, thin = thin, autofit = autofit, parallel = parallel, cores = chains, silent = silent, seed = seed)
+  object$autofit_control    <- BayesTools::JAGS_check_and_list_autofit_settings(autofit_control = autofit_control)
+  object$convergence_checks <- .check_and_list_convergence_checks(convergence_checks)
+
+  ### prepare and check the settings
+  object$priors  <- .check_and_list_priors(priors, object$data[["predictors"]], test_predictors,
+                                           default_prior_beta_null, default_prior_beta_alt,
+                                           default_prior_intercept, default_prior_aux)
+  object$models  <- .prepare_models(object$priors, distributions, distributions_weights)
+
 
   ### fit the models and compute marginal likelihoods
-  if(object$control$cores < 2*object$control$chains){
+  if(!object$fit_control[["parallel"]]){
 
-    if(!is.null(object$control$progress_start))eval(parse(text = object$control$progress_start))
-    for(i in 1:length(object$models)){
-      object$models[[i]] <- .fit_RoBSA_wrap(object, i)
+    if(dots[["is_JASP"]]){
+      .JASP_progress_bar_start(length(object[["models"]]))
+    }
+
+    for(i in seq_along(object[["models"]])){
+      object$models[[i]] <- .fit_RoBSA_model(object, i)
+      if(dots[["is_JASP"]]){
+        .JASP_progress_bar_tick()
+      }
     }
 
   }else{
 
-    fitting_order <- .fitting_priority(object$models)
+    fitting_order <- .fitting_priority(object[["models"]])
 
-    cl <- parallel::makePSOCKcluster(floor(object$control$cores / object$control$chains))
+    cl <- parallel::makePSOCKcluster(floor(RoBSA.get_option("max_cores") / object$fit_control[["chains"]]))
     parallel::clusterEvalQ(cl, {library("RoBSA")})
     parallel::clusterExport(cl, "object", envir = environment())
-    object$models <- parallel::clusterApplyLB(cl, fitting_order, .fit_RoBSA_wrap, object = object)[order(fitting_order)]
+    object$models <- parallel::parLapplyLB(cl, fitting_order, .fit_RoBSA_model, object = object)[order(fitting_order)]
     parallel::stopCluster(cl)
 
   }
@@ -165,7 +212,6 @@ update.RoBSA <- function(object, refit_failed = TRUE,
 
 
   ### update control settings if any change is specified
-  object$control  <- .update_control(object$control, control, chains, iter, burnin, thin, seed, parallel)
 
 
   ### do the stuff
@@ -234,479 +280,11 @@ update.RoBSA <- function(object, refit_failed = TRUE,
 }
 
 
-.prepare_data   <- function(formula, data){
-  ### adapted from rstanarm::stan_surv
 
-  if (!requireNamespace("survival"))
-    stop("the 'survival' package must be installed to use this function.")
-
-  ### process data
-  if (missing(data) || !inherits(data, "data.frame"))
-    stop("'data' must be a data frame.")
-
-
-  nlist <- function(...) {
-    m <- match.call()
-    out <- list(...)
-    no_names <- is.null(names(out))
-    has_name <- if (no_names) FALSE else nzchar(names(out))
-    if (all(has_name))
-      return(out)
-    nms <- as.character(m)[-1L]
-    if (no_names) {
-      names(out) <- nms
-    } else {
-      names(out)[!has_name] <- nms[!has_name]
-    }
-
-    return(out)
-  }
-  parse_formula_and_data <- function(formula, data) {
-
-    validate_formula <- function(formula, needs_response = TRUE) {
-
-      if (!inherits(formula, "formula")) {
-        stop2("'formula' must be a formula.")
-      }
-
-      if (needs_response) {
-        len <- length(formula)
-        if (len < 3) {
-          stop2("'formula' must contain a response.")
-        }
-      }
-      as.formula(formula)
-    }
-    formula <- validate_formula(formula, needs_response = TRUE)
-
-    # all variables of entire formula
-    allvars <- all.vars(formula)
-    allvars_form <- reformulate(allvars)
-
-    # LHS of entire formula
-    lhs <- function(x, as_formula = FALSE) {
-      len <- length(x)
-      if (len == 3L) {
-        out <- x[[2L]]
-      } else {
-        out <- NULL
-      }
-      out
-    }
-    reformulate_lhs <- function(x) {
-      x <- formula(substitute(LHS ~ 1, list(LHS = x)))
-      x
-    }
-    lhs       <- lhs(formula)         # LHS as expression
-    lhs_form  <- reformulate_lhs(lhs) # LHS as formula
-
-    # RHS of entire formula
-    rhs <- function(x, as_formula = FALSE) {
-      len <- length(x)
-      if (len == 3L) {
-        out <- x[[3L]]
-      } else {
-        out <- x[[2L]]
-      }
-      out
-    }
-    reformulate_rhs <- function(x) {
-      x <- formula(substitute(~ RHS, list(RHS = x)))
-      x
-    }
-    rhs       <- rhs(formula)         # RHS as expression
-    rhs_form  <- reformulate_rhs(rhs) # RHS as formula
-
-    # evaluate model data (row subsetting etc)
-    make_model_data <- function(formula, data) {
-      mf <- model.frame(formula, data, na.action = na.pass)
-      include <- apply(mf, 1L, function(row) !any(is.na(row)))
-      data[include, , drop = FALSE]
-    }
-    data <- make_model_data(allvars_form, data)
-
-    # evaluated response variables
-    validate_surv <- function(x, ok_types = c("right", "counting", "interval", "interval2")) {
-      if (!inherits(x, "Surv"))
-        stop2("LHS of 'formula' must be a 'Surv' object.")
-      if (!attr(x, "type") %in% ok_types)
-        stop2("Surv object type must be one of: ", comma(ok_types))
-      x
-    }
-
-    surv <- eval(lhs, envir = data) # Surv object
-    surv <- validate_surv(surv)
-    type <- attr(surv, "type")
-
-    status   <- as.vector(surv[, "status"])
-
-
-    if (any(is.na(status)))
-      stop2("Invalid status indicator in Surv object.")
-
-    if (any(status < 0 || status > 3))
-      stop2("Invalid status indicator in Surv object.")
-
-
-    # just fixed-effect part of formula
-    fe_form   <- lme4::nobars(formula)
-
-    # just random-effect part of formula
-    split_at_bars <- function(x) {
-      terms <- strsplit(deparse(x, 500), "\\s\\|\\s")[[1L]]
-      if (!length(terms) == 2L)
-        stop2("Could not parse the random effects formula.")
-      re_form <- formula(paste("~", terms[[1L]]))
-      group_var <- terms[[2L]]
-      nlist(re_form, group_var)
-    }
-    fetch <- function(x, y, z = NULL, zz = NULL, null_to_zero = FALSE,
-                      pad_length = NULL, unlist = FALSE) {
-      ret <- lapply(x, `[[`, y)
-      if (!is.null(z))
-        ret <- lapply(ret, `[[`, z)
-      if (!is.null(zz))
-        ret <- lapply(ret, `[[`, zz)
-      if (null_to_zero)
-        ret <- lapply(ret, function(i) ifelse(is.null(i), 0L, i))
-      if (!is.null(pad_length)) {
-        padding <- rep(list(0L), pad_length - length(ret))
-        ret <- c(ret, padding)
-      }
-      if (unlist) unlist(ret) else ret
-    }
-    bars      <- lme4::findbars(formula)
-    re_parts  <- lapply(bars, split_at_bars)
-    re_forms  <- fetch(re_parts, "re_form")
-
-    tf_form <- formula
-
-    nlist(formula,
-          data,
-          allvars,
-          allvars_form,
-          lhs,
-          lhs_form,
-          rhs,
-          rhs_form,
-          formula,
-          tf_form,
-          fe_form,
-          bars,
-          re_parts,
-          re_forms,
-          surv_type = attr(surv, "type"))
-  }
-
-  formula <- parse_formula_and_data(formula, data)
-  data    <- formula$data; formula[["data"]] <- NULL
-
-  #----------------
-  # Construct data
-  #----------------
-
-  #----- model frame stuff
-  make_model_frame <- function(formula,
-                               data,
-                               xlevs              = NULL,
-                               drop.unused.levels = FALSE,
-                               check_constant     = FALSE,
-                               na.action          = na.fail) {
-
-    # construct model frame
-    Terms <- terms(lme4::subbars(formula))
-    mf <- stats::model.frame(Terms,
-                             data,
-                             xlev = xlevs,
-                             drop.unused.levels = drop.unused.levels,
-                             na.action = na.action)
-
-    # get predvars for fixed part of formula
-    TermsF <- terms(lme4::nobars(formula))
-    mfF <- stats::model.frame(TermsF,
-                              data,
-                              xlev = xlevs,
-                              drop.unused.levels = drop.unused.levels,
-                              na.action = na.action)
-    attr(attr(mf, "terms"), "predvars.fixed") <- attr(attr(mfF, "terms"), "predvars")
-
-    # get predvars for random part of formula
-    has_bars <- length(lme4::findbars(formula)) > 0
-    if (has_bars) {
-      TermsR <- terms(lme4::subbars(justRE(formula, response = TRUE)))
-      mfR <- stats::model.frame(TermsR,
-                                data,
-                                xlev = xlevs,
-                                drop.unused.levels = drop.unused.levels,
-                                na.action = na.action)
-      attr(attr(mf, "terms"), "predvars.random") <- attr(attr(mfR, "terms"), "predvars")
-    } else {
-      attr(attr(mf, "terms"), "predvars.random") <- NULL
-    }
-
-    # check no constant vars
-    check_constant_vars <- function(mf) {
-      mf1 <- mf
-      if (NCOL(mf[, 1]) == 2 || all(mf[, 1] %in% c(0, 1)) || survival::is.Surv(mf[, 1])) {
-        mf1 <- mf[, -1, drop=FALSE]
-      }
-
-      lu1 <- function(x) !all(x == 1) && length(unique(x)) == 1
-      nocheck <- c("(weights)", "(offset)", "(Intercept)")
-      sel <- !colnames(mf1) %in% nocheck
-      is_constant <- apply(mf1[, sel, drop=FALSE], 2, lu1)
-      if (any(is_constant)) {
-        stop("Constant variable(s) found: ",
-             paste(names(is_constant)[is_constant], collapse = ", "),
-             call. = FALSE)
-      }
-      return(mf)
-    }
-    if (check_constant)
-      mf <- check_constant_vars(mf)
-
-    # add additional predvars attributes
-
-    # check for terms
-    mt <- attr(mf, "terms")
-    if (is.empty.model(mt))
-      stop2("No intercept or predictors specified.")
-
-    nlist(mf, mt)
-  }
-  drop_intercept <- function(x) {
-    sel <- check_for_intercept(x)
-    if (length(sel) && is.matrix(x)) {
-      x[, -sel, drop = FALSE]
-    } else if (length(sel)) {
-      x[-sel]
-    } else {
-      x
-    }
-  }
-  check_for_intercept  <- function(x, logical = FALSE) {
-    nms <- if (is.matrix(x)) colnames(x) else names(x)
-    sel <- which("(Intercept)" %in% nms)
-    if (logical) as.logical(length(sel)) else sel
-  }
-
-  mf_stuff <- make_model_frame(formula$tf_form, data, drop.unused.levels = TRUE)
-
-  mf <- mf_stuff$mf # model frame
-  mt <- mf_stuff$mt # model terms
-
-  #----- dimensions and response vectors
-
-  # entry and exit times for each row of data
-  make_t <- function(model_frame, type = c("beg", "end", "gap", "upp")) {
-
-    type <- match.arg(type)
-    resp <- if (survival::is.Surv(model_frame))
-      model_frame else model.response(model_frame)
-    surv <- attr(resp, "type")
-    err  <- paste0("Bug found: cannot handle '", surv, "' Surv objects.")
-
-    t_beg <- switch(surv,
-                    "right"     = rep(0, nrow(model_frame)),
-                    "interval"  = rep(0, nrow(model_frame)),
-                    "interval2" = rep(0, nrow(model_frame)),
-                    "counting"  = as.vector(resp[, "start"]),
-                    stop(err))
-
-    t_end <- switch(surv,
-                    "right"     = as.vector(resp[, "time"]),
-                    "interval"  = as.vector(resp[, "time1"]),
-                    "interval2" = as.vector(resp[, "time1"]),
-                    "counting"  = as.vector(resp[, "stop"]),
-                    stop(err))
-
-    t_upp <- switch(surv,
-                    "right"     = rep(NaN, nrow(model_frame)),
-                    "counting"  = rep(NaN, nrow(model_frame)),
-                    "interval"  = as.vector(resp[, "time2"]),
-                    "interval2" = as.vector(resp[, "time2"]),
-                    stop(err))
-
-    switch(type,
-           "beg" = t_beg,
-           "end" = t_end,
-           "gap" = t_end - t_beg,
-           "upp" = t_upp,
-           stop("Bug found: cannot handle specified 'type'."))
-  }
-  t_beg <- make_t(mf, type = "beg") # entry time
-  t_end <- make_t(mf, type = "end") # exit  time
-  t_upp <- make_t(mf, type = "upp") # upper time for interval censoring
-
-  # ensure no event or censoring times are zero (leads to degenerate
-  # estimate for log hazard for most baseline hazards, due to log(0))
-  check1 <- any(t_end <= 0, na.rm = TRUE)
-  check2 <- any(t_upp <= 0, na.rm = TRUE)
-  if (check1 || check2)
-    stop2("All event and censoring times must be greater than 0.")
-
-  # event indicator for each row of data
-  make_d <- function(model_frame) {
-
-    resp <- if (survival::is.Surv(model_frame))
-      model_frame else model.response(model_frame)
-    surv <- attr(resp, "type")
-    err  <- paste0("Bug found: cannot handle '", surv, "' Surv objects.")
-
-    switch(surv,
-           "right"     = as.vector(resp[, "status"]),
-           "interval"  = as.vector(resp[, "status"]),
-           "interval2" = as.vector(resp[, "status"]),
-           "counting"  = as.vector(resp[, "status"]),
-           stop(err))
-  }
-  status <- make_d(mf)
-
-
-  if (any(is.na(status)))
-    stop2("Invalid status indicator in Surv object.")
-
-  if (any(status < 0 || status > 3))
-    stop2("Invalid status indicator in Surv object.")
-
-  # delayed entry indicator for each row of data
-  delayed  <- as.logical(!t_beg == 0)
-
-  # time variables for stan
-  t_event <- t_end[status == 1] # exact event time
-  t_lcent <- t_end[status == 2] # left  censoring time
-  t_rcent <- t_end[status == 0] # right censoring time
-  t_icenl <- t_end[status == 3] # lower limit of interval censoring time
-  t_icenu <- t_upp[status == 3] # upper limit of interval censoring time
-  t_delay <- t_beg[delayed]     # delayed entry time
-
-  # dimensions
-  n_event <- sum(status == 1)
-  n_rcent <- sum(status == 0)
-  n_lcent <- sum(status == 2)
-  n_icent <- sum(status == 3)
-  n_delay <- sum(delayed)
-
-  # predictors
-  make_x <- function(formula,
-                     model_frame,
-                     xlevs = NULL,
-                     check_constant = TRUE) {
-
-    # uncentred predictor matrix, without intercept
-    x <- model.matrix(formula, model_frame, xlev = xlevs)
-    x <- drop_intercept(x)
-
-    # column means of predictor matrix
-    x_bar <- as.array(colMeans(x))
-
-    # centered predictor matrix
-    x_centered <- sweep(x, 2, x_bar, FUN = "-")
-
-    # identify any column of x with < 2 unique values (empty interaction levels)
-    sel <- (apply(x, 2L, n_distinct) < 2)
-    if (check_constant && any(sel)) {
-      cols <- paste(colnames(x)[sel], collapse = ", ")
-      stop2("Cannot deal with empty interaction levels found in columns: ", cols)
-    }
-
-    nlist(x, x_centered, x_bar, N = NROW(x), K = NCOL(x))
-  }
-  n_distinct  <-  function(x) {
-    length(unique(x))
-  }
-
-  rep_rows <- function(x, ...) {
-    if (is.null(x) || !nrow(x)) {
-      return(x)
-    } else if (is.matrix(x) || is.data.frame(x)) {
-      x <- x[rep(1:nrow(x), ...), , drop = FALSE]
-    } else {
-      stop2("'x' must be a matrix or data frame.")
-    }
-    x
-  }
-  keep_rows <-  function(x, rows = 1:nrow(x)) {
-    x[rows, , drop = FALSE]
-  }
-
-  mf_event <- keep_rows(mf, status == 1)
-  mf_lcent <- keep_rows(mf, status == 2)
-  mf_rcent <- keep_rows(mf, status == 0)
-  mf_icent <- keep_rows(mf, status == 3)
-  mf_delay <- keep_rows(mf, delayed)
-
-  mf_cpts <- rbind(mf_event,
-                   mf_lcent,
-                   mf_rcent,
-                   mf_icent,
-                   mf_icent,
-                   mf_delay)
-
-  ff        <- formula$fe_form
-  x         <- make_x(ff, mf     )$x
-  x_cpts    <- make_x(ff, mf_cpts)$x
-  x_centred <- sweep(x_cpts, 2, colMeans(x), FUN = "-")
-  K         <- ncol(x_cpts)
-
-
-
-  add_x <- function(out, x, status, type){
-    for(i in seq_along(colnames(x)))
-      out[[paste0("x", "_", type, "_", colnames(x)[i])]] <- x[status, colnames(x)[i]]
-    out
-  }
-
-  out <- list()
-  attr(out, "predictors") <- colnames(x)
-  if(any(colnames(x) %in% c("intercept", "aux")))
-    stop("'intercept' and 'aux' are reserved names and cannot be used as variable names.")
-
-  # right censoring time
-  if(n_rcent > 0) {
-    out$n_rcent  <- n_rcent
-    out$t_rcent <- t_rcent
-    out <- add_x(out, x, status == 0, "rcent")
-  }
-  # exact event time
-  if(n_event > 0) {
-    out$n_event  <- n_event
-    out$t_event <- t_event
-    out <- add_x(out, x, status == 1, "event")
-  }
-  # left  censoring time
-  if(n_lcent > 0) {
-    out$n_lcent  <- n_lcent
-    out$t_lcent <- t_lcent
-    out <- add_x(out, x, status == 2, "lcent")
-  }
-  # lower and upper limit of interval censoring time
-  if(n_icent > 0) {
-    out$n_icent  <- n_icent
-    out$t_icenl <- t_icenl
-    out$t_icenu <- t_icenu
-    out <- add_x(out, x, status == 3, "icent")
-  }
-  # delayed entry time
-  if(n_delay > 0) {
-    out$n_delay  <- n_delay
-    out$t_delay <- t_delay
-    out <- add_x(out, x, delayed, "delayed")
-  }
-
-  attr(out, "type") <- c(
-    if(n_event > 0) "event",
-    if(n_rcent > 0) "rcent",
-    if(n_lcent > 0) "lcent",
-    if(n_icent > 0) "icent",
-    if(n_delay > 0) "delay"
-  )
-  return(out)
-}
 .prepare_priors <- function(priors, distributions, predictors, test_predictors,
                            default_prior_beta_null, default_prior_beta_alt,
                            default_prior_intercept, default_prior_aux,
-                           distributions_odds){
+                           distributions_weights){
 
 
   if(!inherits(default_prior_beta_null, "RoBSA.prior")){
@@ -862,12 +440,12 @@ update.RoBSA <- function(object, refit_failed = TRUE,
     }
   }
 
-  if(is.null(names(distributions_odds))){
-    names(distributions_odds) <- distributions
+  if(is.null(names(distributions_weights))){
+    names(distributions_weights) <- distributions
   }
 
   attr(priors, "distributions")      <- distributions
-  attr(priors, "distributions_odds") <- distributions_odds
+  attr(priors, "distributions_weights") <- distributions_weights
   attr(priors, "predictors")         <- predictors
   attr(priors, "test_predictors")    <- test_predictors
 
@@ -892,7 +470,7 @@ update.RoBSA <- function(object, refit_failed = TRUE,
 
   grid       <- do.call(expand.grid, grid)
   grid$order <- 1:nrow(grid)
-  prior_odds <- data.frame(cbind(distribution = names(attr(priors, "distributions_odds")), prior_odds = attr(priors, "distributions_odds")))
+  prior_odds <- data.frame(cbind(distribution = names(attr(priors, "distributions_weights")), prior_odds = attr(priors, "distributions_weights")))
   grid       <- merge(grid, prior_odds, by = "distribution", all.x = TRUE)
   grid       <- grid[order(grid$order),]
   grid$order <- NULL
@@ -1370,228 +948,9 @@ update.RoBSA <- function(object, refit_failed = TRUE,
   return(log_lik)
 }
 
-### default priors settings
-get_default_prior_beta_null <- function(){
-  prior("spike", list(0))
-}
-get_default_prior_beta_alt  <- function(){
-  prior("normal", list(mean = 0, sd = 1))
-}
-get_default_prior_intercept <- function(){
-  list(
-    "exp-aft"     = prior("normal", list(mean = 0, sd = 5)),
-    "weibull-aft" = prior("normal", list(mean = 0, sd = 5)),
-    "lnorm-aft"   = prior("normal", list(mean = 0, sd = 5)),
-    "llogis-aft"  = prior("normal", list(mean = 0, sd = 5)),
-    "gamma-aft"   = prior("normal", list(mean = 0, sd = 5))
-  )
-}
-get_default_prior_aux       <- function(){
-  list(
-    "exp-aft"     = NULL,
-    "weibull-aft" = prior("normal", list(mean = 0, sd = 1), list(0, Inf)),
-    "lnorm-aft"   = prior("normal", list(mean = 0, sd = 1), list(0, Inf)),
-    "llogis-aft"  = prior("normal", list(mean = 0, sd = 1), list(0, Inf)),
-    "gamma-aft"   = prior("normal", list(mean = 0, sd = 1), list(0, Inf))
-  )
-}
 
-### tools
-.has_aux         <- function(distributions){
-  distributions != "exp-aft"
-}
-.intercept_name  <- function(distribution){
-  switch(
-    distribution,
-    "exp-aft"     = "rate",
-    "weibull-aft" = "scale",
-    "lnorm-aft"   = "meanlog",
-    "llogis-aft"  = "scale",
-    "gamma-aft"   = "rate"
-  )
-}
-.aux_name        <- function(distribution){
-  switch(
-    distribution,
-    "exp-aft"     = NULL,
-    "weibull-aft" = "shape",
-    "lnorm-aft"   = "sdlog",
-    "llogis-aft"  = "shape",
-    "gamma-aft"   = "shape"
-  )
-}
-.intercept_transformation <- function(distribution){
-  switch(
-    distribution,
-    "exp-aft"     = function(x)exp(-x),
-    "weibull-aft" = exp,
-    "lnorm-aft"   = function(x)x,
-    "llogis-aft"  = exp,
-    "gamma-aft"   = function(x)exp(-x)
-  )
-}
-.aux_transformation       <- function(distribution){
-  switch(
-    distribution,
-    "exp-aft"     = NULL,
-    "weibull-aft" = function(x)x,
-    "lnorm-aft"   = function(x)x,
-    "llogis-aft"  = function(x)x,
-    "gamma-aft"   = function(x)x
-  )
-}
-.is_zero_spike   <- function(prior){
-  if(prior$distribution == "point"){
-    if(prior$parameters$location == 0){
-      return(TRUE)
-    }
-  }
-  return(FALSE)
-}
 
 # from RoBSA (with removal of some arguments)
-.set_control       <- function(control, chains, iter, burnin, thin, seed, parallel){
-
-  # set the control list
-  if(is.null(control)){
-    control$autofit         <- FALSE
-    control$adapt           <- 1000
-    control$bridge_max_iter <- 10000
-
-    control$allow_max_error <- NULL
-    control$allow_max_rhat  <- NULL
-    control$allow_min_ESS   <- NULL
-    control$allow_inc_theta <- FALSE
-    control$balance_prob    <- TRUE
-
-    control$silent          <- FALSE
-
-    if(parallel){
-      control$cores         <- parallel::detectCores() - 1
-    }else{
-      control$cores         <- 1
-    }
-
-  }else{
-    if(is.null(control[["max_error"]])){
-      control$max_error       <- .01
-    }
-    if(is.null(control[["max_rhat"]])){
-      control$max_rhat        <- 1.05
-    }
-    if(is.null(control[["max_time"]])){
-      control$max_time        <- Inf
-    }
-    if(is.null(control[["autofit"]])){
-      control$autofit         <- FALSE
-    }
-    if(is.null(control[["adapt"]])){
-      control$adapt           <- 1000
-    }
-    if(is.null(control[["bridge_max_iter"]])){
-      control$bridge_max_iter <- 10000
-    }
-    if(is.null(control[["allow_max_error"]])){
-      control$allow_max_error <- NULL
-    }
-    if(is.null(control[["allow_max_rhat"]])){
-      control$allow_max_rhat  <- NULL
-    }
-    if(is.null(control[["allow_min_ESS"]])){
-      control$allow_min_ESS   <- NULL
-    }
-    if(is.null(control[["allow_inc_theta"]])){
-      control$allow_inc_theta <- FALSE
-    }
-    if(is.null(control[["balance_prob"]])){
-      control$balance_prob    <- TRUE
-    }
-    if(is.null(control[["silent"]])){
-      control$silent          <- FALSE
-    }
-    if(is.null(control[["cores"]])){
-      if(parallel){
-        control$cores         <- parallel::detectCores() - 1
-      }else{
-        control$cores         <- 1
-      }
-    }
-
-  }
-
-  if(control[["cores"]] > 1){
-    parallel <- TRUE
-  }
-
-  # add the main MCMC settings
-  control$chains    <- chains
-  control$iter      <- iter
-  control$burnin    <- burnin
-  control$thin      <- thin
-  control$seed      <- seed
-  control$parallel  <- parallel
-
-  .check_control(control)
-  return(control)
-}
-.update_control    <- function(control, control_new, chains, iter, burnin, thin, seed, parallel){
-
-  if(!is.null(control_new)){
-    for(n in names(control_new)){
-      control[[n]] <- control_new[[n]]
-    }
-  }
-
-  if(!is.null(chains))   control[["chains"]]   <- chains
-  if(!is.null(iter))     control[["iter"]]     <- iter
-  if(!is.null(burnin))   control[["burnin"]]   <- burnin
-  if(!is.null(thin))     control[["thin"]]     <- thin
-  if(!is.null(parallel)) control[["parallel"]] <- parallel
-  if(!is.null(seed))     control[["seed"]]     <- seed
-
-  # stop if there is not enough samples planned for autojags package
-  .check_control(control)
-
-  return(control)
-}
-.check_control     <- function(control){
-  # check whether only known controls were supplied
-  known_controls <- c("chains", "iter", "burnin" , "adapt", "thin" ,"autofit", "max_error", "max_rhat", "max_time", "bridge_max_iter", "allow_max_error", "allow_max_rhat", "allow_min_ESS", "allow_inc_theta", "balance_prob", "silent", "progress_start", "progress_tick", "cores", "seed", "parallel")
-  if(any(!names(control) %in% known_controls))stop(paste0("The following control settings were not recognize: ", paste(names(control[!names(control) %in% known_controls]), collapse = ", ")))
-
-  # check whether essential controls were supplied
-  if(is.null(control[["chains"]])) stop("Number of chains must be defined.")
-  if(is.null(control[["iter"]]))   stop("Number of iterations must be set.")
-  if(is.null(control[["burnin"]])) stop("Number of burnin samples must be set.")
-  if(is.null(control[["adapt"]]))  stop("Number of adaptation samples must be set.")
-  if(is.null(control[["thin"]]))   stop("Thinning of the posterior samples must be set.")
-
-  if(!is.numeric(control[["chains"]]) | !control[["chains"]] >= 1)  stop("At least one chains must be set.")
-  if(!is.numeric(control[["iter"]])   | !control[["iter"]] >= 1)    stop("Number of iterations must be a positive number.")
-  if(!is.numeric(control[["burnin"]]) | !control[["burnin"]] >= 1)  stop("Number of burnin samples must be a positive number.")
-  if(!is.numeric(control[["adapt"]])  | !control[["adapt"]] >= 1)   stop("Number of adaptation samples must be a positive number.")
-  if(!is.numeric(control[["thin"]])   | !control[["thin"]] >= 1)    stop("Thinning of the posterior samples must be a positive number.")
-  if(!is.logical(control[["parallel"]]))                            stop("The usage of parallel evaluation must be a logical argument.")
-  if(!is.numeric(control[["cores"]])  | !control[["cores"]] >= 1)   stop("Number of cores must be a positive number.")
-  if(!is.numeric(control[["seed"]])   & !is.null(control[["seed"]]))stop("Seed must be a numeric argument.")
-
-  # stop if there is not enough samples planned for autojags package
-  if(control[["iter"]]/control[["thin"]] < 4000)stop("At least 4000 iterations after thinning is required to compute the Raftery and Lewis's diagnostic.")
-  if(!control[["chains"]] >= 2)stop("The number of chains must be at least 2 so that convergence can be assessed.")
-
-  # check convergence criteria
-  if(control$autofit)if(control[["max_error"]] >= 1 | control[["max_error"]] <= 0)stop("The target maximum MCMC error must be within 0 and 1.")
-  if(control$autofit)if(control[["max_rhat"]] <= 1)stop("The target maximum R-hat must be higher than 1.")
-  if(!is.null(control[["allow_max_error"]])) if(control[["allow_max_error"]] >= 1 | control[["allow_max_error"]] <= 0)stop("The maximum allowed MCMC error must be within 0 and 1.")
-  if(!is.null(control[["allow_max_rhat"]]))  if(control[["allow_max_rhat"]] <= 1) stop("The maximum allowed R-hat must be higher than 1.")
-  if(!is.null(control[["allow_min_ESS"]]))   if(control[["allow_min_ESS"]] <= 0)  stop("The minimum allowed ESS must be higher than 0.")
-
-  if(control[["parallel"]]){
-    if(!try(requireNamespace("parallel")))stop("parallel package needs to be installed for parallel processing. Run 'install.packages('parallel')'")
-  }
-  # now taken care of by the evaluation outside of R
-  # runjags::runjags.options(silent.jags = control$silent, silent.runjags = control$silent)
-}
 .runjags.summary   <- function(fit, distribution){
 
   # returns quantile intervals instead of HPD and produce output on all scales

@@ -4,6 +4,8 @@
 \name{RoBSA-package}
 \alias{RoBSA-package}
 \alias{_PACKAGE}
+\alias{RoBSA_package}
+\alias{RoBSA.package}
 \title{RoBSA: Robust Bayesian survival analysis}
 \description{
 A framework for estimating ensembles of parametric survival models

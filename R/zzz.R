@@ -26,6 +26,8 @@
     }
   }
 
+  .check_BayesTools()
+
 }
 
 .onAttach <- function(libname, pkgname){

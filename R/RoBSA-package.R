@@ -13,15 +13,15 @@
 #'
 #'
 #' @name RoBSA-package
-#' @aliases RoBSA-package
+#' @author František Bartoš \email{f.bartos96@@gmail.com}
+#' @keywords package
+#' @aliases RoBSA-package RoBSA_package RoBSA.package
 #' @docType package
 #' @section User guide: The \bold{RoBSA user guide} vignette explains the
 #' methods in detail, and gives several worked examples.  A further vignette
 #' \bold{RoBSA-examples} gives a few more complicated examples, and users
 #' are encouraged to submit their own.
-#' @author František Bartoš \email{f.bartos96@@gmail.com}
 #' @references
-#' @keywords package
 #' @importFrom survival Surv
 "_PACKAGE"
 
