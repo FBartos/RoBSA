@@ -964,22 +964,7 @@ update.RoBSA <- function(object, refit_failed = TRUE,
 
   return(summary_fit)
 }
-.fitting_priority  <- function(models){
 
-  predictors    <- sapply(models, function(m)length(m$predictors))
-  distributions <- sapply(models, function(m)switch(
-    as.character(m$distribution),
-    "exp-aft"     = 0,
-    "weibull-aft" = 1.5,
-    "lnorm-aft"   = 1,
-    "llogis-aft"  = 1,
-    "gamma-aft"   = 1.5
-  ))
-
-  fitting_difficulty <- predictors + distributions
-
-  return(order(fitting_difficulty, decreasing = TRUE))
-}
 .get_converged_models       <- function(object){
 
   converged <- NULL
