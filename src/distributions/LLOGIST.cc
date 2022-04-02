@@ -12,7 +12,7 @@ namespace jags {
 	namespace surv {
 
 		DLLOGIST::DLLOGIST() : VectorDist("llogis_aft_event", 2) {}
-		SLLOGIST::SLLOGIST() : VectorDist("llogis_aft_rcent", 2) {}
+		SLLOGIST::SLLOGIST() : VectorDist("llogis_aft_cens_r", 2) {}
 
 		bool DLLOGIST::checkParameterLength(vector<unsigned int> const &len) const
 		{

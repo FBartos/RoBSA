@@ -12,7 +12,7 @@ namespace jags {
 	namespace surv {
 
 		DWEIBULL::DWEIBULL() : VectorDist("weibull_aft_event", 2) {}
-		SWEIBULL::SWEIBULL() : VectorDist("weibull_aft_rcent", 2) {}
+		SWEIBULL::SWEIBULL() : VectorDist("weibull_aft_cens_r", 2) {}
 
 		bool DWEIBULL::checkParameterLength(vector<unsigned int> const &len) const
 		{

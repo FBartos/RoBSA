@@ -85,7 +85,7 @@ assign("max_cores",       parallel::detectCores(logical = TRUE) - 1,  envir = Ro
     return(invisible(TRUE))
   }else{
     warning(sprintf(
-      "RoBMA version %1$s requires BayesTools version higher or equal %2$s and lower or equal %3$s.",
+      "RoBSA version %1$s requires BayesTools version higher or equal %2$s and lower or equal %3$s.",
       paste0(RoBSA.version, collapse = "."),
       BayesTools_required[1],
       BayesTools_required[2]

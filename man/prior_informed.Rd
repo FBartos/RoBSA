@@ -41,9 +41,9 @@ the empirical medical prior distributions.}
 research. The prior can be visualized by the \code{plot} function.
 }
 \details{
-Further details can be found in \insertCite{erp2017estimates;textual}{RoBMA},
-\insertCite{gronau2017bayesian;textual}{RoBMA}, and
-\insertCite{bartos2021bayesian;textual}{RoBMA}.
+Further details can be found in \insertCite{erp2017estimates;textual}{RoBSA},
+\insertCite{gronau2017bayesian;textual}{RoBSA}, and
+\insertCite{bartos2021bayesian;textual}{RoBSA}.
 }
 \examples{
 # prior distribution representing expected effect sizes in social psychology

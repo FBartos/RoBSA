@@ -12,7 +12,7 @@ namespace jags {
 	namespace surv {
 
 		DLNORM::DLNORM() : VectorDist("lnorm_aft_event", 2) {}
-		SLNORM::SLNORM() : VectorDist("lnorm_aft_rcent", 2) {}
+		SLNORM::SLNORM() : VectorDist("lnorm_aft_cens_r", 2) {}
 
 		bool DLNORM::checkParameterLength(vector<unsigned int> const &len) const
 		{

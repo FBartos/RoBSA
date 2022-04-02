@@ -332,6 +332,64 @@ set_convergence_checks  <- function(max_Rhat = 1.05, min_ESS = 500, max_error = 
 }
 
 
+#' @title Default prior distributions
+#'
+#' @description Functions for setting default prior distributions.
+#'
+#'
+#' @return \code{get_default_prior_beta_null} and \code{get_default_prior_beta_alt}
+#' return a prior distribution and \code{get_default_prior_intercept} and
+#' \code{get_default_prior_aux} return a list of prior distributions.
+#'
+#' @export get_default_prior_beta_null
+#' @export get_default_prior_beta_alt
+#' @export get_default_prior_factor_null
+#' @export get_default_prior_factor_null
+#' @export get_default_prior_intercept
+#' @export get_default_prior_aux
+#' @name default_prior
+#' @aliases get_default_prior_beta_null, get_default_prior_beta_alt,
+#' get_default_prior_factor_null, get_default_prior_factor_alt,
+#' get_default_prior_intercept, get_default_prior_aux
+NULL
+
+#' @rdname default_prior
+get_default_prior_beta_null <- function(){
+  prior("spike", list(location = 0))
+}
+#' @rdname default_prior
+get_default_prior_beta_alt  <- function(){
+  prior("normal", list(mean = 0, sd = 1))
+}
+#' @rdname default_prior
+get_default_prior_factor_null  <- function(){
+  prior_factor("spike",  list(location = 0), contrast = "treatment")
+}
+#' @rdname default_prior
+get_default_prior_factor_alt   <- function(){
+  prior_factor("normal",  list(mean = 0, sd = 1), contrast = "treatment")
+}
+#' @rdname default_prior
+get_default_prior_intercept <- function(){
+  list(
+    "exp-aft"     = prior("normal", list(mean = 0, sd = 5)),
+    "weibull-aft" = prior("normal", list(mean = 0, sd = 5)),
+    "lnorm-aft"   = prior("normal", list(mean = 0, sd = 5)),
+    "llogis-aft"  = prior("normal", list(mean = 0, sd = 5)),
+    "gamma-aft"   = prior("normal", list(mean = 0, sd = 5))
+  )
+}
+#' @rdname default_prior
+get_default_prior_aux       <- function(){
+  list(
+    "exp-aft"     = NULL,
+    "weibull-aft" = prior("normal", list(mean = 0, sd = 1), list(0, Inf)),
+    "lnorm-aft"   = prior("normal", list(mean = 0, sd = 1), list(0, Inf)),
+    "llogis-aft"  = prior("normal", list(mean = 0, sd = 1), list(0, Inf)),
+    "gamma-aft"   = prior("normal", list(mean = 0, sd = 1), list(0, Inf))
+  )
+}
+
 # some functions for the JASP implementation
 .RoBSA_collect_dots      <- function(...){
 

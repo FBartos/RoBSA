@@ -7,7 +7,7 @@ plot.RoBSA <- function(x, ...){
 
   # create times for the prediction
   df          <- x$data
-  time_range  <- c(0, max(c(df$t_event, df$t_rcent)))
+  time_range  <- c(0, max(c(df$t_event, df$tcens_r)))
   pred_data   <- data.frame(time = seq(time_range[1], time_range[2], length.out = 100))
 
   # add mean values for the predictors

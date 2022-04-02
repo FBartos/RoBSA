@@ -53,5 +53,7 @@
 }
 .is_model_constant         <- function(priors){
   # checks whether there is at least one non-nill prior
-  return(all(sapply(priors, function(prior) is.prior.point(prior) | is.prior.none(prior))))
+  return(all(sapply(priors, function(prior) BayesTools::is.prior.point(prior) | BayesTools::is.prior.none(prior))))
 }
+
+.reserved_words             <- function() c("aux", "intercept", "terms", "time")
