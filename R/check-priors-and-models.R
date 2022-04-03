@@ -223,16 +223,20 @@
     model_priors[["aux"]]      <- priors[["aux"]][[distribution]]
   }
   model_priors[["terms"]] <- list()
+  terms_test              <- NULL
   for(i in seq_along(terms)){
-    model_priors[["terms"]][[terms[i]]]           <- priors[["terms"]][[terms[i]]][[grid_row[,terms[i]]]]
-    model_priors[["terms"]][[terms[i]]][["type"]] <- grid_row[,terms[i]]
-    prior_weights <- prior_weights * priors[["terms"]][[terms[i]]][[grid_row[,terms[i]]]]$prior_weights
+    model_priors[["terms"]][[terms[i]]]  <- priors[["terms"]][[terms[i]]][[grid_row[,terms[i]]]]
+    prior_weights                        <- prior_weights * priors[["terms"]][[terms[i]]][[grid_row[,terms[i]]]]$prior_weights
+    if(grid_row[,terms[i]] == "alt"){
+      terms_test <- c(terms_test, terms[i])
+    }
   }
 
   model <- list(
     priors       = model_priors,
     distribution = distribution,
     terms        = terms,
+    terms_test   = terms_test,
     prior_weights     = prior_weights,
     prior_weights_set = prior_weights
   )

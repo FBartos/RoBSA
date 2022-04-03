@@ -40,7 +40,7 @@ RoBSA.get_option <- function(name){
 	if(length(name)!=1)
 	  stop("Only 1 option can be retrieved at a time")
 
-	if(!opt %in% names(RoBSA.private))
+	if(!name %in% names(RoBSA.private))
 	  stop(paste("Unmatched or ambiguous option '", name, "'", sep=""))
 
 	# Use eval as some defaults are put in using 'expression' to avoid evaluating at load time:
