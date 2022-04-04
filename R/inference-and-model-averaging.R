@@ -93,7 +93,13 @@
     )
   }
 
-  posteriors_distributions <- .mix_posteriors_intercepts_and_aux(
+  posteriors_intercept <- .mix_posteriors_intercept(
+    model_list          = models,
+    distributions       = distributions,
+    model_distributions = model_distributions,
+    seed                = object$add_info[["seed"]]
+  )
+  posteriors_aux       <- .mix_posteriors_aux(
     model_list          = models,
     distributions       = distributions,
     model_distributions = model_distributions,
@@ -107,29 +113,37 @@
     inference_distributions             = inference_distributions,
     inference_distributions_conditional = inference_distributions_conditional,
 
-    posteriors               = posteriors,
-    posteriors_conditional   = posteriors_conditional,
-    posteriors_distributions = posteriors_distributions
+    posteriors             = posteriors,
+    posteriors_conditional = posteriors_conditional,
+    posteriors_intercept   = posteriors_intercept,
+    posteriors_aux         = posteriors_aux
   )
   return(output)
 }
 
-.mix_posteriors_intercepts_and_aux <- function(model_list, distributions, model_distributions, seed){
+.mix_posteriors_intercept <- function(model_list, distributions, model_distributions, seed){
 
-  posteriors_intercepts_and_aux <- list()
+  posteriors_intercept <- list()
 
   for(i in seq_along(distributions)){
-
-    posteriors_intercepts_and_aux[paste0("(", distributions[i], ") intercept")] <- BayesTools::mix_posteriors(
+    posteriors_intercept[distributions[i]] <- BayesTools::mix_posteriors(
       model_list   = model_list,
       parameters   = "mu_intercept",
       is_null_list = list("mu_intercept" = c(model_distributions != distributions[i])),
       seed         = seed,
       conditional  = TRUE
     )
+  }
 
+  return(posteriors_intercept)
+}
+.mix_posteriors_aux       <- function(model_list, distributions, model_distributions, seed){
+
+  posteriors_aux <- list()
+
+  for(i in seq_along(distributions)){
     if(.has_aux(distributions[i])){
-      posteriors_intercepts_and_aux[paste0("(", distributions[i], ") aux")] <- BayesTools::mix_posteriors(
+      posteriors_aux[distributions[i]] <- BayesTools::mix_posteriors(
         model_list   = model_list,
         parameters   = "aux",
         is_null_list = list("aux" = c(model_distributions != distributions[i])),
@@ -139,7 +153,7 @@
     }
   }
 
-  return(posteriors_intercepts_and_aux)
+  return(posteriors_aux)
 }
 
 .compute_coeficients   <- function(RoBSA){

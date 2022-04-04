@@ -70,19 +70,232 @@ print.RoBSA <- function(x, ...){
 #' @export summary.RoBSA
 #' @rawNamespace S3method(summary, RoBSA)
 #' @seealso [RoBSA()] [diagnostics()]
-summary.RoBSA       <- function(object, type = if(diagnostics) "models" else "ensemble",
-                                conditional = FALSE, diagnostics = FALSE, include_theta = FALSE,
-                                exp = FALSE, parameters = FALSE,
-                                probs = c(.025, .975), logBF = FALSE, BF01 = FALSE,
-                                digits_estimates = 3, digits_BF = 3,...){
+summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
+                                exp = FALSE, parameters = FALSE, probs = c(.025, .975), logBF = FALSE, BF01 = FALSE,
+                                short_name = FALSE, remove_spike_0 = FALSE, ...){
 
+  BayesTools::check_bool(conditional, "conditional")
+  BayesTools::check_char(type, "type")
+  BayesTools::check_bool(exp,  "exp")
+  BayesTools::check_bool(parameters,  "parameters")
+  BayesTools::check_real(probs, "probs", allow_NULL = TRUE, check_length = 0)
+  BayesTools::check_bool(BF01,  "BF01")
+  BayesTools::check_bool(logBF, "logBF")
+  BayesTools::check_bool(short_name, "short_name")
+  BayesTools::check_bool(remove_spike_0, "remove_spike_0")
 
   # print diagnostics if all models fail to converge
-  if(!any(object$add_info$converged)){
-    if(substr(type,1,1) != "m" & !diagnostics)warning("All models failed to converge. Model diagnostics were printed instead.")
-    type        <- "models"
-    diagnostics <- TRUE
+  if(!any(.get_model_convergence(object))){
+    if(substr(type,1,1) != "d")
+      warning("All models failed to converge. Model diagnostics were printed instead.")
+    type        <- "diagnostics"
   }
+
+  if(substr(type,1,1) == "e"){
+
+    # obtain components overview
+    components_distributions <- BayesTools::ensemble_inference_table(
+      inference  = object$RoBSA[["inference_distributions"]],
+      parameters = names(object$RoBSA[["inference_distributions"]]),
+      logBF      = logBF,
+      BF01       = BF01,
+      title      = "Distributions summary:"
+    )
+
+    components <- BayesTools::ensemble_inference_table(
+      inference  = object$RoBSA[["inference"]],
+      parameters = names(object$RoBSA[["inference"]]),
+      logBF      = logBF,
+      BF01       = BF01,
+      title      = "Components summary:"
+    )
+
+    # obtain estimates tables
+    estimates <- BayesTools::ensemble_estimates_table(
+      samples    = object$RoBSA[["posteriors"]],
+      parameters = names(object$RoBSA[["posteriors"]]),
+      probs      = probs,
+      title      = "Model-averaged estimates:",
+      warnings   = .collect_errors_and_warnings(object)
+    )
+
+    # deal with possibly empty table in case of no alternative models
+    if(is.null(object$RoBSA[["posteriors_conditional"]])){
+      estimates_conditional                    <- data.frame(matrix(nrow = 0, ncol = length(probs) + 2))
+      colnames(estimates_conditional)          <- c("Mean", "Median", probs)
+      class(estimates_conditional)             <- c("BayesTools_table", "BayesTools_ensemble_summary", class(estimates_conditional))
+      attr(estimates_conditional, "type")      <- rep("estimate", ncol(estimates_conditional))
+      attr(estimates_conditional, "rownames")  <- TRUE
+      attr(estimates_conditional, "title")     <- "Conditional estimates:"
+      attr(estimates_conditional, "warnings")  <- .collect_errors_and_warnings(object)
+    }else{
+      estimates_conditional <- BayesTools::ensemble_estimates_table(
+        samples    = object$RoBSA[["posteriors_conditional"]],
+        parameters = names(object$RoBSA[["posteriors_conditional"]]),
+        probs      = probs,
+        title      = "Conditional estimates:",
+        warnings   = .collect_errors_and_warnings(object)
+      )
+    }
+
+    estimates_intercept <- BayesTools::ensemble_estimates_table(
+      samples    = object$RoBSA[["posteriors_intercept"]],
+      parameters = names(object$RoBSA[["posteriors_intercept"]]),
+      probs      = probs,
+      title      = "Distribution estimates (intercept):"
+    )
+    estimates_aux <- BayesTools::ensemble_estimates_table(
+      samples    = object$RoBSA[["posteriors_aux"]],
+      parameters = names(object$RoBSA[["posteriors_aux"]]),
+      probs      = probs,
+      title      = "Distribution estimates (auxiliary):"
+    )
+
+
+    ### return results
+    output <- list(
+      call                     = object[["call"]],
+      title                    = "Robust Bayesian meta-analysis",
+      components_distributions = components_distributions,
+      components               = components,
+      estimates                = estimates
+    )
+
+    if(conditional){
+      output$estimates_conditional <- estimates_conditional
+    }
+
+    if(parameters){
+      output$estimates_intercept <- estimates_intercept
+      output$estimates_aux       <- estimates_aux
+    }
+
+
+    class(output) <- "summary.RoBSA"
+    attr(output, "type") <- "ensemble"
+
+    return(output)
+
+  }else if(substr(type,1,1) == "m"){
+
+    if(parameters){
+      components <- list("Intercept" = "mu_intercept", "Axillary" = "aux")
+    }else{
+      components <- list()
+    }
+
+    for(i in seq_along(object$add_info[["predictors"]])){
+      components[[object$add_info[["predictors"]][i]]] <- paste0("mu_", object$add_info[["predictors"]][i])
+    }
+
+
+    summary <- BayesTools::ensemble_summary_table(
+      models         = object[["models"]],
+      parameters     = components,
+      title          = "Models overview:",
+      footnotes      = NULL,
+      warnings       = .collect_errors_and_warnings(object),
+      short_name     = short_name,
+      remove_spike_0 = remove_spike_0
+    )
+
+    .BayesTools_table_add_distributions(summary, sapply(object[["models"]], function(m) m[["distribution"]]))
+    # add distribution
+
+
+
+    output <- list(
+      call       = object[["call"]],
+      title      = "Robust Bayesian meta-analysis",
+      summary    = summary
+    )
+
+    class(output) <- "summary.RoBSA"
+    attr(output, "type") <- "models"
+
+    return(output)
+
+  }else if(substr(type,1,1) == "d"){
+
+    components <- names(object$RoBSA[["inference"]])[names(object$RoBSA[["inference"]]) %in% c("Effect", "Heterogeneity", "Bias")]
+    parameters <- list()
+    if(any(components == "Effect")){
+      parameters[["Effect"]] <- "mu"
+    }
+    if(any(components == "Heterogeneity")){
+      parameters[["Heterogeneity"]] <- "tau"
+      if(!attr(object$data, "all_independent")){
+        parameters[["Var. allocation"]] <- "rho"
+      }
+    }
+    if(any(components == "Bias")){
+      parameters[["Bias"]] <- c("PET", "PEESE", "omega")
+    }
+
+    diagnostics <- BayesTools::ensemble_diagnostics_table(
+      models         = object[["models"]],
+      parameters     = parameters,
+      title          = "Diagnostics overview:",
+      footnotes      = NULL,
+      warnings       = .collect_errors_and_warnings(object),
+      short_name     = short_name,
+      remove_spike_0 = remove_spike_0
+    )
+
+    output <- list(
+      call        = object[["call"]],
+      title       = "Robust Bayesian meta-analysis",
+      diagnostics = diagnostics
+    )
+
+    class(output) <- "summary.RoBSA"
+    attr(output, "type") <- "diagnostics"
+
+    return(output)
+
+  }else if(substr(type, 1, 1) == "i"){
+
+    output <- list(
+      call       = object[["call"]],
+      title      = "Robust Bayesian meta-analysis",
+      models     = list()
+    )
+
+    for(i in seq_along(object[["models"]])){
+
+      summary  <- BayesTools::model_summary_table(
+        model          = object[["models"]][[i]],
+        short_name     = short_name,
+        remove_spike_0 = remove_spike_0
+      )
+      if(output_scale == "y"){
+        estimates <- object[["models"]][[i]][["fit_summary"]]
+        attr(estimates, "warnings")  <- object[["models"]][[i]][["warnings"]]
+        attr(estimates, "title")     <- "Parameter estimates:"
+      }else{
+        estimates <- object[["models"]][[i]][["fit_summaries"]][[output_scale]]
+        attr(estimates, "footnotes") <- .scale_note(object[["models"]][[i]][["prior_scale"]], output_scale)
+        attr(estimates, "warnings")  <- object[["models"]][[i]][["warnings"]]
+        attr(estimates, "title")     <- "Parameter estimates:"
+      }
+
+      output[["models"]][[i]] <- list(
+        summary   = summary,
+        estimates = estimates
+      )
+    }
+
+    class(output) <- "summary.RoBSA"
+    attr(output, "type") <- "individual"
+
+    return(output)
+
+  }else{
+    stop(paste0("Unknown summary type: '", type, "'."))
+  }
+
+
+
 
 
   if(substr(type,1,1) == "e"){
@@ -429,6 +642,21 @@ summary.RoBSA       <- function(object, type = if(diagnostics) "models" else "en
   class(res) <- "summary.RoBSA"
   return(res)
 }
+
+
+.BayesTools_table_add_distributions <- function(summary, distributions){
+
+  new_summary <- cbind("Model" = summary[,1], "Distribution" = sapply(object[["models"]], function(m) m[["distribution"]]), summary[,-1])
+
+  attr(new_summary, "type") <- c(attr(summary, "type")[1], "string", attr(summary, "type")[-1])
+
+  for(a in names(attributes(summary))[!names(attributes(summary)) %in% c("names", "row.names", "class", "type")]){
+    attr(new_summary, a) <- attr(summary, a)
+  }
+
+  return(new_summary)
+}
+
 
 #' @title Prints summary object for RoBSA method
 #'
