@@ -27,3 +27,8 @@ prior_informed <- BayesTools::prior_informed
 #' @inherit BayesTools::prior_informed_medicine_names
 #' @export
 prior_informed_medicine_names <- BayesTools::prior_informed_medicine_names
+
+#' @name contr.orthonormal
+#' @inherit BayesTools::contr.orthonormal
+#' @export
+contr.orthonormal <- BayesTools::contr.orthonormal

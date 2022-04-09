@@ -27,8 +27,6 @@ print.RoBSA <- function(x, ...){
 #' \code{type == "conditional"}.
 #' @param diagnostics show the maximum R-hat and minimum ESS for the main
 #' parameters in each of the models. Only available for \code{type = "ensemble"}.
-#' @param include_theta whether the estimated random effects should be included
-#' either in the summaries.
 #' @param probs quantiles of the posterior samples to be displayed.
 #' Defaults to \code{c(.025, .50, .975)}
 #' @param logBF show log of the BFs. Defaults to \code{FALSE}.
@@ -37,6 +35,9 @@ print.RoBSA <- function(x, ...){
 #' @param digits_estimates a number of decimals for rounding the estimates.
 #' Defaults to \code{3}.
 #' @param digits_BF a number of decimals for rounding the BFs. Defaults to \code{3}.
+#' @param transform_orthonormal Whether factors with orthonormal prior
+#' distributions should be transformed to differences from the grand mean. Defaults
+#' to \code{TRUE}.
 #' @param ... additional arguments
 #'
 #' @return summary of a RoBSA object
@@ -72,7 +73,7 @@ print.RoBSA <- function(x, ...){
 #' @seealso [RoBSA()] [diagnostics()]
 summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
                                 exp = FALSE, parameters = FALSE, probs = c(.025, .975), logBF = FALSE, BF01 = FALSE,
-                                short_name = FALSE, remove_spike_0 = FALSE, ...){
+                                transform_orthonormal = TRUE, short_name = FALSE, remove_spike_0 = FALSE, ...){
 
   BayesTools::check_bool(conditional, "conditional")
   BayesTools::check_char(type, "type")
@@ -81,6 +82,7 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
   BayesTools::check_real(probs, "probs", allow_NULL = TRUE, check_length = 0)
   BayesTools::check_bool(BF01,  "BF01")
   BayesTools::check_bool(logBF, "logBF")
+  BayesTools::check_bool(transform_orthonormal, "transform_orthonormal")
   BayesTools::check_bool(short_name, "short_name")
   BayesTools::check_bool(remove_spike_0, "remove_spike_0")
 
@@ -112,12 +114,13 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
 
     # obtain estimates tables
     estimates <- BayesTools::ensemble_estimates_table(
-      samples        = object$RoBSA[["posteriors"]],
-      parameters     = names(object$RoBSA[["posteriors"]]),
-      probs          = probs,
-      title          = "Model-averaged estimates:",
-      warnings       = .collect_errors_and_warnings(object),
-      formula_prefix = FALSE
+      samples               = object$RoBSA[["posteriors"]],
+      parameters            = names(object$RoBSA[["posteriors"]]),
+      probs                 = probs,
+      title                 = "Model-averaged estimates:",
+      warnings              = .collect_errors_and_warnings(object),
+      transform_orthonormal = transform_orthonormal,
+      formula_prefix        = FALSE
     )
 
     if(exp){
@@ -202,7 +205,7 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
     }
 
     for(i in seq_along(object$add_info[["predictors"]])){
-      components[[object$add_info[["predictors"]][i]]] <- paste0("mu_", object$add_info[["predictors"]][i])
+      components[[object$add_info[["predictors"]][i]]] <- .BayesTools_parameter_name(object$add_info[["predictors"]][i])
     }
 
     summary <- BayesTools::ensemble_summary_table(
@@ -244,7 +247,7 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
     }
 
     for(i in seq_along(object$add_info[["predictors"]])){
-      components[[object$add_info[["predictors"]][i]]] <- paste0("mu_", object$add_info[["predictors"]][i])
+      components[[object$add_info[["predictors"]][i]]] <- .BayesTools_parameter_name(object$add_info[["predictors"]][i])
     }
 
 
@@ -289,10 +292,10 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
     for(i in seq_along(object[["models"]])){
 
       summary  <- BayesTools::model_summary_table(
-        model          = object[["models"]][[i]],
-        short_name     = short_name,
-        remove_spike_0 = remove_spike_0,
-        formula_prefix = FALSE
+        model                 = object[["models"]][[i]],
+        short_name            = short_name,
+        remove_spike_0        = remove_spike_0,
+        formula_prefix        = FALSE
       )
 
       estimates <- object[["models"]][[i]][["fit_summary"]]
@@ -301,7 +304,6 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
       if(exp){
         estimates <- .table_add_exp(estimates)
       }
-      .table_add_exp
 
       output[["models"]][[i]] <- list(
         summary   = summary,

@@ -152,4 +152,16 @@ check_RoBSA <- function(fit){
   return(all(sapply(priors, function(prior) BayesTools::is.prior.point(prior) | BayesTools::is.prior.none(prior))))
 }
 
+.BayesTools_parameter_name <- function(parameter){
+  parameter <- gsub(":", "_xXx_", parameter, fixed = TRUE)
+  parameter <- paste0("mu_", parameter)
+  return(parameter)
+}
+.output_parameter_names    <- function(parameter){
+  parameter <- gsub("_xXx_", ":", parameter, fixed = TRUE)
+  parameter <- substr(parameter, 3, nchar(parameter))
+  return(parameter)
+}
+
+
 .reserved_words <- function() c("aux", "intercept", "terms", "time")

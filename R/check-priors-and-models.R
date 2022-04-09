@@ -12,9 +12,9 @@
     stop("The default prior for predictors (null) is not a valid prior distribution.")
   if(!BayesTools::is.prior(default_prior_beta_alt))
     stop("The default prior for predictors (alt) is not a valid prior distribution.")
-  if(!BayesTools::is.prior.factor(default_prior_factor_null))
+  if(!all(sapply(default_prior_factor_null, function(p) BayesTools::is.prior.factor(p) | BayesTools::is.prior.point(p))))
     stop("The default prior for factors (null) is not a valid prior distribution.")
-  if(!BayesTools::is.prior.factor(default_prior_factor_alt))
+  if(!all(sapply(default_prior_factor_alt, function(p) BayesTools::is.prior.factor(p) | BayesTools::is.prior.point(p))))
     stop("The default prior for factors (alt) is not a valid prior distribution.")
   if(!all(sapply(default_prior_intercept[distributions], BayesTools::is.prior)))
     stop("The default prior for intercepts are not a valid prior distribution.")
@@ -91,13 +91,13 @@
 
     for(i in seq_along(to_test)){
       priors[[to_test[i]]] <- list(
-        null = if(predictors_type[to_test[i]] == "factor") default_prior_factor_null else default_prior_beta_null,
-        alt  = if(predictors_type[to_test[i]] == "factor") default_prior_factor_alt  else default_prior_beta_alt
+        null = if(predictors_type[to_test[i]] == "factor") default_prior_factor_null[["treatment"]] else default_prior_beta_null,
+        alt  = if(predictors_type[to_test[i]] == "factor") default_prior_factor_alt[["treatment"]]  else default_prior_beta_alt
       )
     }
     for(i in seq_along(no_test)){
       priors[[no_test[i]]] <- list(
-        alt  = if(predictors_type[no_test[i]] == "factor") default_prior_factor_alt else default_prior_beta_alt
+        alt  = if(predictors_type[no_test[i]] == "factor") default_prior_factor_alt[["treatment"]] else default_prior_beta_alt
       )
     }
 
@@ -116,14 +116,14 @@
     for(i in seq_along(to_test)){
       if(is.null(priors[[to_test[i]]])){
         priors[[to_test[i]]] <- list(
-          null = if(predictors_type[to_test[i]] == "factor") default_prior_factor_null else default_prior_beta_null,
-          alt  = if(predictors_type[to_test[i]] == "factor") default_prior_factor_alt  else default_prior_beta_alt
+          null = if(predictors_type[to_test[i]] == "factor") default_prior_factor_null[["treatment"]] else default_prior_beta_null,
+          alt  = if(predictors_type[to_test[i]] == "factor") default_prior_factor_alt[["treatment"]]  else default_prior_beta_alt
         )
       }else{
         if(BayesTools::is.prior(priors[[to_test[i]]])){
           priors[[to_test[i]]] <- list(
-            alt  = if(predictors_type[to_test[i]] == "factor") default_prior_factor_alt else default_prior_beta_alt,
-            alt  = priors[[to_test[i]]]
+            null  = if(predictors_type[to_test[i]] == "factor") default_prior_factor_null[[if(BayesTools::is.prior.dummy(priors[[to_test[i]]])) "treatment" else "orthonormal"]] else default_prior_beta_null,
+            alt   = priors[[to_test[i]]]
           )
         }else{
           # should be stopped before

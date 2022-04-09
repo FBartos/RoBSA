@@ -4,13 +4,72 @@
 \alias{plot.RoBSA}
 \title{Plots a fitted RoBSA object}
 \usage{
-\method{plot}{RoBSA}(x, ...)
+\method{plot}{RoBSA}(
+  x,
+  parameter = NULL,
+  conditional = FALSE,
+  plot_type = "base",
+  prior = FALSE,
+  dots_prior = NULL,
+  ...
+)
 }
 \arguments{
-\item{x}{a fitted RoBSA object.}
+\item{x}{a fitted RoBSA object}
 
-\item{...}{additional arguments.}
+\item{parameter}{a name of parameter to be plotted. Defaults to
+the first regression parameter if left unspecified. Use
+\code{"intercept"} and \code{"aux"} to plot the intercepts and
+auxiliary parameters of each distribution family.}
+
+\item{conditional}{whether conditional estimates should be
+plotted. Defaults to \code{FALSE} which plots the model-averaged
+estimates.}
+
+\item{plot_type}{whether to use a base plot \code{"base"}
+or ggplot2 \code{"ggplot"} for plotting. Defaults to
+\code{"base"}.}
+
+\item{prior}{whether prior distribution should be added to
+figure. Defaults to \code{FALSE}.}
+
+\item{dots_prior}{list of additional graphical arguments
+to be passed to the plotting function of the prior
+distribution. Supported arguments are \code{lwd},
+\code{lty}, \code{col}, and \code{col.fill}, to adjust
+the line thickness, line type, line color, and fill color
+of the prior distribution respectively.}
+
+\item{...}{list of additional graphical arguments
+to be passed to the plotting function. Supported arguments
+are \code{lwd}, \code{lty}, \code{col}, \code{col.fill},
+\code{xlab}, \code{ylab}, \code{main}, \code{xlim}, \code{ylim}
+to adjust the line thickness, line type, line color, fill color,
+x-label, y-label, title, x-axis range, and y-axis range
+respectively.}
+}
+\value{
+\code{plot.RoBSA} returns either \code{NULL} if \code{plot_type = "base"}
+or an object object of class 'ggplot2' if \code{plot_type = "ggplot2"}.
 }
 \description{
-Plots a fitted RoBSA object
+\code{plot.RoBSA} allows to visualize
+posterior distribution of different \code{"RoBSA"} object
+parameters. See \code{plot_survival} for plotting the survival
+ways. See \code{type} for the different model types.
+}
+\examples{
+\dontrun{
+# using the example data from Anderson et al. 2010 and fitting the default model
+# (note that the model can take a while to fit)
+
+### ggplot2 version of all of the plots can be obtained by adding 'model_type = "ggplot"
+# the 'plot' function allows to visualize the results of a fitted RoBSA object, for example;
+# the model-averaged effect size estimate
+}
+
+
+}
+\seealso{
+\code{\link[=RoBSA]{RoBSA()}}
 }

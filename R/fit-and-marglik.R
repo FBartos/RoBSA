@@ -137,7 +137,7 @@
 
   # add model summaries
   if(has_posterior){
-    fit_summary <- BayesTools::runjags_estimates_table(fit = fit, warnings = warnings, formula_prefix = FALSE)
+    fit_summary <- BayesTools::runjags_estimates_table(fit = fit, warnings = warnings, transform_orthonormal = TRUE, formula_prefix = FALSE)
   }else{
     fit_summary <- BayesTools::runjags_estimates_empty_table()
   }

@@ -34,8 +34,8 @@
   }
 
   for(i in seq_along(predictors)){
-    parameters                                      <- c(parameters, paste0("mu_", predictors[i]))
-    parameters_null[[paste0("mu_", predictors[i])]] <- sapply(model_predictors_test, function(x) !(predictors_test[i] %in% x))
+    parameters                                                   <- c(parameters, .BayesTools_parameter_name(predictors[i]))
+    parameters_null[[.BayesTools_parameter_name(predictors[i])]] <- sapply(model_predictors_test, function(x) !(predictors_test[i] %in% x))
   }
 
 
@@ -161,10 +161,10 @@
   return(do.call(c, unname(lapply(RoBSA$posteriors, function(posterior){
     if(inherits(posterior, "mixed_posteriors.factor")){
       out        <- apply(posterior, 2, mean)
-      names(out) <- gsub("mu_", "", names(out))
+      names(out) <- .output_parameter_names(names(out))
     }else{
       out        <- mean(posterior)
-      names(out) <- gsub("mu_", "", attr(posterior,"parameter"))
+      names(out) <- .output_parameter_names(attr(posterior,"parameter"))
     }
     return(out)
   }))))

@@ -353,7 +353,6 @@ set_convergence_checks  <- function(max_Rhat = 1.05, min_ESS = 500, max_error = 
 #'
 #' @description Functions for setting default prior distributions.
 #'
-#'
 #' @return \code{get_default_prior_beta_null} and \code{get_default_prior_beta_alt}
 #' return a prior distribution and \code{get_default_prior_intercept} and
 #' \code{get_default_prior_aux} return a list of prior distributions.
@@ -380,11 +379,17 @@ get_default_prior_beta_alt  <- function(){
 }
 #' @rdname default_prior
 get_default_prior_factor_null  <- function(){
-  prior_factor("spike",  list(location = 0), contrast = "treatment")
+  list(
+    "treatment"   = prior("spike", parameters = list("location" = 0)),
+    "orthonormal" = prior("spike", parameters = list("location" = 0))
+  )
 }
 #' @rdname default_prior
 get_default_prior_factor_alt   <- function(){
-  prior_factor("normal",  list(mean = 0, sd = 1), contrast = "treatment")
+  list(
+    "treatment"   = prior_factor("normal",  list(mean = 0, sd = 1), contrast = "treatment"),
+    "orthonormal" = prior_factor("mnormal", list(mean = 0, sd = 1), contrast = "orthonormal")
+  )
 }
 #' @rdname default_prior
 get_default_prior_intercept <- function(){
