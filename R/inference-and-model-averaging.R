@@ -29,13 +29,15 @@
 
   # predictors
   for(i in seq_along(predictors_test)){
-    components                            <- c(components, predictors_test[i])
-    components_null[[predictors_test[i]]] <- sapply(model_predictors_test, function(x) !(predictors_test[i] %in% x))
+    components <- c(components, .BayesTools_parameter_name(predictors_test[i]))
+    components_null[[.BayesTools_parameter_name(predictors_test[i])]] <-
+      sapply(model_predictors_test, function(x) !(predictors_test[i] %in% x))
   }
 
   for(i in seq_along(predictors)){
-    parameters                                                   <- c(parameters, .BayesTools_parameter_name(predictors[i]))
-    parameters_null[[.BayesTools_parameter_name(predictors[i])]] <- sapply(model_predictors_test, function(x) !(predictors_test[i] %in% x))
+    parameters <- c(parameters, .BayesTools_parameter_name(predictors[i]))
+    parameters_null[[.BayesTools_parameter_name(predictors[i])]] <-
+      sapply(model_predictors_test, function(x) !(predictors_test[i] %in% x))
   }
 
 

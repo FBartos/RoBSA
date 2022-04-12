@@ -158,9 +158,7 @@ check_RoBSA <- function(fit){
   return(parameter)
 }
 .output_parameter_names    <- function(parameter){
-  parameter <- gsub("_xXx_", ":", parameter, fixed = TRUE)
-  parameter <- substr(parameter, 3, nchar(parameter))
-  return(parameter)
+  return(BayesTools::JAGS_clean_names(parameter, formula_parameters = "mu", formula_prefix = FALSE))
 }
 
 

@@ -47,8 +47,7 @@
 #'
 #' @seealso [RoBSA()]
 #' @export
-plot.RoBSA  <- function(x, parameter = NULL,
-                        conditional = FALSE, plot_type = "base", prior = FALSE, dots_prior = NULL, ...){
+plot.RoBSA  <- function(x, parameter = NULL, conditional = FALSE, plot_type = "base", prior = FALSE, dots_prior = NULL, ...){
 
   # check whether plotting is possible
   if(sum(.get_model_convergence(x)) == 0)
@@ -107,7 +106,7 @@ plot.RoBSA  <- function(x, parameter = NULL,
       plot[[names(samples)[i]]] <- do.call(BayesTools::plot_posterior, args)
     }
   }else{
-    args$parameter <- paste0("mu_",parameter)
+    args$parameter <- .BayesTools_parameter_name(parameter)
     args$par_name  <- parameter
     plot           <- do.call(BayesTools::plot_posterior, args)
   }
@@ -153,6 +152,109 @@ plot.RoBSA  <- function(x, parameter = NULL,
   return(dots_prior)
 }
 
+
+#' @title Models plot for a RoBSA object
+#'
+#' @description \code{plot_models} plots individual models'
+#' estimates for a \code{"RoBSA"} object.
+#'
+#' @param parameter a name of parameter to be plotted. Defaults to
+#' the first regression parameter if left unspecified.
+#' @param order how the models should be ordered.
+#' Defaults to \code{"decreasing"} which orders them in decreasing
+#' order in accordance to \code{order_by} argument. The alternative is
+#' \code{"increasing"}.
+#' @param order_by what feature should be use to order the models.
+#' Defaults to \code{"model"} which orders the models according to
+#' their number. The alternatives are \code{"estimate"} (for the effect
+#' size estimates), \code{"probability"} (for the posterior model probability),
+#' and \code{"BF"} (for the inclusion Bayes factor).
+#' @inheritParams plot.RoBSA
+#'
+#' @examples \dontrun{
+#' # using the example data from Anderson et al. 2010 and fitting the default model
+#' # (note that the model can take a while to fit)
+#' fit <- RoBSA(r = Anderson2010$r, n = Anderson2010$n, study_names = Anderson2010$labels)
+#'
+#' ### ggplot2 version of all of the plots can be obtained by adding 'model_type = "ggplot"
+#' # the plot_models function creates a plot for of the individual models' estimates, for example,
+#' # the effect size estimates from the individual models can be obtained with
+#' plot_models(fit)
+#'
+#' # and effect size estimates from only the conditional models
+#' plot_models(fit, conditional = TRUE)
+#' }
+#'
+#'
+#' @return \code{plot_models} returns either \code{NULL} if \code{plot_type = "base"}
+#' or an object object of class 'ggplot2' if \code{plot_type = "ggplot2"}.
+#'
+#' @export
+plot_models <- function(x, parameter = NULL, conditional = FALSE, plot_type = "base", order = "decreasing", order_by = "model", ...){
+
+  if(sum(.get_model_convergence(x)) == 0)
+    stop("There is no converged model in the ensemble.")
+
+  #check settings
+  BayesTools::check_char(parameter, "parameter", allow_NULL = TRUE)
+  BayesTools::check_bool(conditional, "conditional")
+  BayesTools::check_char(plot_type, "plot_type", allow_values = c("base", "ggplot"))
+  BayesTools::check_char(order, "order", allow_NULL = TRUE, allow_values = c("increasing", "decreasing"))
+  BayesTools::check_char(order, "order", allow_NULL = TRUE, allow_values = c("increasing", "decreasing"))
+  BayesTools::check_char(order_by, "order_by", allow_NULL = TRUE, allow_values = c("model", "estimate", "probability", "BF"))
+
+
+  # verify whether given parameter exists and set a default parameter for plotting
+  if(is.null(parameter)){
+    parameter <- x$add_info[["predictors"]][1]
+  }else if(!parameter %in% x$add_info[["predictors"]]){
+    stop(paste0("The passed parameter does not correspond to any of the specified predictors: ", paste0("'", x$add_info[["predictors"]], "'", collapse = ", ")))
+  }
+
+
+  ### prepare input
+  if(conditional){
+
+    model_list <- x[["models"]]
+    samples    <- x[["RoBSA"]][["posteriors_conditional"]]
+    inference  <- x[["RoBSA"]][["inference_conditional"]]
+
+  }else{
+
+    model_list <- x[["models"]]
+    samples    <- x[["RoBSA"]][["posteriors"]]
+    inference  <- x[["RoBSA"]][["inference"]]
+
+  }
+
+  dots <- list(...)
+
+  # prepare the argument call
+  args                          <- dots
+  args$model_list               <- model_list
+  args$samples                  <- samples
+  args$inference                <- inference
+  args$parameter                <- .BayesTools_parameter_name(parameter)
+  args$par_name                 <- NULL
+  args$plot_type                <- plot_type
+  args$prior                    <- FALSE
+  args$conditional              <- conditional
+  args$order                    <- list(order, order_by)
+  args$transformation           <- NULL
+  args$transformation_arguments <- NULL
+  args$transformation_settings  <- FALSE
+  args$formula_prefix           <- FALSE
+
+  plot <- do.call(BayesTools::plot_models, args)
+
+
+  # return the plots
+  if(plot_type == "base"){
+    return(invisible(plot))
+  }else if(plot_type == "ggplot"){
+    return(plot)
+  }
+}
 
 
 #' @title Plots a fitted RoBSA object
