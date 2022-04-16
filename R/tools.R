@@ -152,14 +152,16 @@ check_RoBSA <- function(fit){
   return(all(sapply(priors, function(prior) BayesTools::is.prior.point(prior) | BayesTools::is.prior.none(prior))))
 }
 
+.extract_aux_samples <- function(fit){
+  return(as.numeric(suppressWarnings(coda::as.mcmc(fit))[,"aux"]))
+}
+
 .BayesTools_parameter_name <- function(parameter){
-  parameter <- gsub(":", "_xXx_", parameter, fixed = TRUE)
-  parameter <- paste0("mu_", parameter)
-  return(parameter)
+  return(BayesTools::JAGS_parameter_names(parameter, formula_parameter = "mu"))
 }
 .output_parameter_names    <- function(parameter){
-  return(BayesTools::JAGS_clean_names(parameter, formula_parameters = "mu", formula_prefix = FALSE))
+  return(BayesTools::format_parameter_names(parameter, formula_parameters = "mu", formula_prefix = FALSE))
 }
 
 
-.reserved_words <- function() c("aux", "intercept", "terms", "time")
+.reserved_words <- function() c("aux", "intercept", "terms", "time", "mu")

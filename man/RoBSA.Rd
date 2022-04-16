@@ -29,6 +29,7 @@ RoBSA(
   save = "all",
   seed = NULL,
   silent = TRUE,
+  rescale_data = FALSE,
   ...
 )
 }
@@ -106,6 +107,9 @@ to \code{NULL} - no seed is set.}
 \item{silent}{whether all print messages regarding the fitting process
 should be suppressed. Defaults to \code{TRUE}. Note that \code{parallel = TRUE}
 also suppresses all messages.}
+
+\item{rescale_data}{whether continuous predictors should be rescaled prior to
+estimating the model. Defaults to \code{FALSE}.}
 
 \item{...}{additional arguments.}
 }

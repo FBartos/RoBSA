@@ -1,200 +1,326 @@
-#' @title Plots a fitted RoBSA object
+#' @title Predict method for RoBSA objects.
 #'
-#' @param x a fitted RoBSA object.
-#' @param ... additional arguments.
+#' @description Predicts survival/hazard/density/mean/sd for a given
+#' RoBSA object. Either predicts values for each row of a fully specified
+#' \code{new_data} data.frame, or for all levels of a given \code{predictor}
+#' at the mean of continuous covariate values and default factor levels or
+#' covariate values specified as \code{covariates_data} data.frame.
+#'
+#' @param object a fitted RoBSA object
+#' @param time a vector of time values at which the survival/hazard/density
+#' will be predicted (for each passed data point)
+#' @param new_data a data.frame containing fully specified predictors for which
+#' predictions should be made
+#' @param predictor an alternative input to \code{new_data} that automatically
+#' generates predictions for each level of the predictor across all either across
+#' levels of covariates specified by \code{covariates_data} or at the default values
+#' of other predictors
+#' @param covariates_data a supplementary input to \code{predictor} that specifies
+#' levels of covariates for which predictions should be made
+#' @param type what type of prediction should be created
+#' @param summarize whether the predictions should be aggregated as mean and sd.
+#' Otherwise, prediction for for posterior samples is returned.
+#' @param averaged whether predictions should be combined with Bayesian model-averaging
+#' or whether predictions for each individual model should be returned.
+#' @param conditional whether only models assuming presence of the specified
+#' \code{predictor} should be used
+#' @param samples number of posterior samples to be evaluated
 #' @export
-predict.RoBSA        <- function(object, newdata, type = c("survival", "hazard", "density", "mean", "sd"), summarize = TRUE, models = FALSE, conditional = FALSE, samples = 10000){
+predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL, covariates_data = NULL,
+                          type = c("survival", "hazard", "density", "mean", "sd"),
+                          summarize = TRUE, averaged = TRUE, conditional = FALSE, samples = 10000){
 
-  if(!(is.matrix(newdata) | is.data.frame(newdata))){
-    cnames  <- names(newdata)
-    newdata <- data.frame(matrix(newdata, ncol = length(newdata)))
-    colnames(newdata) <- cnames
+  predictors_all  <- attr(object$data$predictors, "variables")
+  predictors_info <- attr(object$data$predictors, "variables_info")
+  models          <- object[["models"]]
+
+  BayesTools::check_real(time, "time", allow_NULL = TRUE, lower = 0, check_length = FALSE)
+  BayesTools::check_char(type, "type", allow_values = c("survival", "hazard", "density", "mean", "sd"))
+  if(type %in% c("survival", "hazard", "density") && is.null(time))
+    stop("Time variable 'time' must be provided.")
+  BayesTools::check_char(predictor, "predictor", allow_NULL = TRUE, allow_values = predictors_all)
+  BayesTools::check_bool(summarize, "summarize")
+  BayesTools::check_bool(averaged, "averaged")
+  BayesTools::check_bool(conditional, "conditional")
+  BayesTools::check_int(samples, "samples", lower = 0)
+
+
+  # check that the new data are correctly specified
+  if(!is.null(new_data) && (is.null(predictor) && is.null(covariates_data)) ){
+
+    if(!is.data.frame(new_data))
+      stop("'new_data' must be a data.frame")
+    if(!all(all_predictors %in% colnames(new_data)))
+      stop("All predictors must be provided.")
+
+  }else if(is.null(new_data)){
+
+    if(!is.null(covariates_data) && !is.data.frame(covariates_data))
+      stop("'covariates_data' must be a data.frame")
+
+    missing_predictors <- predictors_all[!predictors_all %in% c(colnames(covariates_data), predictor)]
+
+    # add the predictor if specified
+    if(!is.null(predictor)){
+
+      predictor_data  <- data.frame(
+        if(predictors_info[[predictor]][["type"]] == "factor") predictors_info[[predictor]][["levels"]]
+        else if(predictors_info[[predictor]][["type"]] == "continuous") predictors_info[[predictor]][["mean"]]
+      )
+
+      if(!is.null(covariates_data)){
+        covariates_data <- do.call(rbind, lapply(1:nrow(predictor_data), function(i) covariates_data))
+        predictor_data  <- do.call(rbind, lapply(1:nrow(covariates_data), function(i) predictor_data))
+        new_data        <- cbind(covariates_data, predictor_data)
+      }else{
+        new_data        <- predictor_data
+      }
+
+      colnames(new_data)[ncol(new_data)] <- predictor
+
+    }
+
+    # construct the missing predictors (i.e., the first level of factors and mean of covariates)
+    for(i in seq_along(missing_predictors)){
+      new_data <- cbind(
+        new_data,
+        if(predictors_info[[missing_predictors[i]]][["type"]] == "factor") predictors_info[[missing_predictors[i]]][["default"]]
+        else if(predictors_info[[missing_predictors[i]]][["type"]] == "continuous") predictors_info[[missing_predictors[i]]][["mean"]])
+      colnames(new_data)[ncol(new_data)] <- missing_predictors[i]
+    }
+
+  }else{
+    stop("Either no data or only the 'new_data' or 'parameter' (and 'covariates_data') need to be specified.")
   }
-  if(!all(attr(object[["data"]], "predictors") %in% colnames(newdata)))
-    stop("All predictors must be provided.")
-  if(type %in% c("survival", "hazard", "density")){
-    if(!any("time" %in% colnames(newdata)))
-      stop("Time variable 'time' must be provided.")
+
+
+  # rescale the new data if the original input was re-scaled
+  if(object[["add_info"]][["rescale_data"]]){
+    for(i in seq_along(predictors_all)){
+      if(predictors_info[[predictors_all[i]]][["type"]] == "continuous"){
+        new_data[,predictors_all[i]] <- .pred_scale(new_data[,predictors_all[i]], predictors_info[[predictors_all[i]]])
+      }
+    }
   }
 
 
-  # deal with predictions for individual models
-  if(models){
-    out <- lapply(object[["models"]], function(model).predict.RoBSA_model(model, newdata, type, summarize))
-    return(out)
-  }
-
-
-  # deal with ensemble level predictions
-  out_models <- lapply(object[["models"]], function(model).predict.RoBSA_model(model, newdata, type, FALSE))
-
+  # select conditional models (if the predictor is to be tested)
   if(conditional){
+    if(!predictor %in% object$add_info[["predictors_test"]])
+      stop("Conditional models cannot be selected since the given predictor was not tested (i.e., it was included in all models). ")
 
-    predictors    <- attr(object$data, "predictors")
-    models        <- object[["models"]]
-    marg_liks <- sapply(models, function(x)x$marg_lik$logml)
-    mm_predictors <- list()
-    for(i in seq_along(predictors)){
-      mm_predictors[[predictors[i]]] <- sapply(models, function(m)m$priors[["predictors"]][[predictors[i]]][["type"]] == "alt")
-    }
-    prior_weights_all        <- sapply(models, function(m)m$prior_odds)
-    prior_weights_predictors <- list()
-    for(i in seq_along(predictors)){
-      prior_weights_predictors[[predictors[i]]] <- ifelse(mm_predictors[[predictors[i]]], prior_weights_all, 0)
-    }
-    for(i in seq_along(predictors)){
-      prior_weights_predictors[[predictors[i]]] <- prior_weights_predictors[[predictors[i]]]/sum(prior_weights_predictors[[predictors[i]]])
-    }
-    weights_predictors <- list()
-    for(i in seq_along(predictors)){
-      if(any(mm_predictors[[predictors[i]]]) & all(!is.nan(prior_weights_predictors[[predictors[i]]]))){
-        weights_predictors[[predictors[i]]] <- bridgesampling::post_prob(marg_liks, prior_prob = prior_weights_predictors[[predictors[i]]])
-      }
+    is_null_models <- attr(object$RoBSA$inference_conditional[[.BayesTools_parameter_name(predictor)]], "is_null")
+    models         <- models[!is_null_models]
+  }
+
+
+  # obtain evaluated posterior distributions from each model
+  model_parameters <- lapply(models, function(model){
+
+    # the samples
+    posteriors <- list(
+        mu = BayesTools::JAGS_evaluate_formula(
+          fit        = model[["fit"]],
+          formula    = object[["formula"]],
+          parameter  = "mu",
+          data       = new_data,
+          prior_list = attr(model[["fit"]], "prior_list")
+    ))
+    if(.has_aux(model[["distribution"]])){
+      posteriors$aux = .extract_aux_samples(model[["fit"]])
     }
 
-    out <- list()
-    for(p in seq_along(predictors)){
-      out[[predictors[p]]] <- do.call(cbind, lapply(1:length(weights_predictors[[predictors[p]]]), function(i){
-        out_models[[i]][,sample(ncol(out_models[[i]]), round(weights_predictors[[predictors[p]]][i] * samples), TRUE), drop = FALSE]
+    # subset them to have equal amount across models
+    indx <- sample(ncol(posteriors[["mu"]]), size = samples, replace = TRUE)
+    posteriors[["mu"]] <- posteriors[["mu"]][,indx]
+    if(.has_aux(model[["distribution"]])){
+      posteriors[["aux"]] <- posteriors[["aux"]][indx]
+    }
+
+    attr(posteriors, "model")        <- model[["inference"]][["m_number"]]
+    attr(posteriors, "distribution") <- model[["distribution"]]
+
+    return(posteriors)
+  })
+
+
+  # deal with different types of predictions separately
+  if(type %in% c("mean", "sd")){
+
+    model_predictions <- lapply(model_parameters, function(parameters){
+
+      # get the corresponding function
+      prediction_function <- eval(parse(text = paste0(gsub("-", "_", attr(parameters, "distribution")), "_", type)))
+
+      # make predictions for each data point and merge into a data.frame
+      out <- data.frame(do.call(rbind, lapply(1:nrow(new_data), function(i){
+        args <- list(eta = parameters[["mu"]][i,])
+        if(.has_aux(attr(parameters, "distribution"))){
+          args <- c(args, list(parameters[["aux"]]))
+        }
+        return(do.call(prediction_function, args))
+      })))
+
+      attr(out, "data")         <- new_data
+      attr(out, "model")        <- attr(parameters, "model")
+      attr(out, "distribution") <- attr(parameters, "distribution")
+      attr(out, "outcome")      <- type
+      return(out)
+    })
+
+
+    # return the properly aggregated results
+    if(!averaged && !summarize){
+
+      attr(model_predictions, "data")    <- new_data
+      attr(model_predictions, "outcome") <- type
+      return(model_predictions)
+
+    }else if(!averaged && summarize){
+
+      model_predictions <- lapply(model_predictions, function(predictions){
+
+        out <- data.frame(
+          mean = apply(predictions, 1, mean),
+          sd   = apply(predictions, 1, sd)
+        )
+
+        attr(out, "data")         <- new_data
+        attr(out, "model")        <- attr(predictions, "model")
+        attr(out, "distribution") <- attr(predictions, "distribution")
+        attr(out, "outcome")      <- type
+        return(out)
+      })
+
+      attr(model_predictions, "data")    <- new_data
+      attr(model_predictions, "outcome") <- type
+      return(model_predictions)
+
+    }else{
+
+      # get re-standardized model weights in case a condition models were selected
+      model_weights <- sapply(models, function(model) model[["inference"]][["post_prob"]])
+      model_weights <- model_weights / sum(model_weights)
+
+      # average the predictions
+      data_predictions <- do.call(cbind, lapply(seq_along(model_predictions), function(i){
+        if(round(model_weights[i] * samples) > 0){
+         return(model_predictions[[i]][,1:round(model_weights[i] * samples)])
+        }else{
+          return(matrix(nrow = nrow(model_predictions[[i]]), ncol = 0))
+        }
       }))
-    }
+      colnames(data_predictions) <- NULL
 
-    if(summarize){
-      for(p in seq_along(predictors)){
-        out[[p]] <- data.frame(t(apply(out[[p]], 1, function(x)c(
-          "mean" = mean(x),
-          "lCI"  = unname(quantile(x, probs = .025)),
-          "uCI"  = unname(quantile(x, probs = .975)))
-        )))
+      if(summarize){
+        data_predictions <- data.frame(
+          mean = apply(data_predictions, 1, mean),
+          sd   = apply(data_predictions, 1, sd)
+        )
       }
+
+      attr(data_predictions, "data")    <- new_data
+      attr(data_predictions, "outcome") <- type
+      return(data_predictions)
     }
-
-  }else{
-
-    weights <- object[["RoBSA"]][["posterior_prob"]][["all"]]
-    out     <- do.call(cbind, lapply(1:length(weights), function(i){
-      out_models[[i]][,sample(ncol(out_models[[i]]), round(weights[i] * samples), TRUE), drop = FALSE]
-    }))
-
-    if(summarize){
-      out <- data.frame(t(apply(out, 1, function(x)c(
-        "mean" = mean(x),
-        "lCI"  = unname(quantile(x, probs = .025)),
-        "uCI"  = unname(quantile(x, probs = .975)))
-      )))
-    }
-
   }
 
+  if(type %in% c("survival", "hazard", "density")){
 
-  return(out)
-}
-.predict.RoBSA_model <- function(model, newdata, type, summarize){
+    model_predictions <- lapply(model_parameters, function(parameters){
 
-  out <- lapply(1:nrow(newdata), function(i).predict.RoBSA_fun(model, newdata[i,,drop = FALSE], type))
-  out <- do.call(rbind, out)
+      # get the corresponding function
+      prediction_function <- eval(parse(text = paste0(gsub("-", "_", attr(parameters, "distribution")), "_", type)))
 
-  if(summarize){
-    out <- data.frame(t(apply(out, 1, function(x)c(
-      "mean" = mean(x),
-      "lCI"  = unname(quantile(x, probs = .025)),
-      "uCI"  = unname(quantile(x, probs = .975)))
-    )))
-  }
+      # at each data point, make predictions for all times for each posterior sample
+      out <- lapply(1:nrow(new_data), function(i){
+        out <- do.call(rbind, lapply(seq_along(time), function(t){
+          args <- list(
+            t   = time[t],
+            eta = parameters[["mu"]][i,]
+          )
+          if(.has_aux(attr(parameters, "distribution"))){
+            args <- c(args, list(parameters[["aux"]]))
+          }
+          return(do.call(prediction_function, args))
+        }))
 
-  return(out)
-}
-.predict_function    <- function(x, mu, aux, distribution, type){
+        attr(out, "time") <- time
+        return(out)
+      })
 
-  # TODO: add other types of censoring
-  temp_function <- eval(parse(text = paste0(gsub("-", "_", distribution), "_", type)))
+      attr(out, "data")         <- new_data
+      attr(out, "model")        <- attr(parameters, "model")
+      attr(out, "distribution") <- attr(parameters, "distribution")
+      attr(out, "outcome")      <- type
+      return(out)
+    })
 
-  if(type %in% c("mean", "sd")){
-    args <- list(
-      eta = mu
-    )
-  }else{
-    args <- list(
-      t   = x,
-      eta = mu
-    )
-  }
-  if(.has_aux(distribution)){
-    args <- c(args, list(aux))
-  }
 
-  outcome <- do.call(temp_function, args)
+    # return the properly aggregated results
+    if(!averaged && !summarize){
 
-  return(outcome)
-}
-.predict.RoBSA_fun   <- function(model, data, type){
+      attr(model_predictions, "data")    <- new_data
+      attr(model_predictions, "outcome") <- type
+      return(model_predictions)
 
-  priors       <- model[["priors"]]
-  samples      <- as.data.frame(suppressWarnings(coda::as.mcmc(model[["fit"]])))
-  distribution <- model[["distribution"]]
+    }else if(!averaged && summarize){
 
-  if(type %in% c("mean", "sd")){
-    x <- NULL
-  }else{
-    x <- rep(data[["time"]], nrow(samples))
-  }
+      model_predictions <- lapply(model_predictions, function(predictions){
 
-  ### prepare the samples
-  # intercept
-  if(priors[["intercept"]]$distribution != "point"){
-    if(priors[["intercept"]]$distribution == "invgamma"){
-      inv_intercept <- samples[,"inv_intercept"]
-      intercept     <- 1/inv_intercept
+        out <- lapply(seq_along(predictions), function(i){
+          out <- data.frame(
+            time = time,
+            mean = apply(predictions[[i]], 1, mean),
+            sd   = apply(predictions[[i]], 1, sd)
+          )
+        })
+
+        attr(out, "data")         <- attr(predictions,"data")
+        attr(out, "model")        <- attr(predictions,"model")
+        attr(out, "distribution") <- attr(predictions,"distribution")
+        return(out)
+      })
+
+      attr(model_predictions, "data")    <- new_data
+      attr(model_predictions, "outcome") <- type
+      return(model_predictions)
+
     }else{
-      intercept     <- samples[,"intercept"]
-    }
-  }else{
-    intercept <- rep(priors[["intercept"]]$parameters[["location"]], nrow(samples))
-  }
 
-  # auxiliary
-  if(.has_aux(distribution)){
-    if(priors[["aux"]]$distribution != "point"){
-      if(priors[["aux"]]$distribution == "invgamma"){
-        inv_aux <- samples[,"inv_aux"]
-        aux     <- 1/inv_aux
-      }else{
-        aux     <- samples[,"aux"]
+      # get re-standardized model weights in case a condition models were selected
+      model_weights <- sapply(models, function(model) model[["inference"]][["post_prob"]])
+      model_weights <- model_weights / sum(model_weights)
+
+      # average the predictions
+      data_predictions <- lapply(1:nrow(new_data), function(j){
+
+        out <- do.call(cbind, lapply(seq_along(model_predictions), function(i){
+          if(round(model_weights[i] * samples) > 0){
+            return(model_predictions[[i]][[j]][,1:round(model_weights[i] * samples)])
+          }else{
+            return(matrix(nrow = nrow(model_predictions[[i]][[j]]), ncol = 0))
+          }
+        }))
+
+        attr(out, "time") <- time
+        return(out)
+      })
+
+
+      if(summarize){
+        data_predictions <- lapply(data_predictions, function(predictions){
+          return(data.frame(
+            time = time,
+            mean = apply(predictions, 1, mean),
+            sd   = apply(predictions, 1, sd)
+          ))
+        })
       }
-    }else{
-      aux <- rep(priors[["aux"]]$parameters[["location"]], nrow(samples))
+
+      attr(data_predictions, "data")    <- new_data
+      attr(data_predictions, "outcome") <- type
+      return(data_predictions)
     }
-  }else{
-    aux <- NULL
   }
-
-  # predictors
-  beta <- list()
-  for(i in seq_along(priors[["predictors"]])){
-    temp_beta <- NULL
-
-    if(priors[["predictors"]][[i]]$distribution != "point"){
-      if(priors[["predictors"]][[i]]$distribution == "invgamma"){
-        temp_beta <- samples[,paste0("inv_beta_", names(priors[["predictors"]])[i])]
-        temp_beta <- 1/temp_beta
-      }else{
-        temp_beta <- samples[,paste0( "beta_", names(priors[["predictors"]])[i])]
-      }
-    }else{
-      temp_beta <- rep(priors[["predictors"]][[i]]$parameters[["location"]], nrow(samples))
-    }
-
-    beta[[names(priors[["predictors"]])[i]]] <- temp_beta
-  }
-
-
-  # compute the linear predictor
-  mu <- intercept
-  for(i in seq_along(priors[["predictors"]])){
-    mu <- mu + beta[[names(priors[["predictors"]])[i]]] * data[[names(priors[["predictors"]])[i]]]
-  }
-
-  out <- .predict_function(x, mu, aux, distribution, type)
-
-  return(out)
 }

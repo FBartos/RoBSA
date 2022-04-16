@@ -330,13 +330,14 @@ set_convergence_checks  <- function(max_Rhat = 1.05, min_ESS = 500, max_error = 
   convergence_checks[["balance_probability"]] <- balance_probability
   return(convergence_checks)
 }
-.check_and_list_add_info           <- function(distributions, predictors, predictors_test, seed, save, warnings, errors){
+.check_and_list_add_info           <- function(distributions, predictors, predictors_test, seed, save, rescale_data, warnings, errors){
 
   BayesTools::check_char(distributions, "distributions", allow_values = c("exp-aft", "weibull-aft", "lnorm-aft", "llogis-aft", "gamma-aft"), check_length = FALSE)
   BayesTools::check_char(predictors, "predictors", allow_NULL = TRUE, check_length = FALSE)
   BayesTools::check_char(predictors_test, "predictors_test", allow_NULL = TRUE, check_length = FALSE)
   BayesTools::check_real(seed, "seed", allow_NULL = TRUE)
   BayesTools::check_char(save, "save", allow_values = c("min", "all"))
+  BayesTools::check_bool(rescale_data, "rescale_data")
 
   return(list(
     distributions    = distributions,
@@ -344,6 +345,7 @@ set_convergence_checks  <- function(max_Rhat = 1.05, min_ESS = 500, max_error = 
     predictors_test  = predictors_test,
     seed             = seed,
     save             = save,
+    rescale_data     = rescale_data,
     warnings         = warnings,
     errors           = errors
   ))

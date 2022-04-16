@@ -24,7 +24,11 @@ prior_factor <- BayesTools::prior_factor
 prior_informed <- BayesTools::prior_informed
 
 #' @name prior_informed_medicine_names
-#' @inherit BayesTools::prior_informed_medicine_names
+#' @title Names of medical subfields from the Cochrane database of systematic reviews
+#' @description Contain names identifying the individual subfields
+#' from the Cochrane database of systematic reviews. The individual
+#' elements correspond to valid name arguments for the [prior_informed()]
+#' function.
 #' @export
 prior_informed_medicine_names <- BayesTools::prior_informed_medicine_names
 

@@ -1,4 +1,10 @@
-.prepare_data <- function(formula, data){
+.prepare_data <- function(formula, data, rescale_data){
+
+  if(!is.language(formula))
+    stop("The 'formula' is not specidied as a formula.")
+  if(!is.null(data) && !is.data.frame(data))
+    stop("'data' must be an object of type data.frame.")
+  BayesTools::check_bool(rescale_data, "rescale_data")
 
   ### obtain the survival object
   lhs <- formula[[2]]
@@ -100,6 +106,51 @@
   attr(data_predictors, "terms")      <- attr(attr(model_frame, "terms"), "term.labels")
   attr(data_predictors, "terms_type") <- attr(attr(model_frame, "terms"), "dataClasses")
 
+
+  # add additional information about the predictors
+  data_predictors_info <- list()
+  to_warn              <- NULL
+  for(i in seq_along(data_predictors)){
+    if(attr(data_predictors, "terms_type")[i] == "numeric"){
+
+      data_predictors_info[[names(data_predictors)[i]]] <- list(
+        type = "continuous",
+        mean = mean(data_predictors[[names(data_predictors)[i]]]),
+        sd   = sd(data_predictors[[names(data_predictors)[i]]])
+      )
+
+      if(rescale_data){
+        data_predictors[[names(data_predictors)[i]]] <- .pred_scale(data_predictors[[names(data_predictors)[i]]], data_predictors_info[[names(data_predictors)[i]]])
+      }else if(RoBSA.get_option("check_scaling") && (abs(mean(data_predictors[[names(data_predictors)[i]]])) > 0.01 | abs(1 - sd(data_predictors[[names(data_predictors)[i]]])) > 0.01)){
+        to_warn <- c(to_warn, names(data_predictors)[i])
+      }
+
+    }else if(attr(data_predictors, "terms_type")[i] == "factor"){
+
+      data_predictors_info[[names(data_predictors)[i]]] <- list(
+        type    = "factor",
+        default = levels(data_predictors[[names(data_predictors)[i]]])[1],
+        levels  = levels(data_predictors[[names(data_predictors)[i]]])
+      )
+
+    }
+  }
+  attr(data_predictors, "variables_info") <- data_predictors_info
+
+  # create the output object
+  output <- list(
+    survival   = data_survival,
+    predictors = data_predictors
+  )
+
+  # throw warnings and errors
+  if(length(to_warn) > 0){
+    scaling_warning <- paste0("The continuous predictors ", paste0("'", to_warn, "'", collapse = ", "), "' are not scaled. Note that an extra care need to be taken when specifying prior distributions for unscaled predictors.")
+    warning(scaling_warning, immediate. = TRUE, call. = FALSE)
+    warning("You can suppress this and following warnings via 'RoBSA.options(check_scaling = FALSE)'. To automatically rescale predictors set 'rescale_data = TRUE'.", immediate. = TRUE, call. = FALSE)
+    attr(output, "warnings") <- scaling_warning
+  }
+
   # post processing checks
   if(any(!attr(data_survival, "type") %in% c("event", "cens_r")))
     stop("Only right censored observations are supported.")
@@ -109,8 +160,13 @@
     stop(paste0("The following variable names are internally reserved keywords and cannot be used: ",
                 paste0(" '", attr(data_predictors, "terms")[attr(data_predictors, "terms") %in% .reserved_words()], "' ", collapse = ", ")))
 
-  return(list(
-    survival   = data_survival,
-    predictors = data_predictors
-  ))
+  return(output)
+}
+
+
+.pred_scale    <- function(x, predictor_info){
+  (x - predictor_info[["mean"]]) / predictor_info[["sd"]]
+}
+.pred_unscale  <- function(x, predictor_info){
+  x * predictor_info[["sd"]] + predictor_info[["mean"]]
 }

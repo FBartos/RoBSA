@@ -262,7 +262,7 @@ plot_models <- function(x, parameter = NULL, conditional = FALSE, plot_type = "b
 #' @param x a fitted RoBSA object.
 #' @param ... additional arguments.
 #' @export
-plot_survival <- function(x, ...){
+plot_survival <- function(x, parameter, conditional, data_covariates = NULL, time_range = NULL){
 
   # create times for the prediction
   df          <- x$data

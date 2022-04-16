@@ -57,6 +57,7 @@ assign("RoBSA_version",   utils::packageVersion("RoBSA"),             envir = Ro
 assign("min_jags_major",  4,                                          envir = RoBSA.private)
 assign("max_jags_major",  4,                                          envir = RoBSA.private)
 assign("max_cores",       parallel::detectCores(logical = TRUE) - 1,  envir = RoBSA.private)
+assign("check_scaling",   TRUE,                                       envir = RoBSA.private)
 
 # check proper BayesTools package version
 .check_BayesTools <- function(){
@@ -74,7 +75,7 @@ assign("max_cores",       parallel::detectCores(logical = TRUE) - 1,  envir = Ro
 
   BayesTools_required <- switch(
     paste0(RoBSA.version, collapse = "."),
-    "1.0.0" = c("0.2.1", "6.6.6"),
+    "1.0.0" = c("0.2.7", "6.6.6"),
     stop("New RoBSA version needs to be defined in '.check_BayesTools' function!")
   )
 

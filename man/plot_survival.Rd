@@ -4,7 +4,13 @@
 \alias{plot_survival}
 \title{Plots a fitted RoBSA object}
 \usage{
-plot_survival(x, ...)
+plot_survival(
+  x,
+  parameter,
+  conditional,
+  data_covariates = NULL,
+  time_range = NULL
+)
 }
 \arguments{
 \item{x}{a fitted RoBSA object.}

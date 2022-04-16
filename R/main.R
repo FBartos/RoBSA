@@ -57,6 +57,8 @@
 #' @param silent whether all print messages regarding the fitting process
 #' should be suppressed. Defaults to \code{TRUE}. Note that \code{parallel = TRUE}
 #' also suppresses all messages.
+#' @param rescale_data whether continuous predictors should be rescaled prior to
+#' estimating the model. Defaults to \code{FALSE}.
 #' @param ... additional arguments.
 #'
 #' @rdname RoBSA
@@ -81,7 +83,7 @@ RoBSA <- function(
   autofit = TRUE, autofit_control = set_autofit_control(), convergence_checks = set_convergence_checks(),
 
   # additional settings
-  save = "all", seed = NULL, silent = TRUE, ...){
+  save = "all", seed = NULL, silent = TRUE, rescale_data = FALSE, ...){
 
   dots         <- .RoBSA_collect_dots(...)
   object       <- NULL
@@ -89,7 +91,7 @@ RoBSA <- function(
 
 
   ### prepare & check the data
-  object$data    <- .prepare_data(formula, data)
+  object$data    <- .prepare_data(formula, data, rescale_data)
   object$formula <- formula
 
 
@@ -114,7 +116,8 @@ RoBSA <- function(
     predictors_test  = attr(object[["priors"]], "terms_test"),
     seed             = seed,
     save             = save,
-    warnings         = NULL,
+    rescale_data     = rescale_data,
+    warnings         = attr(object[["data"]], "warnings"),
     errors           = NULL
   )
 

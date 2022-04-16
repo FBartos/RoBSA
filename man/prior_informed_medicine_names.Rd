@@ -10,19 +10,10 @@ An object of class \code{character} of length 47.
 \usage{
 prior_informed_medicine_names
 }
-\value{
-returns a character vector with names of medical subfields from Cochrane database of
-systematic reviews.
-}
 \description{
-Contain names identifying the individual subfields from the Cochrane database
-of systematic reviews. The individual elements correspond to valid \code{name} arguments
-for the \code{\link[BayesTools:prior_informed]{prior_informed()}} function.
-}
-\examples{
-print(prior_informed_medicine_names)
-}
-\seealso{
-\code{\link[BayesTools:prior_informed]{prior_informed()}}
+Contain names identifying the individual subfields
+from the Cochrane database of systematic reviews. The individual
+elements correspond to valid name arguments for the \code{\link[=prior_informed]{prior_informed()}}
+function.
 }
 \keyword{datasets}

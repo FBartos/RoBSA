@@ -2,11 +2,14 @@
 % Please edit documentation in R/predict.R
 \name{predict.RoBSA}
 \alias{predict.RoBSA}
-\title{Plots a fitted RoBSA object}
+\title{Predict method for RoBSA objects.}
 \usage{
 \method{predict}{RoBSA}(
   object,
-  newdata,
+  time = NULL,
+  new_data = NULL,
+  predictor = NULL,
+  covariates_data = NULL,
   type = c("survival", "hazard", "density", "mean", "sd"),
   summarize = TRUE,
   models = FALSE,
@@ -15,10 +18,39 @@
 )
 }
 \arguments{
-\item{x}{a fitted RoBSA object.}
+\item{object}{a fitted RoBSA object}
 
-\item{...}{additional arguments.}
+\item{time}{a vector of time values at which the survival/hazard/density
+will be predicted (for each passed data point)}
+
+\item{new_data}{a data.frame containing fully specified predictors for which
+predictions should be made}
+
+\item{predictor}{an alternative input to \code{new_data} that automatically
+generates predictions for each level of the predictor across all either across
+levels of covariates specified by \code{covariates_data} or at the default values
+of other predictors}
+
+\item{covariates_data}{a supplementary input to \code{predictor} that specifies
+levels of covariates for which predictions should be made}
+
+\item{type}{what type of prediction should be created}
+
+\item{summarize}{whether the predictions should be aggregated as mean and sd.
+Otherwise, prediction for for posterior samples is returned.}
+
+\item{models}{whether predictions should be combined with Bayesian model-averaging
+or whether predictions for each individual model should be returned.}
+
+\item{conditional}{whether only models assuming presence of the specified
+\code{predictor} should be used}
+
+\item{samples}{number of posterior samples to be evaluated}
 }
 \description{
-Plots a fitted RoBSA object
+Predicts survival/hazard/density/mean/sd for a given
+RoBSA object. Either predicts values for each row of a fully specified
+\code{new_data} data.frame, or for all levels of a given \code{predictor}
+at the mean of continuous covariate values and default factor levels or
+covariate values specified as \code{covariates_data} data.frame.
 }
