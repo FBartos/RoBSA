@@ -114,31 +114,43 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
   }
 
 
+  # pre-specify number of samples for model-averaging
+  if(averaged){
+    # get re-standardized model weights in case a condition models were selected
+    model_weights <- sapply(models, function(model) model[["inference"]][["post_prob"]])
+    model_weights <- model_weights / sum(model_weights)
+
+    samples <- round(model_weights * samples)
+  }else{
+    samples <- rep(samples, length(models))
+  }
+
+
   # obtain evaluated posterior distributions from each model
-  model_parameters <- lapply(models, function(model){
+  model_parameters <- lapply(seq_along(models), function(i){
 
     # the samples
     posteriors <- list(
         mu = BayesTools::JAGS_evaluate_formula(
-          fit        = model[["fit"]],
+          fit        = models[[i]][["fit"]],
           formula    = object[["formula"]],
           parameter  = "mu",
           data       = new_data,
-          prior_list = attr(model[["fit"]], "prior_list")
+          prior_list = attr(models[[i]][["fit"]], "prior_list")
     ))
-    if(.has_aux(model[["distribution"]])){
-      posteriors$aux = .extract_aux_samples(model[["fit"]])
+    if(.has_aux(models[[i]][["distribution"]])){
+      posteriors$aux = .extract_aux_samples(models[[i]][["fit"]])
     }
 
     # subset them to have equal amount across models
-    indx <- sample(ncol(posteriors[["mu"]]), size = samples, replace = TRUE)
+    indx <- sample(ncol(posteriors[["mu"]]), size = samples[i], replace = TRUE)
     posteriors[["mu"]] <- posteriors[["mu"]][,indx]
-    if(.has_aux(model[["distribution"]])){
+    if(.has_aux(models[[i]][["distribution"]])){
       posteriors[["aux"]] <- posteriors[["aux"]][indx]
     }
 
-    attr(posteriors, "model")        <- model[["inference"]][["m_number"]]
-    attr(posteriors, "distribution") <- model[["distribution"]]
+    attr(posteriors, "model")        <- models[[i]][["inference"]][["m_number"]]
+    attr(posteriors, "distribution") <- models[[i]][["distribution"]]
 
     return(posteriors)
   })
@@ -180,12 +192,15 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
 
       model_predictions <- lapply(model_predictions, function(predictions){
 
+        if(anyNA(predictions))
+          warning("Some of the model returned undefined predictions. The returned summary ommits all NA samples and might be biased.", immediate. = TRUE)
+
         out <- data.frame(
-          mean   = apply(predictions, 1, mean),
-          sd     = apply(predictions, 1, sd),
-          lCI    = apply(predictions, 1, stats::quantile, probs = 0.025),
-          median = apply(predictions, 1, stats::quantile, probs = 0.500),
-          uCI    = apply(predictions, 1, stats::quantile, probs = 0.975)
+          mean   = apply(predictions, 1, mean, na.rm = TRUE),
+          sd     = apply(predictions, 1, sd,   na.rm = TRUE),
+          lCI    = apply(predictions, 1, stats::quantile, probs = 0.025, na.rm = TRUE),
+          median = apply(predictions, 1, stats::quantile, probs = 0.500, na.rm = TRUE),
+          uCI    = apply(predictions, 1, stats::quantile, probs = 0.975, na.rm = TRUE)
         )
 
         attr(out, "data")         <- new_data
@@ -201,14 +216,10 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
 
     }else{
 
-      # get re-standardized model weights in case a condition models were selected
-      model_weights <- sapply(models, function(model) model[["inference"]][["post_prob"]])
-      model_weights <- model_weights / sum(model_weights)
-
       # average the predictions
       data_predictions <- do.call(cbind, lapply(seq_along(model_predictions), function(i){
-        if(round(model_weights[i] * samples) > 0){
-         return(model_predictions[[i]][,1:round(model_weights[i] * samples)])
+        if(samples[i] > 0){
+         return(model_predictions[[i]][,1:samples[i]])
         }else{
           return(matrix(nrow = nrow(model_predictions[[i]]), ncol = 0))
         }
@@ -216,12 +227,16 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
       colnames(data_predictions) <- NULL
 
       if(summarize){
+
+        if(anyNA(data_predictions))
+          warning("Some of the model returned undefined predictions. The returned summary ommits all NA samples and might be biased.", immediate. = TRUE)
+
         data_predictions <- data.frame(
-          mean   = apply(data_predictions, 1, mean),
-          sd     = apply(data_predictions, 1, sd),
-          lCI    = apply(data_predictions, 1, stats::quantile, probs = 0.025),
-          median = apply(data_predictions, 1, stats::quantile, probs = 0.500),
-          uCI    = apply(data_predictions, 1, stats::quantile, probs = 0.975)
+          mean   = apply(data_predictions, 1, mean, na.rm = TRUE),
+          sd     = apply(data_predictions, 1, sd,   na.rm = TRUE),
+          lCI    = apply(data_predictions, 1, stats::quantile, probs = 0.025, na.rm = TRUE),
+          median = apply(data_predictions, 1, stats::quantile, probs = 0.500, na.rm = TRUE),
+          uCI    = apply(data_predictions, 1, stats::quantile, probs = 0.975, na.rm = TRUE)
         )
       }
 
@@ -275,14 +290,17 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
 
       model_predictions <- lapply(model_predictions, function(predictions){
 
+        if(anyNA(predictions))
+          warning("Some of the model returned undefined predictions. The returned summary ommits all NA samples and might be biased.", immediate. = TRUE)
+
         out <- lapply(seq_along(predictions), function(i){
           out <- data.frame(
             time   = time,
-            mean   = apply(predictions[[i]], 1, mean),
-            sd     = apply(predictions[[i]], 1, sd),
-            lCI    = apply(predictions[[i]], 1, stats::quantile, probs = 0.025),
-            median = apply(predictions[[i]], 1, stats::quantile, probs = 0.500),
-            uCI    = apply(predictions[[i]], 1, stats::quantile, probs = 0.975)
+            mean   = apply(predictions[[i]], 1, mean, na.rm = TRUE),
+            sd     = apply(predictions[[i]], 1, sd,   na.rm = TRUE),
+            lCI    = apply(predictions[[i]], 1, stats::quantile, probs = 0.025, na.rm = TRUE),
+            median = apply(predictions[[i]], 1, stats::quantile, probs = 0.500, na.rm = TRUE),
+            uCI    = apply(predictions[[i]], 1, stats::quantile, probs = 0.975, na.rm = TRUE)
           )
         })
 
@@ -299,16 +317,12 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
 
     }else{
 
-      # get re-standardized model weights in case a condition models were selected
-      model_weights <- sapply(models, function(model) model[["inference"]][["post_prob"]])
-      model_weights <- model_weights / sum(model_weights)
-
       # average the predictions
       data_predictions <- lapply(1:nrow(new_data), function(j){
 
         out <- do.call(cbind, lapply(seq_along(model_predictions), function(i){
-          if(round(model_weights[i] * samples) > 0){
-            return(model_predictions[[i]][[j]][,1:round(model_weights[i] * samples)])
+          if(samples[i] > 0){
+            return(model_predictions[[i]][[j]][,1:samples[i]])
           }else{
             return(matrix(nrow = nrow(model_predictions[[i]][[j]]), ncol = 0))
           }
@@ -321,13 +335,17 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
 
       if(summarize){
         data_predictions <- lapply(data_predictions, function(predictions){
+
+          if(anyNA(predictions))
+            warning("Some of the model returned undefined predictions. The returned summary ommits all NA samples and might be biased.", immediate. = TRUE)
+
           return(data.frame(
             time   = time,
-            mean   = apply(predictions, 1, mean),
-            sd     = apply(predictions, 1, sd),
-            lCI    = apply(predictions, 1, stats::quantile, probs = 0.025),
-            median = apply(predictions, 1, stats::quantile, probs = 0.500),
-            uCI    = apply(predictions, 1, stats::quantile, probs = 0.975)
+            mean   = apply(predictions, 1, mean, na.rm = TRUE),
+            sd     = apply(predictions, 1, sd,   na.rm = TRUE),
+            lCI    = apply(predictions, 1, stats::quantile, probs = 0.025, na.rm = TRUE),
+            median = apply(predictions, 1, stats::quantile, probs = 0.500, na.rm = TRUE),
+            uCI    = apply(predictions, 1, stats::quantile, probs = 0.975, na.rm = TRUE)
           ))
         })
       }
