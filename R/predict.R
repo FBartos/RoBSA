@@ -181,8 +181,11 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
       model_predictions <- lapply(model_predictions, function(predictions){
 
         out <- data.frame(
-          mean = apply(predictions, 1, mean),
-          sd   = apply(predictions, 1, sd)
+          mean   = apply(predictions, 1, mean),
+          sd     = apply(predictions, 1, sd),
+          lCI    = apply(predictions, 1, stats::quantile, probs = 0.025),
+          median = apply(predictions, 1, stats::quantile, probs = 0.500),
+          uCI    = apply(predictions, 1, stats::quantile, probs = 0.975)
         )
 
         attr(out, "data")         <- new_data
@@ -214,8 +217,11 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
 
       if(summarize){
         data_predictions <- data.frame(
-          mean = apply(data_predictions, 1, mean),
-          sd   = apply(data_predictions, 1, sd)
+          mean   = apply(data_predictions, 1, mean),
+          sd     = apply(data_predictions, 1, sd),
+          lCI    = apply(data_predictions, 1, stats::quantile, probs = 0.025),
+          median = apply(data_predictions, 1, stats::quantile, probs = 0.500),
+          uCI    = apply(data_predictions, 1, stats::quantile, probs = 0.975)
         )
       }
 
@@ -261,6 +267,7 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
     if(!averaged && !summarize){
 
       attr(model_predictions, "data")    <- new_data
+      attr(model_predictions, "time")    <- time
       attr(model_predictions, "outcome") <- type
       return(model_predictions)
 
@@ -270,9 +277,12 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
 
         out <- lapply(seq_along(predictions), function(i){
           out <- data.frame(
-            time = time,
-            mean = apply(predictions[[i]], 1, mean),
-            sd   = apply(predictions[[i]], 1, sd)
+            time   = time,
+            mean   = apply(predictions[[i]], 1, mean),
+            sd     = apply(predictions[[i]], 1, sd),
+            lCI    = apply(predictions[[i]], 1, stats::quantile, probs = 0.025),
+            median = apply(predictions[[i]], 1, stats::quantile, probs = 0.500),
+            uCI    = apply(predictions[[i]], 1, stats::quantile, probs = 0.975)
           )
         })
 
@@ -283,6 +293,7 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
       })
 
       attr(model_predictions, "data")    <- new_data
+      attr(model_predictions, "time")    <- time
       attr(model_predictions, "outcome") <- type
       return(model_predictions)
 
@@ -311,14 +322,18 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
       if(summarize){
         data_predictions <- lapply(data_predictions, function(predictions){
           return(data.frame(
-            time = time,
-            mean = apply(predictions, 1, mean),
-            sd   = apply(predictions, 1, sd)
+            time   = time,
+            mean   = apply(predictions, 1, mean),
+            sd     = apply(predictions, 1, sd),
+            lCI    = apply(predictions, 1, stats::quantile, probs = 0.025),
+            median = apply(predictions, 1, stats::quantile, probs = 0.500),
+            uCI    = apply(predictions, 1, stats::quantile, probs = 0.975)
           ))
         })
       }
 
       attr(data_predictions, "data")    <- new_data
+      attr(data_predictions, "time")    <- time
       attr(data_predictions, "outcome") <- type
       return(data_predictions)
     }

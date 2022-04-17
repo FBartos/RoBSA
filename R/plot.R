@@ -192,6 +192,8 @@ plot.RoBSA  <- function(x, parameter = NULL, conditional = FALSE, plot_type = "b
 #' @export
 plot_models <- function(x, parameter = NULL, conditional = FALSE, plot_type = "base", order = "decreasing", order_by = "model", ...){
 
+  if(!is.RoBSA(x))
+    stop("'plot_models' function supports only 'RoBSA' type objects.")
   if(sum(.get_model_convergence(x)) == 0)
     stop("There is no converged model in the ensemble.")
 
@@ -257,33 +259,252 @@ plot_models <- function(x, parameter = NULL, conditional = FALSE, plot_type = "b
 }
 
 
-#' @title Plots a fitted RoBSA object
+#' @title Survival plots for a RoBSA object
 #'
 #' @param x a fitted RoBSA object.
+#' @inheritParams predict.RoBSA
 #' @param ... additional arguments.
-#' @export
-plot_survival <- function(x, parameter, conditional, data_covariates = NULL, time_range = NULL){
+#' @export plot_prediction
+#' @export plot_survival
+#' @export plot_hazard
+#' @export plot_density
+#' @name plot_prediction
+#' @aliases plot_survival plot_hazard plot_density
+NULL
 
-  # create times for the prediction
-  df          <- x$data
-  time_range  <- c(0, max(c(df$t_event, df$tcens_r)))
-  pred_data   <- data.frame(time = seq(time_range[1], time_range[2], length.out = 100))
+#' @rdname plot_prediction
+plot_prediction <- function(x, type = "survival", time_range = NULL, new_data = NULL, predictor = NULL, covariates_data = NULL,
+                            conditional = FALSE, plot_type = "base", samples = 10000, ...){
 
-  # add mean values for the predictors
-  pred_names  <- attr(df, "predictors")
-  for(i in seq_along(pred_names)){
-    mean_pred   <- mean(unlist(df[grep(pred_names[i], names(df))]))
-    pred_data   <- cbind(pred_data, new_pred = rep(mean_pred, nrow(pred_data)))
-    colnames(pred_data)[ncol(pred_data)] <- pred_names[i]
+  if(!is.RoBSA(x))
+    stop("'plot_models' function supports only 'RoBSA' type objects.")
+  BayesTools::check_real(time_range, "time_range", lower = 0, allow_NULL = TRUE, check_length = TRUE)
+  BayesTools::check_char(plot_type, "plot_type", allow_values = c("base", "ggplot"))
+  # the other input is checked within predict.RoBSA
+
+  # set a default time_range
+  if(is.null(time_range)){
+    time_range <- c(0, max(c(
+      x[["data"]][["survival"]][["t_event"]],
+      x[["data"]][["survival"]][["t_cens_r"]],
+      x[["data"]][["survival"]][["t_cens_ir"]]
+    )))
+    time_range <- range(pretty(time_range))
+  }
+  time_range <- seq(time_range[1], time_range[2], length.out = 101)
+  if(type == "density"){
+    time_range <- time_range[-1]
   }
 
-  # predict the mean survival
-  pred_survival <- predict.RoBSA(x, pred_data, type = "survival")
+  # obtain predictions for the survival
+  plot_data  <- predict.RoBSA(x, time = time_range, new_data = new_data, predictor = predictor, covariates_data = covariates_data,
+                              type = type, summarize = TRUE, averaged = TRUE, conditional = conditional, samples = samples)
 
-  # plot the survival
-  graphics::plot(x = pred_data$time, y = pred_survival$mean, ylim = c(0,1), "l", xlab = "Time", ylab = "Survival", las = 1, ...)
-  graphics::lines(x = pred_data$time, y = pred_survival$uCI, lty = 2, ...)
-  graphics::lines(x = pred_data$time, y = pred_survival$lCI, lty = 2, ...)
+  # generate plotting settings
+  dots <- .set_dots_plot_prediction(plot_data, ...)
 
-  return(invisible())
+
+  # create times for the prediction
+  if(plot_type == "base"){
+
+    plot <- NULL
+    graphics::plot(NA, type = "n", bty  = "n", las = 1, xlab = dots[["xlab"]], ylab = dots[["ylab"]], main = dots[["main"]],
+                   xlim = dots[["xlim"]], ylim = dots[["ylim"]],
+                   cex.axis = dots[["cex.axis"]], cex.lab = dots[["cex.lab"]], cex.main = dots[["cex.main"]],
+                   col.axis = dots[["col.axis"]], col.lab = dots[["col.lab"]], col.main = dots[["col.main"]])
+
+    for(i in seq_along(plot_data)){
+      graphics::polygon(
+        x   = c(plot_data[[i]][,"time"], rev(plot_data[[i]][,"time"])),
+        y   = c(plot_data[[i]][,"lCI"],  rev(plot_data[[i]][,"uCI"])),
+        col = dots[["col.fill"]][i], border = NA
+      )
+    }
+
+    for(i in seq_along(plot_data)){
+      graphics::lines(plot_data[[i]][,"time"], plot_data[[i]][,"mean"], lwd = dots[["lwd"]][i], lty = dots[["lty"]][i], col = dots[["col"]][i])
+    }
+
+    if(dots[["legend"]]){
+      graphics::legend(
+        dots[["legend.position"]],
+        legend = dots[["legend.text"]],
+        col    = dots[["col"]],
+        lty    = dots[["lty"]],
+        lwd    = dots[["lwd"]],
+        bty    = "n")
+    }
+
+  }else if(plot_type == "ggplot"){
+
+    plot <- ggplot2::ggplot()+
+      ggplot2::ggtitle(dots[["main"]]) +
+      ggplot2::scale_x_continuous(name = dots[["xlab"]], limits = dots[["xlim"]], oob = scales::oob_keep) +
+      ggplot2::scale_y_continuous(name = dots[["ylab"]], limits = dots[["ylim"]], oob = scales::oob_keep)
+
+    for(i in seq_along(plot_data)){
+      plot <- plot + ggplot2::geom_polygon(
+        data    = data.frame(
+          x     = c(plot_data[[i]][,"time"], rev(plot_data[[i]][,"time"])),
+          y     = c(plot_data[[i]][,"lCI"],  rev(plot_data[[i]][,"uCI"]))),
+        mapping = ggplot2::aes_string(
+          x = "x",
+          y = "y"),
+        fill    = dots[["col.fill"]][i]
+      )
+    }
+
+    for(i in seq_along(plot_data)){
+      plot <- plot + ggplot2::geom_line(
+        data    = data.frame(
+          x     = plot_data[[i]][,"time"],
+          y     = plot_data[[i]][,"mean"],
+          level = dots[["legend.text"]][i]),
+        mapping = ggplot2::aes_string(
+          x        = "x",
+          y        = "y",
+          size     = "level",
+          color    = "level",
+          linetype = "level",
+          group    = "level"),
+        show.legend = dots[["legend"]])
+    }
+
+    if(dots[["legend"]]){
+      names(dots[["lty"]]) <- dots[["legend.text"]]
+      names(dots[["col"]]) <- dots[["legend.text"]]
+      names(dots[["lwd"]]) <- dots[["legend.text"]]
+      plot <- plot +
+        ggplot2::scale_linetype_manual(name = "level", values = dots[["lty"]]) +
+        ggplot2::scale_color_manual(name = "level", values = dots[["col"]]) +
+        ggplot2::scale_size_manual(name = "level", values = dots[["lwd"]]) +
+        ggplot2::theme(
+        legend.title    = ggplot2::element_blank(),
+        legend.position = dots[["legend_position"]])
+    }
+  }
+
+  # return the plots
+  if(plot_type == "base"){
+    return(invisible(plot))
+  }else if(plot_type == "ggplot"){
+    return(plot)
+  }
+}
+#' @rdname plot_prediction
+plot_survival <- function(x, time_range = NULL, new_data = NULL, predictor = NULL, covariates_data = NULL,
+                            conditional = FALSE, plot_type = "base", samples = 10000, ...){
+  plot_prediction(x, type = "survival", time_range = time_range, new_data = new_data, predictor = predictor, covariates_data = covariates_data,
+                  conditional = conditional, plot_type = plot_type, samples = samples, ...)
+}
+#' @rdname plot_prediction
+plot_hazard <- function(x, time_range = NULL, new_data = NULL, predictor = NULL, covariates_data = NULL,
+                          conditional = FALSE, plot_type = "base", samples = 10000, ...){
+  plot_prediction(x, type = "hazard", time_range = time_range, new_data = new_data, predictor = predictor, covariates_data = covariates_data,
+                  conditional = conditional, plot_type = plot_type, samples = samples, ...)
+}#' @rdname plot_prediction
+plot_density <- function(x, time_range = NULL, new_data = NULL, predictor = NULL, covariates_data = NULL,
+                          conditional = FALSE, plot_type = "base", samples = 10000, ...){
+  plot_prediction(x, type = "density", time_range = time_range, new_data = new_data, predictor = predictor, covariates_data = covariates_data,
+                  conditional = conditional, plot_type = plot_type, samples = samples, ...)
+}
+
+.set_dots_plot_prediction <- function(plot_data, outcome, ...){
+
+  dots   <- list(...)
+  data   <- attr(plot_data, "data")
+  levels <- nrow(data)
+
+  if(is.null(dots[["xlab"]])){
+    dots[["xlab"]] <- "Time"
+  }
+
+  if(is.null(dots[["ylab"]])){
+    dots[["ylab"]] <- switch(
+      attr(plot_data, "outcome"),
+      "survival" = "Survival",
+      "hazard"   = "Hazard",
+      "density"  = "Density"
+    )
+  }
+
+  if(is.null(dots[["main"]])){
+    dots[["main"]] <- NULL
+  }
+
+  if(is.null(dots[["xlim"]])){
+    dots[["xlim"]] <- range(attr(plot_data, "time"))
+  }
+
+  if(is.null(dots[["ylim"]])){
+    dots[["ylim"]] <- switch(
+      attr(plot_data, "outcome"),
+      "survival" = c(0, 1),
+      "hazard"   = c(0, 1),
+      "density"  = range(pretty(range(do.call(c, lapply(plot_data, function(d) d[,-1])))))
+    )
+  }
+
+  if(is.null(dots[["col"]])){
+    if(levels == 1){
+      dots[["col"]] <- "black"
+    }else{
+      dots[["col"]] <- scales::viridis_pal()(levels)
+    }
+  }else if(length(dots[["col"]]) == 1){
+    dots[["col"]] <- rep(dots[["col"]], levels)
+  }else if(dots[["col"]] != levels){
+    stop("The number of specified colors does not match the number of predicted variable levels.")
+  }
+
+  if(is.null(dots[["col.fill"]])){
+    if(levels == 1){
+      dots[["col.fill"]] <- scales::alpha("grey30", alpha = .30)
+    }else{
+      dots[["col.fill"]] <- scales::alpha(dots[["col"]], alpha = .30)
+    }
+  }else if(length(dots[["col.fill"]]) == 1){
+    dots[["col.fill"]] <- rep(dots[["col.fill"]], levels)
+  }else if(dots[["col.fill"]] != levels){
+    stop("The number of specified filling colors does not match the number of predicted variable levels.")
+  }
+
+  if(is.null(dots[["lwd"]])){
+    dots[["lwd"]] <- rep(1, levels)
+  }else if(length(dots[["lwd"]]) == 1){
+    dots[["lwd"]] <- rep(dots[["lwd"]], levels)
+  }else if(dots[["lwd"]] != levels){
+    stop("The number of specified line widths (lwd) colors does not match the number of predicted variable levels.")
+  }
+
+  if(is.null(dots[["lty"]])){
+    dots[["lty"]] <- rep(1, levels)
+  }else if(length(dots[["lty"]]) == 1){
+    dots[["lty"]] <- rep(dots[["lty"]], levels)
+  }else if(dots[["lty"]] != levels){
+    stop("The number of specified line types (lty) colors does not match the number of predicted variable levels.")
+  }
+
+  if(is.null(dots[["legend"]])){
+    dots[["legend"]] <- TRUE
+  }
+
+  if(is.null(dots[["legend.text"]])){
+    # remove constant predictors for defaults legend
+    for(i in ncol(data):1){
+      if(length(unique(data[,i])) == 1){
+        data <- data[,-i, drop = FALSE]
+      }
+    }
+    if(ncol(data) >= 1){
+      dots[["legend.text"]] <- sapply(1:nrow(data), function(i) paste0(
+        colnames(data), " = ", sapply(data[i,], function(x) if(is.numeric(x)) sprintf("%.2f", x) else x),
+        collapse = "; "))
+    }
+  }
+
+  if(is.null(dots[["legend.position"]])){
+    dots[["legend.position"]] <- "topright"
+  }
+  return(dots)
 }

@@ -12,7 +12,7 @@
   covariates_data = NULL,
   type = c("survival", "hazard", "density", "mean", "sd"),
   summarize = TRUE,
-  models = FALSE,
+  averaged = TRUE,
   conditional = FALSE,
   samples = 10000
 )
@@ -39,7 +39,7 @@ levels of covariates for which predictions should be made}
 \item{summarize}{whether the predictions should be aggregated as mean and sd.
 Otherwise, prediction for for posterior samples is returned.}
 
-\item{models}{whether predictions should be combined with Bayesian model-averaging
+\item{averaged}{whether predictions should be combined with Bayesian model-averaging
 or whether predictions for each individual model should be returned.}
 
 \item{conditional}{whether only models assuming presence of the specified
