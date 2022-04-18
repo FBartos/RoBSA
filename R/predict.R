@@ -162,7 +162,7 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
     model_predictions <- lapply(model_parameters, function(parameters){
 
       # get the corresponding function
-      prediction_function <- eval(parse(text = paste0(gsub("-", "_", attr(parameters, "distribution")), "_", type)))
+      prediction_function <- .get_prediction_distribution_function(attr(parameters, "distribution"), type)
 
       # make predictions for each data point and merge into a data.frame
       out <- data.frame(do.call(rbind, lapply(1:nrow(new_data), function(i){
@@ -251,7 +251,7 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
     model_predictions <- lapply(model_parameters, function(parameters){
 
       # get the corresponding function
-      prediction_function <- eval(parse(text = paste0(gsub("-", "_", attr(parameters, "distribution")), "_", type)))
+      prediction_function <- .get_prediction_distribution_function(attr(parameters, "distribution"), type)
 
       # at each data point, make predictions for all times for each posterior sample
       out <- lapply(1:nrow(new_data), function(i){

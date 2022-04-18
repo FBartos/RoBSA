@@ -4,7 +4,7 @@
 #include <cmath>
 #include <rng/RNG.h>
 #include <JRmath.h>
-#include "distribution_functions.h"
+#include "../source/distributions.h"
 
 using std::vector;
 

@@ -28,6 +28,9 @@ RoBSA.options    <- function(...){
 	  if(!names(opts)[i] %in% names(RoBSA.private))
 	    stop(paste("Unmatched or ambiguous option '", names(opts)[i], "'", sep=""))
 
+	  if(!names(opts)[i] == "distribution")
+	    stop("List of default distributions cannot be changed.")
+
 	  assign(names(opts)[i], opts[[i]] , envir = RoBSA.private)
 	}
 
@@ -58,6 +61,7 @@ assign("min_jags_major",  4,                                          envir = Ro
 assign("max_jags_major",  4,                                          envir = RoBSA.private)
 assign("max_cores",       parallel::detectCores(logical = TRUE) - 1,  envir = RoBSA.private)
 assign("check_scaling",   TRUE,                                       envir = RoBSA.private)
+assign("distributions",   .distributions,                             envir = RoBSA.private)
 
 # check proper BayesTools package version
 .check_BayesTools <- function(){

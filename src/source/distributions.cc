@@ -1,4 +1,4 @@
-#include "distribution_functions.h"
+#include "distributions.h"
 #include <util/nainf.h>
 #include <JRmath.h>
 #include <cmath>

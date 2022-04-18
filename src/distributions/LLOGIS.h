@@ -1,14 +1,14 @@
-#ifndef LLOGIST_H_
-#define LLOGIST_H_
+#ifndef LLOGIS_H_
+#define LLOGIS_H_
 #include <distribution/VectorDist.h>
 
 namespace jags {
   namespace surv { // module namespace
 
-    class DLLOGIST : public VectorDist
+    class DLLOGIS : public VectorDist
     {
       public:
-        DLLOGIST();
+        DLLOGIS();
         
       double logDensity(double const *x, unsigned int length, PDFType tpye, 
             std::vector<double const *> const &parameters,
@@ -32,10 +32,10 @@ namespace jags {
       bool isSupportFixed(std::vector<bool> const &fixmask) const;
     };
 
-    class SLLOGIST : public VectorDist
+    class SLLOGIS : public VectorDist
     {
       public:
-        SLLOGIST();
+        SLLOGIS();
         
       double logDensity(double const *x, unsigned int length, PDFType tpye, 
             std::vector<double const *> const &parameters,
@@ -62,4 +62,4 @@ namespace jags {
   }
 }
 
-#endif /* LLOGIST_H_ */
+#endif /* LLOGIS_H_ */

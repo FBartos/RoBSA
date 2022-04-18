@@ -1,5 +1,5 @@
 PKG_CPPFLAGS=@JAGS_CFLAGS@
 PKG_LIBS=@JAGS_LIBS@ @JAGS_RPATH@
 
-SOURCES = $(wildcard distributions/*.cc) RoBSA.cc
+SOURCES = $(wildcard source/*.cc) $(wildcard functions/*.cc) $(wildcard distributions/*.cc) RoBSA.cc
 OBJECTS=$(SOURCES:.cc=.o)
