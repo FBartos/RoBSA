@@ -1,0 +1,6 @@
+"Call:"
+"RoBSA(formula = Surv(time = time, event = event) ~ 1, data = df, "
+"    parallel = TRUE, seed = 1, rescale_data = TRUE)"
+""
+"Estimates:"
+"NULL"
