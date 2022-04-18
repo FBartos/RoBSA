@@ -260,7 +260,7 @@ NULL
 # corresponds to stats::dlnorm(x, meanlog = eta, sdlog = sd)
 .lnorm_aft <- list(
   log_density   = function(t, eta, sd) stats::dlnorm(t, meanlog = eta, sdlog = sd, log = TRUE),
-  log_hazard    = function(t, eta, sd) stats::.lnorm_aft$log_density(t, eta, sd) - .lnorm_aft$log_survival(t, eta, sd),
+  log_hazard    = function(t, eta, sd) .lnorm_aft$log_density(t, eta, sd) - .lnorm_aft$log_survival(t, eta, sd),
   log_survival  = function(t, eta, sd) stats::plnorm(t, meanlog = eta, sdlog = sd, lower.tail = FALSE, log.p = TRUE),
   density       = function(t, eta, sd) exp(.lnorm_aft$log_density(t, eta, sd)),
   hazard        = function(t, eta, sd) exp(.lnorm_aft$log_hazard(t, eta, sd)),
@@ -467,11 +467,11 @@ NULL
 # corresponds to stats::dgamma(x, shape = shape, scale = 1/ exp(-eta))
 .gamma_aft <- list(
   log_density   = function(t, eta, shape) stats::dgamma(t, shape = shape, scale = 1/ exp(-eta), log = TRUE),
-  log_hazard    = function(t, eta, shape) stats::gamma_aft_log_density(t, eta, shape) - gamma_aft_log_survival(t, eta, shape),
+  log_hazard    = function(t, eta, shape) .gamma_aft$log_density(t, eta, shape) - .gamma_aft$log_survival(t, eta, shape),
   log_survival  = function(t, eta, shape) stats::pgamma(t, shape = shape, scale = 1/ exp(-eta), lower.tail = FALSE, log.p = TRUE),
-  density       = function(t, eta, shape) exp(gamma_aft_log_density(t, eta, shape)),
-  hazard        = function(t, eta, shape) exp(gamma_aft_log_hazard(t, eta, shape)),
-  survival      = function(t, eta, shape) exp(gamma_aft_log_survival(t, eta, shape)),
+  density       = function(t, eta, shape) exp(.gamma_aft$log_density(t, eta, shape)),
+  hazard        = function(t, eta, shape) exp(.gamma_aft$log_hazard(t, eta, shape)),
+  survival      = function(t, eta, shape) exp(.gamma_aft$log_survival(t, eta, shape)),
   mean          = function(eta, shape)    shape / exp(-eta),
   sd            = function(eta, shape)    sqrt(shape / exp(-eta)^2),
   r             = function(n, eta, shape) stats::rgamma(n, shape = shape, scale = 1/exp(-eta)),

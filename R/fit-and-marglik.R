@@ -93,7 +93,7 @@
       marglik <- BayesTools::JAGS_bridgesampling(
         fit                = fit,
         log_posterior      = .marglik_function,
-        data               = fit_data,
+        data               = data,
         prior_list         = fit_priors,
         formula_list       = formula_list,
         formula_data_list  = formula_data_list,
@@ -212,7 +212,11 @@
 }
 .generate_model_formula_data_list  <- function(data){
 
-  data <- list("mu" = data.frame(data[["predictors"]]))
+  if(length(data[["predictors"]]) == 0){
+    data <- list("mu" = data.frame(matrix(ncol = 0, nrow = sum(unlist(data[["survival"]][c("n_event", "n_cens_r", "n_cens_l", "n_cens_i")])))))
+  }else{
+    data <- list("mu" = data.frame(data[["predictors"]]))
+  }
 
   return(data)
 }
@@ -240,12 +244,12 @@
       to   <- to   + data[["survival"]][[paste0("n_", types[i])]]
     }
 
-    log_lik <- log_lik + .marglik_survival_likelihood(
+    log_lik <- log_lik + sum(.marglik_survival_likelihood(
       distribution = distribution,
-      type         = types[type],
-      x            = data[["time"]][from:to],
+      type         = types[i],
+      x            = data[["survival"]][[paste0("t_", types[i])]],
       mu           = parameters[["mu"]][from:to],
-      aux          = parameters[["aux"]])
+      aux          = parameters[["aux"]]))
   }
 
 
@@ -289,14 +293,7 @@
 .marglik_survival_likelihood <- function(distribution, type, x, mu, aux){
 
   # TODO: add other types of censoring
-  survival_likelihood <- eval(parse(text = paste0(gsub("-", "_", distribution), "_log_", switch(
-    type,
-    "event" = "density",
-    "rcent" = "survival",
-    "lcent" = NULL,
-    "icent" = NULL,
-    "delay" = NULL
-  ))))
+  survival_likelihood <- .get_marginal_distribution_function(distribution, type)
   args <- list(
     t   = x,
     eta = mu

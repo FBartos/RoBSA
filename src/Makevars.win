@@ -9,5 +9,5 @@ PKG_LIBS=-L"$(JAGS_ROOT)/${R_ARCH}/bin" -ljags-4 -ljrmath-0
 
 # Actual sources and objects for RoBSA
 
-SOURCES = $(wildcard distributions/*.cc) RoBSA.cc
+SOURCES = $(wildcard source/*.cc) $(wildcard functions/*.cc) $(wildcard distributions/*.cc) RoBSA.cc
 OBJECTS = $(SOURCES:.cc=.o)

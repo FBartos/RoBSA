@@ -359,7 +359,7 @@ plot_prediction <- function(x, type = "survival", time_range = NULL, new_data = 
         data    = data.frame(
           x     = plot_data[[i]][,"time"],
           y     = plot_data[[i]][,"mean"],
-          level = dots[["legend.text"]][i]),
+          level = if(dots[["legend"]]) dots[["legend.text"]][i] else ""),
         mapping = ggplot2::aes_string(
           x        = "x",
           y        = "y",
@@ -506,5 +506,11 @@ plot_density <- function(x, time_range = NULL, new_data = NULL, predictor = NULL
   if(is.null(dots[["legend.position"]])){
     dots[["legend.position"]] <- "topright"
   }
+
+  if(length(dots[["legend.text"]]) == 0){
+    dots[["legend"]] <- FALSE
+  }
+
+
   return(dots)
 }

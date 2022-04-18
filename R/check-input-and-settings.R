@@ -13,115 +13,189 @@
 #' @seealso [RoBSA()]
 #' @export
 check_setup <- function(
-    formula, data, priors = NULL, test_predictors = NULL,
-    distributions = c("exp-aft", "weibull-aft", "lnorm-aft", "llogis-aft", "gamma-aft"),
-    distributions_weights = rep(1, length(distributions)),
-    prior_beta_null  = get_default_prior_beta_null(),
-    prior_beta_alt   = get_default_prior_beta_alt(),
-    prior_intercept  = get_default_prior_intercept(),
-    prior_aux        = get_default_prior_aux(),
+  formula, data, priors = NULL, test_predictors = NULL,
 
-    # MCMC fitting settings
-    chains = 3, sample = 5000, burnin = 2000, adapt = 500, thin = 1, parallel = FALSE,
-    autofit = TRUE, autofit_control = set_autofit_control(), convergence_checks = set_convergence_checks(),
+  distributions = c("exp-aft", "weibull-aft", "lnorm-aft", "llogis-aft", "gamma-aft"),
+  distributions_weights = rep(1, length(distributions)),
 
-    # additional settings
-    save = "all", seed = NULL, silent = TRUE, ...){
+  # default prior distribution
+  prior_beta_null   = get_default_prior_beta_null(),
+  prior_beta_alt    = get_default_prior_beta_alt(),
+  prior_factor_null = get_default_prior_factor_null(),
+  prior_factor_alt  = get_default_prior_factor_alt(),
+  prior_intercept   = get_default_prior_intercept(),
+  prior_aux         = get_default_prior_aux(),
 
-  # .....
+  # MCMC fitting settings
+  chains = 3, sample = 5000, burnin = 2000, adapt = 500, thin = 1, parallel = FALSE,
+  autofit = TRUE, autofit_control = set_autofit_control(), convergence_checks = set_convergence_checks(),
 
-  object <- list()
-  object$priors   <- .check_and_list_priors(tolower(model_type), priors_effect_null, priors_effect, priors_heterogeneity_null, priors_heterogeneity, priors_bias_null, priors_bias, priors_rho, priors_rho_null, object$add_info[["prior_scale"]])
-  object$models   <- .make_models(object[["priors"]], multivariate = FALSE)
+  # additional settings
+  save = "all", seed = NULL, silent = FALSE, rescale_data = FALSE, models = FALSE, ...){
+
+  BayesTools::check_bool(models, "models")
+
+  # ----------------------------------------------------------------------------------------- #
+  ### run the model generation from RoBSA()
+  dots         <- .RoBSA_collect_dots(...)
+  object       <- NULL
+  object$call  <- match.call()
 
 
-  ### model types overview
-  effect         <- sapply(object$models, function(model)!.is_component_null(model[["priors"]], "effect"))
-  heterogeneity  <- sapply(object$models, function(model)!.is_component_null(model[["priors"]], "heterogeneity"))
-  bias           <- sapply(object$models, function(model)!.is_component_null(model[["priors"]], "bias"))
+  ### prepare & check the data
+  object$data    <- .prepare_data(formula, data, rescale_data)
+  object$formula <- formula
 
-  # obtain the parameter types
-  weightfunctions <- sapply(object$models, function(model)any(sapply(model[["priors"]], is.prior.weightfunction)))
-  PET             <- sapply(object$models, function(model)any(sapply(model[["priors"]], is.prior.PET)))
-  PEESE           <- sapply(object$models, function(model)any(sapply(model[["priors"]], is.prior.PEESE)))
 
-  # number of model types
-  n_models    <- c(
-    mu    = sum(effect),
-    tau   = sum(heterogeneity),
-    omega = sum(bias)
+  ### check MCMC settings
+  object$fit_control        <- BayesTools::JAGS_check_and_list_fit_settings(chains = chains, adapt = adapt, burnin = burnin, sample = sample, thin = thin, autofit = autofit, parallel = parallel, cores = chains, silent = silent, seed = seed)
+  object$autofit_control    <- BayesTools::JAGS_check_and_list_autofit_settings(autofit_control = autofit_control)
+  object$convergence_checks <- .check_and_list_convergence_checks(convergence_checks)
+
+
+  ### prepare and check the settings
+  object$priors  <- .check_and_list_priors(priors = priors, distributions = distributions, data = object[["data"]], test_predictors = test_predictors,
+                                           default_prior_beta_null = prior_beta_null, default_prior_beta_alt = prior_beta_alt,
+                                           default_prior_factor_null = prior_factor_null, default_prior_factor_alt = prior_factor_alt,
+                                           default_prior_intercept = prior_intercept, default_prior_aux = prior_aux)
+  object$models  <- .prepare_models(object$priors, distributions, distributions_weights)
+
+
+  ### additional information
+  object$add_info <- .check_and_list_add_info(
+    distributions    = distributions,
+    predictors       = attr(object[["priors"]], "terms"),
+    predictors_test  = attr(object[["priors"]], "terms_test"),
+    seed             = seed,
+    save             = save,
+    rescale_data     = rescale_data,
+    warnings         = attr(object[["data"]], "warnings"),
+    errors           = NULL
   )
 
-  # extract model weights
-  prior_weights   <- sapply(object$models, function(m)m$prior_weights)
-  # standardize model weights
-  prior_weights   <- prior_weights / sum(prior_weights)
-  # conditional model weights
-  models_prior <- c(
-    mu    <- sum(prior_weights[effect]),
-    tau   <- sum(prior_weights[heterogeneity]),
-    omega <- sum(prior_weights[bias])
-  )
+  # ----------------------------------------------------------------------------------------- #
+  ### run the model specification from .ensemble_inference()
+  prior_weights <- sapply(object[["models"]], function(model) model[["prior_weights"]])
 
-  # create overview table
-  components <- data.frame(
-    "models"     = n_models,
-    "prior_prob" = models_prior
-  )
-  rownames(components) <- c("Effect", "Heterogeneity", "Bias")
+  model_predictors      <- lapply(object[["models"]], function(model) model[["terms"]])
+  model_predictors_test <- lapply(object[["models"]], function(model) model[["terms_test"]])
+  model_distributions   <- sapply(object[["models"]], function(model) model[["distribution"]])
 
-  class(components)             <- c("BayesTools_table", "BayesTools_ensemble_summary", class(components))
-  attr(components, "type")      <- c("n_models", "prior_prob")
-  attr(components, "rownames")  <- TRUE
-  attr(components, "n_models")  <- length(object$models)
-  attr(components, "title")     <- "Components summary:"
-  attr(components, "footnotes") <- NULL
-  attr(components, "warnings")  <- NULL
+  distributions   <- object$add_info[["distributions"]]
+  predictors      <- object$add_info[["predictors"]]
+  predictors_test <- object$add_info[["predictors_test"]]
 
-  object$components <- components
+  # define inference options
+  components      <- NULL
+  parameters      <- NULL
+  components_null <- list()
+  parameters_null <- list()
 
-  ### model details
-  if(models){
-    priors_effect        <- sapply(1:length(object$models), function(i)print(object$models[[i]]$priors$mu, silent = TRUE))
-    priors_heterogeneity <- sapply(1:length(object$models), function(i)print(object$models[[i]]$priors$tau, silent = TRUE))
-    priors_bias          <- sapply(1:length(object$models), function(i){
-      if(weightfunctions[i]){
-        print(object$models[[i]]$priors$omega, silent = TRUE)
-      }else if(PET[i]){
-        print(object$models[[i]]$priors$PET, silent = TRUE)
-      }else if(PEESE[i]){
-        print(object$models[[i]]$priors$PEESE, silent = TRUE)
-      }else{
-        ""
+  components_distributions      <- NULL
+  components_distributions_null <- list()
+
+  # distributions
+  for(i in seq_along(distributions)){
+    components_distributions                          <- c(components_distributions, distributions[i])
+    components_distributions_null[[distributions[i]]] <- model_distributions != distributions[i]
+  }
+
+  # predictors
+  for(i in seq_along(predictors_test)){
+    components <- c(components, .BayesTools_parameter_name(predictors_test[i]))
+    components_null[[.BayesTools_parameter_name(predictors_test[i])]] <-
+      sapply(model_predictors_test, function(x) if(length(predictors_test) == 0) FALSE else !(predictors_test[i] %in% x))
+  }
+
+  for(i in seq_along(predictors)){
+    parameters <- c(parameters, .BayesTools_parameter_name(predictors[i]))
+    parameters_null[[.BayesTools_parameter_name(predictors[i])]] <-
+      sapply(model_predictors_test, function(x) if(length(predictors_test) == 0) FALSE else !(predictors_test[i] %in% x))
+  }
+
+
+  # ----------------------------------------------------------------------------------------- #
+  ### create overview tables
+  prior_prob <- prior_weights / sum(prior_weights)
+  output     <- list()
+
+  if(!models){
+
+    components_distributions <- data.frame(
+      "models"     = sapply(components_distributions_null, function(component) sum(!component)),
+      "prior_prob" = sapply(components_distributions_null, function(component) sum(prior_prob[!component]))
+    )
+    rownames(components_distributions) <- distributions
+
+    class(components_distributions)             <- c("BayesTools_table", "BayesTools_ensemble_summary", class(components_distributions))
+    attr(components_distributions, "type")      <- c("n_models", "prior_prob")
+    attr(components_distributions, "rownames")  <- TRUE
+    attr(components_distributions, "n_models")  <- length(object$models)
+    attr(components_distributions, "title")     <- "Distributions summary:"
+    attr(components_distributions, "footnotes") <- NULL
+    attr(components_distributions, "warnings")  <- NULL
+
+    output$components_distributions <- components_distributions
+
+
+    if(!is.null(components)){
+
+      components <- data.frame(
+        "models"     = sapply(components_null, function(component) sum(!component)),
+        "prior_prob" = sapply(components_null, function(component) sum(prior_prob[!component]))
+      )
+      rownames(components) <- predictors_test
+
+      class(components)             <- c("BayesTools_table", "BayesTools_ensemble_summary", class(components))
+      attr(components, "type")      <- c("n_models", "prior_prob")
+      attr(components, "rownames")  <- TRUE
+      attr(components, "n_models")  <- length(object$models)
+      attr(components, "title")     <- "Components summary:"
+      attr(components, "footnotes") <- NULL
+      attr(components, "warnings")  <- NULL
+
+      output$components <- components
+
+    }
+
+
+    if(!silent){
+      cat("Robust Bayesian survival analysis (set-up)\n")
+      print(components_distributions, quote = FALSE, right = TRUE)
+
+      if(!is.null(components)){
+        cat("\n")
+        print(components, quote = FALSE, right = TRUE)
       }
-    })
-    prior_weights  <- sapply(1:length(object$models), function(i)object$models[[i]]$prior_weights)
-    prior_prob     <- prior_weights / sum(prior_weights)
+    }
+
+  }else{
 
     summary <- cbind.data.frame(
-      "Model"         = 1:length(object$models),
-      "Effect"        = priors_effect,
-      "Heterogeneity" = priors_heterogeneity,
-      "Bias"          = priors_bias,
-      "prior_prob"    = prior_prob
+      "Model"             = 1:length(object$models),
+      "Distribution"      = sapply(object[["models"]], function(m) m[["distribution"]]),
+      "Intercept"         = sapply(object[["models"]], function(m) print(m[["priors"]][["intercept"]], silent = TRUE)),
+      "Auxiliary"         = sapply(object[["models"]], function(m) if(!.has_aux(m[["distribution"]])) print(BayesTools::prior_none(), silent = TRUE) else print(m[["priors"]][["aux"]], silent = TRUE))
     )
+
+    for(i in seq_along(predictors)){
+      summary <- cbind(summary, "xxx" = sapply(object[["models"]], function(m) print(m[["priors"]][["terms"]][[predictors[i]]], silent = TRUE)))
+      colnames(summary)[length(colnames(summary))] <- predictors[i]
+    }
+
+    summary <- cbind(summary, "prior_prob" = prior_prob)
+
     class(summary)             <- c("BayesTools_table", "BayesTools_ensemble_summary", class(summary))
-    attr(summary, "type")      <- c("integer", rep("prior", 3), "prior_prob")
+    attr(summary, "type")      <- c("integer", "string", rep("prior", 2 + length(predictors)), "prior_prob")
     attr(summary, "rownames")  <- FALSE
     attr(summary, "title")     <- "Models overview:"
     attr(summary, "footnotes") <- NULL
     attr(summary, "warnings")  <- NULL
 
     object$summary <- summary
-  }
 
-
-  if(!silent){
-    cat("Robust Bayesian meta-analysis (set-up)\n")
-    print(components, quote = FALSE, right = TRUE)
-
-    if(models){
-      cat("\n")
+    if(!silent){
+      cat("Robust Bayesian survival analysis (set-up)\n")
       print(summary, quote = FALSE, right = TRUE)
     }
   }
@@ -381,17 +455,11 @@ get_default_prior_beta_alt  <- function(){
 }
 #' @rdname default_prior
 get_default_prior_factor_null  <- function(){
-  list(
-    "treatment"   = prior("spike", parameters = list("location" = 0)),
-    "orthonormal" = prior("spike", parameters = list("location" = 0))
-  )
+  prior("spike", parameters = list("location" = 0))
 }
 #' @rdname default_prior
 get_default_prior_factor_alt   <- function(){
-  list(
-    "treatment"   = prior_factor("normal",  list(mean = 0, sd = 1), contrast = "treatment"),
-    "orthonormal" = prior_factor("mnormal", list(mean = 0, sd = 1), contrast = "orthonormal")
-  )
+  prior_factor("normal",  list(mean = 0, sd = 1), contrast = "treatment")
 }
 #' @rdname default_prior
 get_default_prior_intercept <- function(){

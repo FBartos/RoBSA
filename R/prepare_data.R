@@ -21,6 +21,16 @@
   rhs <- formula[c(1,3)]
   model_frame <- stats::model.frame(rhs, data = data)
 
+  # change characters into factors
+  for(i in seq_along(attr(attr(model_frame, "terms"), "dataClasses"))){
+    if(attr(attr(model_frame, "terms"), "dataClasses")[[i]] == "character"){
+      model_frame[,names(attr(attr(model_frame, "terms"), "dataClasses"))[i]] <-
+        as.factor(model_frame[,names(attr(attr(model_frame, "terms"), "dataClasses"))[i]])
+      attr(attr(model_frame, "terms"), "dataClasses")[[i]] <- "factor"
+    }
+  }
+
+
   # prepare the data holders
   n_event <- n_cens_r <- n_cens_l <- n_cens_i  <- 0
   t_event <- t_cens_r <- t_cens_l <- t_cens_il <- t_cens_ir <- NULL
@@ -40,7 +50,7 @@
     model_frame <- model_frame[c(
       c(1:nrow(model_frame))[surv_outcome[,2] == 1],
       c(1:nrow(model_frame))[surv_outcome[,2] == 0]
-    ),]
+    ),,drop=FALSE]
 
   }else if(attr(surv_outcome, "type") == "left"){
 
@@ -53,7 +63,7 @@
     model_frame <- model_frame[c(
       c(1:nrow(model_frame))[surv_outcome[,2] == 1],
       c(1:nrow(model_frame))[surv_outcome[,2] == 0]
-    ),]
+    ),,drop=FALSE]
 
   }else if(attr(surv_outcome, "type") == "interval"){
 
@@ -73,7 +83,7 @@
       c(1:nrow(model_frame))[surv_outcome[,2] == 0],
       c(1:nrow(model_frame))[surv_outcome[,2] == 2],
       c(1:nrow(model_frame))[surv_outcome[,2] == 3]
-    ),]
+    ),,drop=FALSE]
 
   }else{
     stop(paste0("The ", attr(surv_outcome, "type"), " survival type is not implemented."))
@@ -101,7 +111,11 @@
 
 
   model_frame     <- as.list(model_frame)
-  data_predictors <- model_frame[1:length(model_frame)]
+  if(length(model_frame) == 0){
+    data_predictors <- list()
+  }else{
+    data_predictors <- model_frame[1:length(model_frame)]
+  }
   attr(data_predictors, "variables")  <- attr(attr(model_frame, "terms"), "term.labels")[attr(attr(model_frame, "terms"), "order") == 1]
   attr(data_predictors, "terms")      <- attr(attr(model_frame, "terms"), "term.labels")
   attr(data_predictors, "terms_type") <- attr(attr(model_frame, "terms"), "dataClasses")
@@ -145,7 +159,7 @@
 
   # throw warnings and errors
   if(length(to_warn) > 0){
-    scaling_warning <- paste0("The continuous predictors ", paste0("'", to_warn, "'", collapse = ", "), "' are not scaled. Note that an extra care need to be taken when specifying prior distributions for unscaled predictors.")
+    scaling_warning <- paste0("The continuous predictors ", paste0("'", to_warn, "'", collapse = ", "), " are not scaled. Note that extra care need to be taken when specifying prior distributions for unscaled predictors.")
     warning(scaling_warning, immediate. = TRUE, call. = FALSE)
     warning("You can suppress this and following warnings via 'RoBSA.options(check_scaling = FALSE)'. To automatically rescale predictors set 'rescale_data = TRUE'.", immediate. = TRUE, call. = FALSE)
     attr(output, "warnings") <- scaling_warning

@@ -144,7 +144,7 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
 
     # subset them to have equal amount across models
     indx <- sample(ncol(posteriors[["mu"]]), size = samples[i], replace = TRUE)
-    posteriors[["mu"]] <- posteriors[["mu"]][,indx]
+    posteriors[["mu"]] <- posteriors[["mu"]][,indx, drop = FALSE]
     if(.has_aux(models[[i]][["distribution"]])){
       posteriors[["aux"]] <- posteriors[["aux"]][indx]
     }
@@ -258,7 +258,7 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
         out <- do.call(rbind, lapply(seq_along(time), function(t){
           args <- list(
             t   = time[t],
-            eta = parameters[["mu"]][i,]
+            eta = if(is.matrix(parameters[["mu"]])) parameters[["mu"]][i,] else parameters[["mu"]][i]
           )
           if(.has_aux(attr(parameters, "distribution"))){
             args <- c(args, list(parameters[["aux"]]))

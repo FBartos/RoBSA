@@ -4,9 +4,9 @@
   prior_weights <- sapply(object[["models"]], function(model) model[["prior_weights"]])
   models        <- object[["models"]][.get_model_convergence(object) & prior_weights > 0]
 
-  model_predictors      <- lapply(object[["models"]], function(model) model[["terms"]])
-  model_predictors_test <- lapply(object[["models"]], function(model) model[["terms_test"]])
-  model_distributions   <- sapply(object[["models"]], function(model) model[["distribution"]])
+  model_predictors      <- lapply(models, function(model) model[["terms"]])
+  model_predictors_test <- lapply(models, function(model) model[["terms_test"]])
+  model_distributions   <- sapply(models, function(model) model[["distribution"]])
 
   distributions   <- object$add_info[["distributions"]]
   predictors      <- object$add_info[["predictors"]]
@@ -31,23 +31,27 @@
   for(i in seq_along(predictors_test)){
     components <- c(components, .BayesTools_parameter_name(predictors_test[i]))
     components_null[[.BayesTools_parameter_name(predictors_test[i])]] <-
-      sapply(model_predictors_test, function(x) !(predictors_test[i] %in% x))
+      sapply(model_predictors_test, function(x) if(length(x) == 0) TRUE else !(predictors_test[i] %in% x))
   }
 
   for(i in seq_along(predictors)){
     parameters <- c(parameters, .BayesTools_parameter_name(predictors[i]))
     parameters_null[[.BayesTools_parameter_name(predictors[i])]] <-
-      sapply(model_predictors_test, function(x) !(predictors_test[i] %in% x))
+      sapply(model_predictors_test, function(x) if(length(x) == 0) TRUE else !(predictors[i] %in% x))
   }
 
 
   ### get models inference
-  inference <- BayesTools::ensemble_inference(
-    model_list   = models,
-    parameters   = components,
-    is_null_list = components_null,
-    conditional  = FALSE
-  )
+  if(is.null(components)){
+    inference <- NULL
+  }else{
+    inference <- BayesTools::ensemble_inference(
+      model_list   = models,
+      parameters   = components,
+      is_null_list = components_null,
+      conditional  = FALSE
+    )
+  }
   # deal with the possibility of only null models models
   if(all(sapply(components_null, all))){
     inference_conditional <- NULL
@@ -74,16 +78,20 @@
 
 
   ### get model-averaged posteriors
-  posteriors <- BayesTools::mix_posteriors(
-    model_list   = models,
-    parameters   = parameters,
-    is_null_list = parameters_null,
-    seed         = object$add_info[["seed"]],
-    conditional  = FALSE
-  )
+  if(is.null(parameters)){
+    posteriors <- NULL
+  }else{
+    posteriors <- BayesTools::mix_posteriors(
+      model_list   = models,
+      parameters   = parameters,
+      is_null_list = parameters_null,
+      seed         = object$add_info[["seed"]],
+      conditional  = FALSE
+    )
+  }
 
   # deal with the possibility of only null models models
-  if(all(sapply(components_null, all))){
+  if(all(sapply(parameters_null, all))){
     posteriors_conditional <- NULL
   }else{
     posteriors_conditional <- BayesTools::mix_posteriors(

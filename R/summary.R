@@ -104,28 +104,42 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
       title      = "Distributions summary:"
     )
 
-    components <- BayesTools::ensemble_inference_table(
-      inference  = object$RoBSA[["inference"]],
-      parameters = names(object$RoBSA[["inference"]]),
-      logBF      = logBF,
-      BF01       = BF01,
-      title      = "Components summary:"
-    )
+    if(length(object$RoBSA[["inference"]]) > 0){
+      components <- BayesTools::ensemble_inference_table(
+        inference  = object$RoBSA[["inference"]],
+        parameters = names(object$RoBSA[["inference"]]),
+        logBF      = logBF,
+        BF01       = BF01,
+        title      = "Components summary:"
+      )
+    }else{
+      components <- NULL
+    }
 
     # obtain estimates tables
-    estimates <- BayesTools::ensemble_estimates_table(
-      samples               = object$RoBSA[["posteriors"]],
-      parameters            = names(object$RoBSA[["posteriors"]]),
-      probs                 = probs,
-      title                 = "Model-averaged estimates:",
-      warnings              = .collect_errors_and_warnings(object),
-      transform_orthonormal = transform_orthonormal,
-      formula_prefix        = FALSE
-    )
-
-    if(exp){
-      estimates <- .table_add_exp(estimates)
+    if(length(object$RoBSA[["posteriors"]]) > 0){
+      estimates <- BayesTools::ensemble_estimates_table(
+        samples               = object$RoBSA[["posteriors"]],
+        parameters            = names(object$RoBSA[["posteriors"]]),
+        probs                 = probs,
+        title                 = "Model-averaged estimates:",
+        warnings              = .collect_errors_and_warnings(object),
+        transform_orthonormal = transform_orthonormal,
+        formula_prefix        = FALSE
+      )
+      if(exp){
+        estimates <- .table_add_exp(estimates)
+      }
+    }else{
+      estimates                    <- data.frame(matrix(nrow = 0, ncol = length(probs) + 2))
+      colnames(estimates)          <- c("Mean", "Median", probs)
+      class(estimates)             <- c("BayesTools_table", "BayesTools_ensemble_summary", class(estimates))
+      attr(estimates, "type")      <- rep("estimate", ncol(estimates))
+      attr(estimates, "rownames")  <- TRUE
+      attr(estimates, "title")     <- "Conditional estimates:"
+      attr(estimates, "warnings")  <- .collect_errors_and_warnings(object)
     }
+
 
     # deal with possibly empty table in case of no alternative models
     if(is.null(object$RoBSA[["posteriors_conditional"]])){
@@ -163,8 +177,6 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
       title      = "Distribution estimates (auxiliary):"
     )
 
-
-
     #
     # if(parameters){
     #   intercept <- cbind(intercept, "Parameter" = sapply(rownames(intercept), .intercept_name), do.call(rbind, lapply(rownames(intercept), function(distribution){
@@ -198,8 +210,9 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
 
   }else if(substr(type,1,1) == "m"){
 
+
     if(parameters){
-      components <- list("Intercept" = "mu_intercept", "Axillary" = "aux")
+      components <- list("Intercept" = "mu_intercept", "Auxiliary" = "aux")
     }else{
       components <- list()
     }
@@ -217,6 +230,7 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
       short_name     = short_name,
       remove_spike_0 = remove_spike_0
     )
+
 
     # add distribution column to the summary
     summary <- BayesTools::add_column(
@@ -240,8 +254,9 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
 
   }else if(substr(type,1,1) == "d"){
 
+
     if(parameters){
-      components <- list("Intercept" = "mu_intercept", "Axillary" = "aux")
+      components <- list("Intercept" = "mu_intercept", "Auxiliary" = "aux")
     }else{
       components <- list()
     }
@@ -249,7 +264,6 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
     for(i in seq_along(object$add_info[["predictors"]])){
       components[[object$add_info[["predictors"]][i]]] <- .BayesTools_parameter_name(object$add_info[["predictors"]][i])
     }
-
 
     diagnostics <- BayesTools::ensemble_diagnostics_table(
       models         = object[["models"]],
@@ -260,6 +274,7 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
       short_name     = short_name,
       remove_spike_0 = remove_spike_0
     )
+
 
     # add distribution column to the summary
     diagnostics <- BayesTools::add_column(
@@ -358,8 +373,10 @@ print.summary.RoBSA <- function(x, ...){
     cat("\n")
     print(x[["components_distributions"]])
 
-    cat("\n")
-    print(x[["components"]])
+    if(!is.null(x[["components"]])){
+      cat("\n")
+      print(x[["components"]])
+    }
 
     cat("\n")
     print(x[["estimates"]])
