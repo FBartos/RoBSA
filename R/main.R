@@ -179,36 +179,92 @@ RoBSA <- function(
 }
 
 
+
+#' @title Updates a fitted RoBSA object
+#'
+#' @description \code{update.RoBSA} can be used to
+#' \enumerate{
+#'   \item{add an additional model to an existing \code{"RoBSA"} object by
+#'    specifying the distribution, and either null or alternative priors
+#'    for each parameter and prior weight of the model,}
+#'   \item{change the prior weights of fitted models by specifying a vector
+#'   \code{prior_weights} of the same length as the fitted models,}
+#'   \item{refitting models that failed to converge with updated settings
+#'   of control parameters,}
+#'   \item{or changing the convergence criteria and recalculating the ensemble
+#'   results by specifying new \code{control} argument and setting
+#'   \code{refit_failed == FALSE}.}
+#' }
+#'
+#' @param object a fitted RoBSA object
+#' @param distribution a distribution of the new model.
+#' @param model_weights either a single value specifying prior model weight
+#' of a newly specified model using priors argument, or a vector of the
+#' same length as already fitted models to update their prior weights.
+#' @param refit_failed whether failed models should be refitted. Relevant only
+#' if new priors or \code{prior_weights} are not supplied. Defaults to \code{TRUE}.
+#' @inheritParams RoBSA
+#' @param ... additional arguments.
+#'
+#' @details See [RoBSA()] for more details.
+#'
+#'
+#'
+#' @return \code{RoBSA} returns an object of class 'RoBSA'.
+#'
+#' @seealso [RoBSA()], [summary.RoBSA()], [prior()], [check_setup()]
+#' @export
 update.RoBSA <- function(object, refit_failed = TRUE,
-                         priors = NULL, prior_odds = NULL,
-                         control = NULL, chains = NULL, iter = NULL, burnin = NULL, thin = NULL, parallel = NULL, seed = NULL, ...){
 
+                         distribution  = NULL,
+                         model_weights = NULL,
 
-  # if(object$add_info$save == "min")
-  #   stop("Models cannot be updated because individual model posteriors were not save during the fitting process. Set 'save' parameter to 'all' in while fitting the model (see ?RoBSA for more details).")
+                         # default prior distribution
+                         prior_beta_null   = get_default_prior_beta_null(),
+                         prior_beta_alt    = get_default_prior_beta_alt(),
+                         prior_factor_null = get_default_prior_factor_null(),
+                         prior_factor_alt  = get_default_prior_factor_alt(),
+                         prior_intercept   = get_default_prior_intercept(),
+                         prior_aux         = get_default_prior_aux(),
 
+                         chains = NULL, adapt = NULL, burnin = NULL, sample = NULL, thin = NULL, autofit = NULL, parallel = NULL,
+                         autofit_control = NULL, convergence_checks = NULL,
+                         save = "all", seed = NULL, silent = TRUE, ...){
+
+  # TODO: add ability to change the output scale
+  output_scale <- NULL
+
+  if(object$add_info$save == "min")
+    stop("Models cannot be updated because individual model posteriors were not save during the fitting process. Set 'save' parameter to 'all' in while fitting the model (see ?RoBSA for more details).")
 
 
   ### choose proper action based on the supplied input
-  if(!is.null(priors)){
+  if(!is.null(distribution)){
 
     what_to_do <- "fit_new_model"
+    new_priors  <- .check_and_list_priors(priors = priors, distributions = distributions, data = object[["data"]], test_predictors = test_predictors,
+                                          default_prior_beta_null = prior_beta_null, default_prior_beta_alt = prior_beta_alt,
+                                          default_prior_factor_null = prior_factor_null, default_prior_factor_alt = prior_factor_alt,
+                                          default_prior_intercept = prior_intercept, default_prior_aux = prior_aux)
+    object$models[length(object$models) + 1]  <- list(.prepare_models(new_priors, distributions, distributions_weights)[[1]])
 
-    if(!is.null(prior_odds))object$models[[length(object$models)]]$prior_odds     <- prior_odds
-    if(!is.null(prior_odds))object$models[[length(object$models)]]$prior_odds_set <- prior_odds
-
-
-  }else if(!is.null(prior_odds)){
-
-    what_to_do <- "update_prior_odds"
-    if(length(prior_odds) != length(object$models))
-      stop("The number of newly specified prior odds does not match the number of models. See '?update.RoSMA' for more details.")
-    for(i in 1:length(object$models)){
-      object$models[[i]]$prior_odds     <- prior_odds[i]
-      object$models[[i]]$prior_odds_set <- prior_odds[i]
+    if(!is.null(model_weights)){
+      object$models[[length(object$models)]]$model_weights     <- model_weights
+      object$models[[length(object$models)]]$model_weights_set <- model_weights
     }
 
-  }else if(refit_failed & any(!object$add_info$converged)){
+
+  }else if(!is.null(model_weights)){
+
+    what_to_do <- "update_model_weights"
+    if(length(model_weights) != length(object$models))
+      stop("The number of newly specified prior odds does not match the number of models. See '?update.RoBSA' for more details.")
+    for(i in 1:length(object$models)){
+      object$models[[i]]$prior_weights     <- model_weights[i]
+      object$models[[i]]$prior_weights_set <- model_weights[i]
+    }
+
+  }else if(refit_failed & any(!.get_model_convergence(object))){
 
     what_to_do <- "refit_failed_models"
 
@@ -220,71 +276,48 @@ update.RoBSA <- function(object, refit_failed = TRUE,
 
 
   ### update control settings if any change is specified
+  object[["fit_control"]]        <- .update_fit_control(object[["fit_control"]], chains = chains, adapt = adapt, burnin = burnin, sample = sample, thin = thin, autofit = autofit, parallel = parallel, cores = chains, silent = silent, seed = seed)
+  object[["autofit_control"]]    <- .update_autofit_control(object[["autofit_control"]], autofit_control)
+  object[["convergence_checks"]] <- .update_convergence_checks(object[["convergence_checks"]], convergence_checks)
 
 
   ### do the stuff
   if(what_to_do == "fit_new_model"){
 
-    if(!is.null(object$control$progress_start))eval(parse(text = object$control$progress_start))
-    object$models[[length(object$models)]] <- .fit_RoBSA_wrap(object, length(object$models))
+    object[["models"]][[length(object$models)]] <- .fit_RoBSA_model(object, length(object$models))
 
   }else if(what_to_do == "refit_failed_models"){
 
-    converged_models <- .get_converged_models(object)
-    if(!is.null(object$control$progress_start))eval(parse(text = object$control$progress_start))
-    for(i in c(1:length(object$models))[!converged_models]){
-      object$models[[i]] <- .fit_RoBSA_wrap(object, i)
+    for(i in c(1:length(object$models))[!.get_model_convergence(object)]){
+      object[["models"]][[i]] <- .fit_RoBSA_model(object, i)
     }
-
-  }else if(what_to_do == "transform_estimates"){
-
-    for(i in c(1:length(object$models))){
-      object$models[[i]] <- .transform_posteriors(object$models[[i]], object$add_info$output_scale, .transformation_var(output_scale))
-    }
-    object <- .transform_posterior(object, object$add_info$output_scale, .transformation_var(output_scale))
-    object$add_info$output_scale <- .transformation_var(output_scale)
-
-    return(object)
 
   }
 
 
-  # deal with non-converged the converged models
-  object$add_info$converged <- .get_converged_models(object)
+  # create ensemble only if at least one model converged
+  if(any(.get_model_convergence(object))){
 
-  # create ensemble only if at least one model converges
-  if(any(object$add_info$converged)){
+    # TODO? balance probability of non-converged models?
 
     ### compute the model-space results
-    object$RoBSA         <- .model_inference(object)
-    object$coefficients  <- .compute_coeficients(object$RoBSA)
+    object$models        <- BayesTools::models_inference(object[["models"]])
+    object$RoBSA         <- .ensemble_inference(object)
+    object$coefficients  <- .compute_coeficients(object[["RoBSA"]])
   }
 
 
-  ### add warnings
-  object$add_info$warnings <- c(object$add_info$warnings, .model_refit_warnings(sapply(1:length(object$models), function(i)object$models[[i]]$metadata, simplify = FALSE)))
-  object$add_info$warnings <- c(object$add_info$warnings, .model_convergence_warnings(object))
+  ### collect and print errors and warnings
+  object$add_info[["errors"]]   <- c(object$add_info[["errors"]],   .get_model_errors(object))
+  object$add_info[["warnings"]] <- c(object$add_info[["warnings"]], .get_model_warnings(object))
+  .print_errors_and_warnings(object)
 
 
   ### remove model posteriors if asked to
-  # if(save == "min"){
-  #   for(i in 1:length(object$models)){
-  #     if(length(object$models[[1]]$fit) != 1){
-  #       object$models[[i]]$fit$mcmc <- NULL
-  #     }
-  #   }
-  # }
-
-
-  ### print warnings
-  if(!is.null(object$add_info$warnings)){
-    for(w in object$add_info$warnings)
-      warning(w)
+  if(save == "min"){
+    object <- .remove_model_posteriors(object)
+    object <- .remove_model_margliks(object)
   }
-  if(sum(!object$add_info$converged) > 0)
-    warning(paste0(sum(!object$add_info$converged), ifelse(sum(!object$add_info$converged) == 1, " model", " models"), " failed to converge."))
 
   return(object)
 }
-
-

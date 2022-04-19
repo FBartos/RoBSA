@@ -363,10 +363,10 @@ plot_prediction <- function(x, type = "survival", time_range = NULL, new_data = 
         mapping = ggplot2::aes_string(
           x        = "x",
           y        = "y",
-          size     = "level",
-          color    = "level",
-          linetype = "level",
-          group    = "level"),
+          size     = if(length(dots[["legend.text"]]) > 1) "level",
+          color    = if(length(dots[["legend.text"]]) > 1) "level",
+          linetype = if(length(dots[["legend.text"]]) > 1) "level",
+          group    = if(length(dots[["legend.text"]]) > 1) "level"),
         show.legend = dots[["legend"]])
     }
 

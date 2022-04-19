@@ -170,12 +170,22 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
       probs      = probs,
       title      = "Distribution estimates (intercept):"
     )
-    estimates_aux <- BayesTools::ensemble_estimates_table(
-      samples    = object$RoBSA[["posteriors_aux"]],
-      parameters = names(object$RoBSA[["posteriors_aux"]]),
-      probs      = probs,
-      title      = "Distribution estimates (auxiliary):"
-    )
+    if(!is.null(names(object$RoBSA[["posteriors_aux"]]))){
+      estimates_aux <- BayesTools::ensemble_estimates_table(
+        samples    = object$RoBSA[["posteriors_aux"]],
+        parameters = names(object$RoBSA[["posteriors_aux"]]),
+        probs      = probs,
+        title      = "Distribution estimates (auxiliary):"
+      )
+    }else{
+      estimates_aux                    <- data.frame(matrix(nrow = 0, ncol = length(probs) + 2))
+      colnames(estimates_aux)          <- c("Mean", "Median", probs)
+      class(estimates_aux)             <- c("BayesTools_table", "BayesTools_ensemble_summary", class(estimates_aux))
+      attr(estimates_aux, "type")      <- rep("estimate", ncol(estimates_aux))
+      attr(estimates_aux, "rownames")  <- TRUE
+      attr(estimates_aux, "title")     <- "Distribution estimates (auxiliary):"
+    }
+
 
     #
     # if(parameters){

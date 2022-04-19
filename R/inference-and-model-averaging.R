@@ -53,13 +53,13 @@
     )
   }
   # deal with the possibility of only null models models
-  if(all(sapply(components_null, all))){
+  if(all(sapply(parameters_null, all))){
     inference_conditional <- NULL
   }else{
     inference_conditional <- BayesTools::ensemble_inference(
       model_list   = models,
-      parameters   = components[!sapply(components_null, all)],
-      is_null_list = components_null[!sapply(components_null, all)],
+      parameters   = parameters[!sapply(parameters_null, all)],
+      is_null_list = parameters_null[!sapply(parameters_null, all)],
       conditional  = TRUE
     )
   }
@@ -136,13 +136,17 @@
   posteriors_intercept <- list()
 
   for(i in seq_along(distributions)){
-    posteriors_intercept[distributions[i]] <- BayesTools::mix_posteriors(
-      model_list   = model_list,
-      parameters   = "mu_intercept",
-      is_null_list = list("mu_intercept" = c(model_distributions != distributions[i])),
-      seed         = seed,
-      conditional  = TRUE
-    )
+    if(all(model_distributions != distributions[i])){
+      posteriors_intercept[distributions[i]] <- NULL
+    }else{
+      posteriors_intercept[distributions[i]] <- BayesTools::mix_posteriors(
+        model_list   = model_list,
+        parameters   = "mu_intercept",
+        is_null_list = list("mu_intercept" = c(model_distributions != distributions[i])),
+        seed         = seed,
+        conditional  = TRUE
+      )
+    }
   }
 
   return(posteriors_intercept)
@@ -152,7 +156,7 @@
   posteriors_aux <- list()
 
   for(i in seq_along(distributions)){
-    if(.has_aux(distributions[i])){
+    if(.has_aux(distributions[i]) & !all(model_distributions != distributions[i])){
       posteriors_aux[distributions[i]] <- BayesTools::mix_posteriors(
         model_list   = model_list,
         parameters   = "aux",
@@ -160,6 +164,8 @@
         seed         = seed,
         conditional  = TRUE
       )
+    }else{
+      posteriors_aux[distributions[i]] <- NULL
     }
   }
 

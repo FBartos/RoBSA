@@ -100,11 +100,15 @@ test_that("Model preview & set-up works", {
     c("Robust Bayesian survival analysis (set-up)",
       "Distributions summary:"                    ,
       "            Models Prior prob."            ,
-      "exp-aft        1/5       0.200"            ,
-      "weibull-aft    1/5       0.200"            ,
-      "lnorm-aft      1/5       0.200"            ,
-      "llogis-aft     1/5       0.200"            ,
-      "gamma-aft      1/5       0.200"
+      "exp-aft       2/10       0.200"            ,
+      "weibull-aft   2/10       0.200"            ,
+      "lnorm-aft     2/10       0.200"            ,
+      "llogis-aft    2/10       0.200"            ,
+      "gamma-aft     2/10       0.200"            ,
+      ""                                          ,
+      "Components summary:"                       ,
+      "      Models Prior prob."                  ,
+      "x_bin   5/10       0.500"
     )
   )
 
@@ -117,11 +121,16 @@ test_that("Model preview & set-up works", {
     c("Robust Bayesian survival analysis (set-up)"                                                                                   ,
       "Models overview:"                                                                                                             ,
       " Model Distribution Prior Intercept    Prior Auxiliary     Prior x_cont                 Prior x_bin               Prior prob.",
-      "     1      exp-aft    Normal(0, 5)                 None  Normal(0, 0.25)  orthonormal contrast: mNormal(0, 0.33)       0.200",
-      "     2  weibull-aft    Normal(0, 5) Normal(0, 1)[0, Inf]  Normal(0, 0.25)  orthonormal contrast: mNormal(0, 0.33)       0.200",
-      "     3    lnorm-aft    Normal(0, 5) Normal(0, 1)[0, Inf]  Normal(0, 0.25)  orthonormal contrast: mNormal(0, 0.33)       0.200",
-      "     4   llogis-aft    Normal(0, 5) Normal(0, 1)[0, Inf]  Normal(0, 0.25)  orthonormal contrast: mNormal(0, 0.33)       0.200",
-      "     5    gamma-aft    Normal(0, 5) Normal(0, 1)[0, Inf]  Normal(0, 0.25)  orthonormal contrast: mNormal(0, 0.33)       0.200"
+      "     1      exp-aft    Normal(0, 5)                 None  Normal(0, 0.25)                                Spike(0)       0.100",
+      "     2  weibull-aft    Normal(0, 5) Normal(0, 1)[0, Inf]  Normal(0, 0.25)                                Spike(0)       0.100",
+      "     3    lnorm-aft    Normal(0, 5) Normal(0, 1)[0, Inf]  Normal(0, 0.25)                                Spike(0)       0.100",
+      "     4   llogis-aft    Normal(0, 5) Normal(0, 1)[0, Inf]  Normal(0, 0.25)                                Spike(0)       0.100",
+      "     5    gamma-aft    Normal(0, 5) Normal(0, 1)[0, Inf]  Normal(0, 0.25)                                Spike(0)       0.100",
+      "     6      exp-aft    Normal(0, 5)                 None  Normal(0, 0.25)  orthonormal contrast: mNormal(0, 0.33)       0.100",
+      "     7  weibull-aft    Normal(0, 5) Normal(0, 1)[0, Inf]  Normal(0, 0.25)  orthonormal contrast: mNormal(0, 0.33)       0.100",
+      "     8    lnorm-aft    Normal(0, 5) Normal(0, 1)[0, Inf]  Normal(0, 0.25)  orthonormal contrast: mNormal(0, 0.33)       0.100",
+      "     9   llogis-aft    Normal(0, 5) Normal(0, 1)[0, Inf]  Normal(0, 0.25)  orthonormal contrast: mNormal(0, 0.33)       0.100",
+      "    10    gamma-aft    Normal(0, 5) Normal(0, 1)[0, Inf]  Normal(0, 0.25)  orthonormal contrast: mNormal(0, 0.33)       0.100"
     )
   )
 
@@ -342,13 +351,13 @@ test_that("Prior input checks work", {
                              data = df, models = FALSE, rescale_data = TRUE), "The default prior for auxilary parameters are not a valid prior distribution.", fixed = TRUE)
 
 
-  expect_error(  RoBSA(Surv(time = time, event = event) ~ x_cont + x_bin,
+  expect_error(  RoBSA(Surv(time = time, event = event) ~ x_cont + x_bin, chains = 1, autofit = FALSE, sample = 200, burnin = 100,
                              priors = list(
                                "x_bin"  = prior("normal", list(0, .25)),
                                "x_cont" = prior("normal", list(0, .25))),
                              data = df, rescale_data = TRUE), "Unsupported prior distribution defined for 'x_bin' factor variable. See '?prior_factor' for details.", fixed = TRUE)
 
-  expect_error(  RoBSA(Surv(time = time, event = event) ~ x_cont + x_bin,
+  expect_error(  RoBSA(Surv(time = time, event = event) ~ x_cont + x_bin, chains = 1, autofit = FALSE, sample = 200, burnin = 100,
                              priors = list(
                                "x_bin"  = prior_factor("mnormal", list(0, .33), contrast = "orthonormal"),
                                "x_cont" = prior_factor("mnormal", list(0, .33), contrast = "orthonormal")),

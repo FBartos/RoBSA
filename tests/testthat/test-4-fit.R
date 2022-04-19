@@ -8,6 +8,7 @@ saved_fits  <- list()
 for(i in seq_along(saved_files)){
   saved_fits[[i]] <- readRDS(file = file.path("../results/fits", saved_files[i]))
 }
+df <- readRDS(file = file.path("../results/fits", "df.RDS"))
 
 # functions simplifying the comparison
 remove_time  <- function(fit){
@@ -36,18 +37,6 @@ try_parallel <- function(x, rep = 3){
   }
   return(temp_fit)
 }
-
-
-# create mock data
-set.seed(68)
-df <- data.frame(
-  time   = rgamma(360, 1, 1),
-  event  = rbinom(360, 1, 0.5),
-  x_cont = rnorm(360),
-  x_bin  = as.factor(rbinom(360, 1, .5)),
-  x_fac3 = factor(rep(c("A", "B", "C"), 120), levels = c("A", "B", "C")),
-  x_fac4 = factor(rep(c("A", "B", "C", "D"), 90), levels = c("A", "B", "C", "D"))
-)
 
 
 test_that("Default model (RoBMA-PSMA) works", {
@@ -198,6 +187,19 @@ test_that("Default model (RoBMA-PSMA) works", {
 
 #### creating / updating the test settings ####
 if(FALSE){
+
+  # create mock data
+  set.seed(68)
+  df <- data.frame(
+    time   = rgamma(360, 1, 1),
+    event  = rbinom(360, 1, 0.5),
+    x_cont = rnorm(360),
+    x_bin  = as.factor(rbinom(360, 1, .5)),
+    x_fac3 = factor(rep(c("A", "B", "C"), 120), levels = c("A", "B", "C")),
+    x_fac4 = factor(rep(c("A", "B", "C", "D"), 90), levels = c("A", "B", "C", "D"))
+  )
+  saveRDS(df, file = file.path("tests/results/fits/", "df.RDS"), compress  = "xz")
+
 
   saved_fits <- list(fit1, fit2, fit3, fit4, fit5, fit6)
 

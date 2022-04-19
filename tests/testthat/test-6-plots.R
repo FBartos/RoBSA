@@ -8,6 +8,7 @@ saved_fits  <- list()
 for(i in seq_along(saved_files)){
   saved_fits[[i]] <- readRDS(file = file.path("../results/fits", saved_files[i]))
 }
+df <- readRDS(file = file.path("../results/fits", "df.RDS"))
 
 set.seed(1)
 
@@ -111,10 +112,74 @@ test_that("Individual model plots work", {
 
 test_that("Survival, hazard, and density plots work", {
 
+  # compare with flexsurv
+  fit2_exp     <- update(saved_fits[[2]], model_weights = c(1, 0, 0, 0, 0))
+  fit2_weibull <- update(saved_fits[[2]], model_weights = c(0, 1, 0, 0, 0))
+  fit2_lnorm   <- update(saved_fits[[2]], model_weights = c(0, 0, 1, 0, 0))
+  fit2_llogis  <- update(saved_fits[[2]], model_weights = c(0, 0, 0, 1, 0))
+  fit2_gamma   <- update(saved_fits[[2]], model_weights = c(0, 0, 0, 0, 1))
+
+  fitf_exp     <- flexsurv::flexsurvreg(Surv(time = time, event = event) ~ x_cont + x_bin + x_fac3, data = df, dist = "exp")
+  fitf_weibull <- flexsurv::flexsurvreg(Surv(time = time, event = event) ~ x_cont + x_bin + x_fac3, data = df, dist = "weibull")
+  fitf_lnorm   <- flexsurv::flexsurvreg(Surv(time = time, event = event) ~ x_cont + x_bin + x_fac3, data = df, dist = "lognorm")
+  fitf_llogis  <- flexsurv::flexsurvreg(Surv(time = time, event = event) ~ x_cont + x_bin + x_fac3, data = df, dist = "llogis")
+  fitf_gamma   <- flexsurv::flexsurvreg(Surv(time = time, event = event) ~ x_cont + x_bin + x_fac3, data = df, dist = "gamma")
+
+  expect_doppelganger(paste0("plot_sur_2.3.1"), function(){
+    plot_survival(fit2_exp, new_data = data.frame(x_fac3 = "A", x_bin = 0, x_cont = mean(df$time)), plot_type = "base")
+    lines(fitf_exp, col = "red", ci = FALSE, type = "survival", lwd = 1)
+  })
+
+  expect_doppelganger(paste0("plot_sur_2.3.2"), function(){
+    plot_survival(fit2_weibull, new_data = data.frame(x_fac3 = "A", x_bin = 0, x_cont = mean(df$time)), plot_type = "base")
+    lines(fitf_weibull, col = "red", ci = FALSE, type = "survival", lwd = 1)
+  })
+
+  expect_doppelganger(paste0("plot_sur_2.3.3"), function(){
+    plot_survival(fit2_lnorm, new_data = data.frame(x_fac3 = "A", x_bin = 0, x_cont = mean(df$time)), plot_type = "base")
+    lines(fitf_lnorm, col = "red", ci = FALSE, type = "survival", lwd = 1)
+  })
+
+  expect_doppelganger(paste0("plot_sur_2.3.4"), function(){
+    plot_survival(fit2_llogis, new_data = data.frame(x_fac3 = "A", x_bin = 0, x_cont = mean(df$time)), plot_type = "base")
+    lines(fitf_llogis, col = "red", ci = FALSE, type = "survival", lwd = 1)
+  })
+
+  expect_doppelganger(paste0("plot_sur_2.3.5"), function(){
+    plot_survival(fit2_gamma, new_data = data.frame(x_fac3 = "A", x_bin = 0, x_cont = mean(df$time)), plot_type = "base")
+    lines(fitf_gamma, col = "red", ci = FALSE, type = "survival", lwd = 1)
+  })
+
+  expect_doppelganger(paste0("plot_haz_2.3.1"), function(){
+    plot_hazard(fit2_exp, new_data = data.frame(x_fac3 = "A", x_bin = 0, x_cont = mean(df$time)), plot_type = "base")
+    lines(fitf_exp, col = "red", ci = FALSE, type = "hazard", lwd = 1)
+  })
+
+  expect_doppelganger(paste0("plot_haz_2.3.2"), function(){
+    plot_hazard(fit2_weibull, new_data = data.frame(x_fac3 = "A", x_bin = 0, x_cont = mean(df$time)), plot_type = "base")
+    lines(fitf_weibull, col = "red", ci = FALSE, type = "hazard", lwd = 1)
+  })
+
+  expect_doppelganger(paste0("plot_haz_2.3.3"), function(){
+    plot_hazard(fit2_lnorm, new_data = data.frame(x_fac3 = "A", x_bin = 0, x_cont = mean(df$time)), plot_type = "base")
+    lines(fitf_lnorm, col = "red", ci = FALSE, type = "hazard", lwd = 1)
+  })
+
+  expect_doppelganger(paste0("plot_haz_2.3.4"), function(){
+    plot_hazard(fit2_llogis, new_data = data.frame(x_fac3 = "A", x_bin = 0, x_cont = mean(df$time)), plot_type = "base")
+    lines(fitf_llogis, col = "red", ci = FALSE, type = "hazard", lwd = 1)
+  })
+
+  expect_doppelganger(paste0("plot_haz_2.3.5"), function(){
+    plot_hazard(fit2_gamma, new_data = data.frame(x_fac3 = "A", x_bin = 0, x_cont = mean(df$time)), plot_type = "base")
+    lines(fitf_gamma, col = "red", ci = FALSE, type = "hazard", lwd = 1)
+  })
+
+
   # treatment contrast
   expect_doppelganger(paste0("ggplot_sur_6_1.1"), plot_survival(saved_fits[[6]], plot_type = "ggplot", predictor = "x_fac3"))
-  expect_doppelganger(paste0("ggplot_haz_6_1.1"), plot_hazard(saved_fits[[6]], plot_type = "ggplot",   predictor = "x_fac3"))
-  expect_doppelganger(paste0("ggplot_den_6_1.1"), plot_density(saved_fits[[6]], plot_type = "ggplot",  predictor = "x_fac3"))
+  expect_doppelganger(paste0("ggplot_haz_6_1.1"), plot_hazard(saved_fits[[6]],   plot_type = "ggplot",   predictor = "x_fac3"))
+  expect_doppelganger(paste0("ggplot_den_6_1.1"), plot_density(saved_fits[[6]],  plot_type = "ggplot",  predictor = "x_fac3"))
 
   # orthonormal contrast
   expect_doppelganger(paste0("plot_sur_5_1.1"), function()plot_survival(saved_fits[[5]], predictor = "x_fac3"))
@@ -122,9 +187,9 @@ test_that("Survival, hazard, and density plots work", {
   expect_doppelganger(paste0("plot_den_5_1.1"), function()plot_density(saved_fits[[5]],  predictor = "x_fac3"))
 
   # continuous predictor
-  expect_doppelganger(paste0("ggplot_sur_3_1.1"), suppressWarnings(plot_survival(saved_fits[[3]], plot_type = "ggplot", predictor = "x_cont")))
-  expect_doppelganger(paste0("ggplot_haz_3_1.2"), suppressWarnings(plot_hazard(saved_fits[[3]],   plot_type = "ggplot", predictor = "x_cont")))
-  expect_doppelganger(paste0("ggplot_den_3_1.3"), suppressWarnings(plot_density(saved_fits[[3]],  plot_type = "ggplot", predictor = "x_cont", conditional = TRUE)))
+  expect_doppelganger(paste0("ggplot_sur_3_1.1"), plot_survival(saved_fits[[3]], plot_type = "ggplot", predictor = "x_cont"))
+  expect_doppelganger(paste0("ggplot_haz_3_1.2"), plot_hazard(saved_fits[[3]],   plot_type = "ggplot", predictor = "x_cont"))
+  expect_doppelganger(paste0("ggplot_den_3_1.3"), plot_density(saved_fits[[3]],  plot_type = "ggplot", predictor = "x_cont", conditional = TRUE))
 
 })
 

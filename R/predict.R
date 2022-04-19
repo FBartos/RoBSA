@@ -44,13 +44,15 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
   BayesTools::check_bool(conditional, "conditional")
   BayesTools::check_int(samples, "samples", lower = 0)
 
+  # make sure that predictions based on the same model are always the same
+  set.seed(object[["add_info"]][["seed"]])
 
   # check that the new data are correctly specified
   if(!is.null(new_data) && (is.null(predictor) && is.null(covariates_data)) ){
 
     if(!is.data.frame(new_data))
       stop("'new_data' must be a data.frame")
-    if(!all(all_predictors %in% colnames(new_data)))
+    if(!all(predictors_all %in% colnames(new_data)))
       stop("All predictors must be provided.")
 
   }else if(is.null(new_data)){
@@ -69,14 +71,15 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
       )
 
       if(!is.null(covariates_data)){
-        covariates_data <- do.call(rbind, lapply(1:nrow(predictor_data), function(i) covariates_data))
-        predictor_data  <- do.call(rbind, lapply(1:nrow(covariates_data), function(i) predictor_data))
-        new_data        <- cbind(covariates_data, predictor_data)
+        new_data        <- cbind(
+          do.call(rbind, lapply(1:nrow(covariates_data), function(i) predictor_data)),
+          do.call(rbind, lapply(1:nrow(predictor_data), function(i) covariates_data))
+        )
       }else{
         new_data        <- predictor_data
       }
 
-      colnames(new_data)[ncol(new_data)] <- predictor
+      colnames(new_data)[1] <- predictor
 
     }
 
