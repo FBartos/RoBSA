@@ -13,6 +13,8 @@ check_setup(
   distributions_weights = rep(1, length(distributions)),
   prior_beta_null = get_default_prior_beta_null(),
   prior_beta_alt = get_default_prior_beta_alt(),
+  prior_factor_null = get_default_prior_factor_null(),
+  prior_factor_alt = get_default_prior_factor_alt(),
   prior_intercept = get_default_prior_intercept(),
   prior_aux = get_default_prior_aux(),
   chains = 3,
@@ -26,7 +28,9 @@ check_setup(
   convergence_checks = set_convergence_checks(),
   save = "all",
   seed = NULL,
-  silent = TRUE,
+  silent = FALSE,
+  rescale_data = FALSE,
+  models = FALSE,
   ...
 )
 }
@@ -103,9 +107,12 @@ to \code{NULL} - no seed is set.}
 
 \item{silent}{do not print the results.}
 
-\item{...}{additional arguments.}
+\item{rescale_data}{whether continuous predictors should be rescaled prior to
+estimating the model. Defaults to \code{FALSE}.}
 
 \item{models}{should the models' details be printed.}
+
+\item{...}{additional arguments.}
 }
 \value{
 \code{check_setup} invisibly returns list of summary tables.

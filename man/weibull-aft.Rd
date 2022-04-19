@@ -6,6 +6,7 @@
 \alias{weibull_aft_log_hazard}
 \alias{weibull_aft_log_survival}
 \alias{weibull_aft_density}
+\alias{weibull_aft_hazard}
 \alias{weibull_aft_survival}
 \alias{weibull_aft_mean}
 \alias{weibull_aft_sd}
@@ -21,6 +22,8 @@ weibull_aft_log_hazard(t, eta, shape)
 weibull_aft_log_survival(t, eta, shape)
 
 weibull_aft_density(t, eta, shape)
+
+weibull_aft_hazard(t, eta, shape)
 
 weibull_aft_survival(t, eta, shape)
 
