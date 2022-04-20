@@ -168,13 +168,13 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
       prediction_function <- .get_prediction_distribution_function(attr(parameters, "distribution"), type)
 
       # make predictions for each data point and merge into a data.frame
-      out <- data.frame(do.call(rbind, lapply(1:nrow(new_data), function(i){
+      out <- do.call(rbind, lapply(1:nrow(new_data), function(i){
         args <- list(eta = parameters[["mu"]][i,])
         if(.has_aux(attr(parameters, "distribution"))){
           args <- c(args, list(parameters[["aux"]]))
         }
         return(do.call(prediction_function, args))
-      })))
+      }))
 
       attr(out, "data")         <- new_data
       attr(out, "model")        <- attr(parameters, "model")
