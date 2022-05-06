@@ -26,11 +26,11 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Imports:
     BayesTools (>= 0.2.10),
+    survival,
+    rjags,
     runjags,
     bridgesampling,
-    rjags,
     coda, 
-    psych,
     stats,
     graphics,
     Rdpack

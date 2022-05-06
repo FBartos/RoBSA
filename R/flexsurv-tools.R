@@ -16,7 +16,7 @@ extract_flexsurv <- function(fit){
   if(!inherits(fit, "flexsurvreg"))
     stop("'fit' must be a model fitted with the 'flexsurv::flexsurvreg' function.")
 
-  distribution <- .flexsurv_distribution_name(fit)
+  distribution <- .flexsurv_distribution_name(fit$dlist$name)
   estimates    <- fit$res
 
   out <- list()
@@ -54,9 +54,9 @@ extract_flexsurv <- function(fit){
   return(out)
 }
 
-.flexsurv_distribution_name    <- function(fit){
+.flexsurv_distribution_name    <- function(distribution){
   switch(
-    fit$dlist$name,
+    distribution,
     "weibull.quiet" = "weibull-aft",
     "lnorm"         = "lnorm-aft",
     "llogis"        = "llogis-aft",

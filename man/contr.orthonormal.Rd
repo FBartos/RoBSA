@@ -2,7 +2,7 @@
 % Please edit documentation in R/priors.R
 \name{contr.orthonormal}
 \alias{contr.orthonormal}
-\title{Orthornomal contrast natrix}
+\title{Orthornomal contrast matrix}
 \usage{
 contr.orthonormal(n, contrasts = TRUE)
 }
@@ -18,15 +18,13 @@ if \code{contrasts = FALSE}.
 \description{
 Return a matrix of orthornomal contrasts.
 Code is based on \code{stanova::contr.bayes} and corresponding to description
-by Rouder et al. (2012)
+by \insertCite{rouder2012default;textual}{BayesTools}
 }
 \examples{
 contr.orthonormal(c(1, 2))
 contr.orthonormal(c(1, 2, 3))
+
 }
 \references{
-{Rouder JN, Morey RD, Speckman PL, Province JM (2012).
-\dQuote{Default Bayes factors for ANOVA designs.}
-\emph{Journal of mathematical psychology}, \bold{56}(5), 356--374.
-\ifelse{{text}{doi: 10.1016/j.jmp.2012.08.001 (URL: https://doi.org/10.1016/j.jmp.2012.08.001)}{\ifelse{{latex}{doi:\out{\\nobreakspace{}}\href{https://doi.org/10.1016/j.jmp.2012.08.001}{10.1016\out{\\slash{}}j.jmp.2012.08.001}}{doi: \href{https://doi.org/10.1016/j.jmp.2012.08.001}{10.1016/j.jmp.2012.08.001}}}}}.}{}
+\insertAllCited{}
 }
