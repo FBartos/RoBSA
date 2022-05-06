@@ -25,7 +25,7 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Imports:
-    BayesTools (>= 0.2.8),
+    BayesTools (>= 0.2.10),
     runjags,
     bridgesampling,
     rjags,
