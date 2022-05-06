@@ -11,7 +11,7 @@ df <- readRDS(file = file.path("../results/fits", "df.RDS"))
 
 set.seed(1)
 
-test_that("Predict mean survival works", {
+test_that("Predict survival works", {
 
   # test against flexsurf
   prediction_models <- suppressWarnings(predict(saved_fits[[2]], predictor = "x_fac3", covariates_data = data.frame(x_bin = 0, x_cont = mean(df$x_cont)), type = "mean", averaged = FALSE))
