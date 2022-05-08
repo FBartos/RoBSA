@@ -33,12 +33,33 @@
 #' respectively.
 #'
 #' @examples \dontrun{
-#' # using the example data from Anderson et al. 2010 and fitting the default model
-#' # (note that the model can take a while to fit)
+#' # example from the README (more details and explanation therein)
+#' data(cancer, package = "survival")
+#' priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
+#' df <- data.frame(
+#'   time         = veteran$time / 12,
+#'   status       = veteran$status,
+#'   treatment    = factor(ifelse(veteran$trt == 1, "standard", "new"), levels = c("standard", "new")),
+#'   karno_scaled = veteran$karno / 100
+#' )
+#' RoBSA.options(check_scaling = FALSE)
+#' fit <- RoBSA(
+#'   Surv(time, status) ~ treatment + karno_scaled,
+#'   data   = df,
+#'   priors = list(
+#'     treatment    = prior_factor("normal", parameters = list(mean = 0.30, sd = 0.15),
+#'                                 truncation = list(0, Inf), contrast = "treatment"),
+#'     karno_scaled = prior("normal", parameters = list(mean = 0, sd = 1))
+#'   ),
+#'   test_predictors = "treatment",
+#'   prior_intercept = priors[["intercept"]],
+#'   prior_aux       = priors[["aux"]],
+#'   parallel = TRUE, seed = 1
+#' )
 #'
-#' ### ggplot2 version of all of the plots can be obtained by adding 'model_type = "ggplot"
-#' # the 'plot' function allows to visualize the results of a fitted RoBSA object, for example;
-#' # the model-averaged effect size estimate
+#' # plot posterior distribution of the treatment effect
+#' plot(fit, parameter = "treatment")
+#'
 #' }
 #'
 #'
@@ -172,17 +193,33 @@ plot.RoBSA  <- function(x, parameter = NULL, conditional = FALSE, plot_type = "b
 #' @inheritParams plot.RoBSA
 #'
 #' @examples \dontrun{
-#' # using the example data from Anderson et al. 2010 and fitting the default model
-#' # (note that the model can take a while to fit)
-#' fit <- RoBSA(r = Anderson2010$r, n = Anderson2010$n, study_names = Anderson2010$labels)
+#' # example from the README (more details and explanation therein)
+#' data(cancer, package = "survival")
+#' priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
+#' df <- data.frame(
+#'   time         = veteran$time / 12,
+#'   status       = veteran$status,
+#'   treatment    = factor(ifelse(veteran$trt == 1, "standard", "new"), levels = c("standard", "new")),
+#'   karno_scaled = veteran$karno / 100
+#' )
+#' RoBSA.options(check_scaling = FALSE)
+#' fit <- RoBSA(
+#'   Surv(time, status) ~ treatment + karno_scaled,
+#'   data   = df,
+#'   priors = list(
+#'     treatment    = prior_factor("normal", parameters = list(mean = 0.30, sd = 0.15),
+#'                                 truncation = list(0, Inf), contrast = "treatment"),
+#'     karno_scaled = prior("normal", parameters = list(mean = 0, sd = 1))
+#'   ),
+#'   test_predictors = "treatment",
+#'   prior_intercept = priors[["intercept"]],
+#'   prior_aux       = priors[["aux"]],
+#'   parallel = TRUE, seed = 1
+#' )
 #'
-#' ### ggplot2 version of all of the plots can be obtained by adding 'model_type = "ggplot"
-#' # the plot_models function creates a plot for of the individual models' estimates, for example,
-#' # the effect size estimates from the individual models can be obtained with
-#' plot_models(fit)
+#' # plot posterior distribution of the treatment effect from each model
+#' plot_models(fit, parameter = "treatment")
 #'
-#' # and effect size estimates from only the conditional models
-#' plot_models(fit, conditional = TRUE)
 #' }
 #'
 #'
@@ -262,8 +299,52 @@ plot_models <- function(x, parameter = NULL, conditional = FALSE, plot_type = "b
 #' @title Survival plots for a RoBSA object
 #'
 #' @param x a fitted RoBSA object.
+#' @param time_range a numeric of length two specifying the range for the
+#' survival prediction. Defaults to \code{NULL} which uses the range of
+#' observed times.
+#'
 #' @inheritParams predict.RoBSA
+#' @inheritParams plot.RoBSA
 #' @param ... additional arguments.
+#'
+#' @examples \dontrun{
+#' # example from the README (more details and explanation therein)
+#' data(cancer, package = "survival")
+#' priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
+#' df <- data.frame(
+#'   time         = veteran$time / 12,
+#'   status       = veteran$status,
+#'   treatment    = factor(ifelse(veteran$trt == 1, "standard", "new"), levels = c("standard", "new")),
+#'   karno_scaled = veteran$karno / 100
+#' )
+#' RoBSA.options(check_scaling = FALSE)
+#' fit <- RoBSA(
+#'   Surv(time, status) ~ treatment + karno_scaled,
+#'   data   = df,
+#'   priors = list(
+#'     treatment    = prior_factor("normal", parameters = list(mean = 0.30, sd = 0.15),
+#'                                 truncation = list(0, Inf), contrast = "treatment"),
+#'     karno_scaled = prior("normal", parameters = list(mean = 0, sd = 1))
+#'   ),
+#'   test_predictors = "treatment",
+#'   prior_intercept = priors[["intercept"]],
+#'   prior_aux       = priors[["aux"]],
+#'   parallel = TRUE, seed = 1
+#' )
+#'
+#' # plot survival for each level the treatment
+#' plot_survival(fit, parameter = "treatment")
+#'
+#' # plot hazard for each level the treatment
+#' plot_hazard(fit, parameter = "treatment")
+#'
+#' # plot density for each level the treatment
+#' plot_density(fit, parameter = "treatment")
+#' }
+#'
+#' @return returns either \code{NULL} if \code{plot_type = "base"}
+#' or an object object of class 'ggplot2' if \code{plot_type = "ggplot2"}.
+#'
 #' @export plot_prediction
 #' @export plot_survival
 #' @export plot_hazard
@@ -392,19 +473,20 @@ plot_prediction <- function(x, type = "survival", time_range = NULL, new_data = 
   }
 }
 #' @rdname plot_prediction
-plot_survival <- function(x, time_range = NULL, new_data = NULL, predictor = NULL, covariates_data = NULL,
+plot_survival   <- function(x, time_range = NULL, new_data = NULL, predictor = NULL, covariates_data = NULL,
                             conditional = FALSE, plot_type = "base", samples = 10000, ...){
   plot_prediction(x, type = "survival", time_range = time_range, new_data = new_data, predictor = predictor, covariates_data = covariates_data,
                   conditional = conditional, plot_type = plot_type, samples = samples, ...)
 }
 #' @rdname plot_prediction
-plot_hazard <- function(x, time_range = NULL, new_data = NULL, predictor = NULL, covariates_data = NULL,
-                          conditional = FALSE, plot_type = "base", samples = 10000, ...){
+plot_hazard     <- function(x, time_range = NULL, new_data = NULL, predictor = NULL, covariates_data = NULL,
+                            conditional = FALSE, plot_type = "base", samples = 10000, ...){
   plot_prediction(x, type = "hazard", time_range = time_range, new_data = new_data, predictor = predictor, covariates_data = covariates_data,
                   conditional = conditional, plot_type = plot_type, samples = samples, ...)
-}#' @rdname plot_prediction
-plot_density <- function(x, time_range = NULL, new_data = NULL, predictor = NULL, covariates_data = NULL,
-                          conditional = FALSE, plot_type = "base", samples = 10000, ...){
+}
+#' @rdname plot_prediction
+plot_density    <- function(x, time_range = NULL, new_data = NULL, predictor = NULL, covariates_data = NULL,
+                            conditional = FALSE, plot_type = "base", samples = 10000, ...){
   plot_prediction(x, type = "density", time_range = time_range, new_data = new_data, predictor = predictor, covariates_data = covariates_data,
                   conditional = conditional, plot_type = plot_type, samples = samples, ...)
 }

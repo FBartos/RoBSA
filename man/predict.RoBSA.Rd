@@ -14,7 +14,8 @@
   summarize = TRUE,
   averaged = TRUE,
   conditional = FALSE,
-  samples = 10000
+  samples = 10000,
+  ...
 )
 }
 \arguments{
@@ -46,6 +47,12 @@ or whether predictions for each individual model should be returned.}
 \code{predictor} should be used}
 
 \item{samples}{number of posterior samples to be evaluated}
+
+\item{...}{additional arguments (unused)}
+}
+\value{
+a list with predictions (or a list of lists in case that predictions for each
+individual model are requested \code{averaged = FALSE})
 }
 \description{
 Predicts survival/hazard/density/mean/sd for a given

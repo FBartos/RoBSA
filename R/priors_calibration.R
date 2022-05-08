@@ -21,6 +21,13 @@
 #' @param search_bounds2 search boundaries for the auxiliary
 #' parameter
 #'
+#' @examples
+#' priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
+#'
+#'
+#' @return returns a list of prior distribution for the intercepts
+#' and auxiliary parameters.
+#'
 #' @export
 calibrate_quartiles      <- function(median_t, iq_range_t, prior_sd = 0.5, distributions = c("exp-aft", "weibull-aft", "lnorm-aft", "llogis-aft", "gamma-aft"),
                                      verbose = FALSE, search_bounds1 = c(-1e2, 1e2), search_bounds2 = c(0 + 1e-2, 1e2)){
@@ -60,7 +67,7 @@ calibrate_quartiles      <- function(median_t, iq_range_t, prior_sd = 0.5, distr
 
   if(.has_aux(distribution)){
 
-    parameters <- optim(
+    parameters <- stats::optim(
       par   = c(0, 1),
       fn    = .solve_quantiles2,
       lower = c(search_bounds1[1], search_bounds2[1]),
@@ -85,7 +92,7 @@ calibrate_quartiles      <- function(median_t, iq_range_t, prior_sd = 0.5, distr
 
   }else{
 
-    parameters <- optim(
+    parameters <- stats::optim(
       par   = 0,
       fn    = .solve_quantiles1,
       lower = search_bounds1[1],
@@ -141,7 +148,7 @@ calibrate_quartiles      <- function(median_t, iq_range_t, prior_sd = 0.5, distr
   MSE <- (res_median_t - median_t)^2 + (res_iq_range_t - iq_range_t)^2
 
   if(verbose){
-    print(data.frame(distribution, intercept, aux, res_median_t, res_iq_range_t, MSE))
+    print(data.frame(intercept, aux, res_median_t, res_iq_range_t, MSE))
   }
 
   if(is.na(MSE)){
@@ -184,13 +191,19 @@ calibrate_quartiles      <- function(median_t, iq_range_t, prior_sd = 0.5, distr
 #' with the censoring status.
 #' @param distributions vector of parametric families for which
 #' prior distributions ought to be calibrated
-#' @param mu_scale scale of the prior Cauchy distribution for the meta-analytic
-#' mean parameter
-#' @param tau_scale scale of the prior Cauchy distribution for the meta-analytic
-#' heterogeneity parameter
+#' @param prior_mu prior distribution for the the meta-analytic mean parameter
+#' @param prior_tau prior distribution for the the meta-analytic heterogeneity parameter
+#' @param ... additional parameters to be passed to the meta-analytic function.
+#' See [BayesTools::JAGS_fit] for more details.
+#'
+#'
+#' @return returns a list of prior distribution for the intercepts
+#' and auxiliary parameters.
 #'
 #' @export
-calibrate_meta_analytic  <- function(datasets, distributions = c("exp-aft", "weibull-aft", "lnorm-aft", "llogis-aft", "gamma-aft"), mu_scale = 100, tau_scale = 10){
+calibrate_meta_analytic  <- function(datasets, distributions = c("exp-aft", "weibull-aft", "lnorm-aft", "llogis-aft", "gamma-aft"),
+                                     prior_mu  = prior("cauchy", parameters = list(location = 0, scale = 100)),
+                                     prior_tau = prior("cauchy", parameters = list(location = 0, scale = 10), truncation = list(0, Inf)), ...){
 
   if(!is.list(datasets))
     stop("'datasets' must be a list")
@@ -198,6 +211,9 @@ calibrate_meta_analytic  <- function(datasets, distributions = c("exp-aft", "wei
     stop("'datasets' must be a list of data.frames")
   if(!all(sapply(datasets, function(df) all(c("time", "status") %in% colnames(df)))))
     stop("'datasets' must be a list of data.frames that contains 'time' and 'status' columns describing the survival times and censoring")
+  if(!BayesTools::is.prior(prior_mu) | !BayesTools::is.prior(prior_tau))
+    stop("'prior_mu' and 'prior_tau' must be prior distributions")
+  requireNamespace("flexsurv")
 
   # prepare output
   priors_int <- list()
@@ -214,8 +230,8 @@ calibrate_meta_analytic  <- function(datasets, distributions = c("exp-aft", "wei
     }
   }
 
-  coefs    <- sapply(distributions, function(fam)data.frame(do.call(rbind, sapply(surv_fits, function(df)coef(df[[fam]]), simplify = FALSE))), simplify = FALSE)
-  coefs_se <- sapply(distributions, function(fam)data.frame(do.call(rbind, sapply(surv_fits, function(df)sqrt(diag(df[[fam]]$cov)), simplify = FALSE))), simplify = FALSE)
+  coefs    <- sapply(distributions, function(fam) data.frame(do.call(rbind, sapply(surv_fits, function(df) stats::coef(df[[fam]]), simplify = FALSE))), simplify = FALSE)
+  coefs_se <- sapply(distributions, function(fam) data.frame(do.call(rbind, sapply(surv_fits, function(df) sqrt(diag(df[[fam]]$cov)), simplify = FALSE))), simplify = FALSE)
   colnames(coefs$exp)    <- "rate"
   colnames(coefs_se$exp) <- "rate"
 
@@ -224,12 +240,12 @@ calibrate_meta_analytic  <- function(datasets, distributions = c("exp-aft", "wei
   for(fam in distributions){
     for(par in names(coefs[[fam]])){
 
-      require("metaBMA")
-      temp_fit <- suppressWarnings(metaBMA::meta_random(
-        y   = coefs[[fam]][[par]], SE = coefs_se[[fam]][[par]],
-        d   = metaBMA::prior("cauchy", c(location = 0, scale = mu_scale)),
-        tau = metaBMA::prior("cauchy", c(location = 0, scale = tau_scale), lower = 0),
-        control = list(adapt_delta = .95), cores = 1, chains = 2, iter = 5000, warmup = 2000))
+      temp_fit <- .random_effects_metaanalysis(
+        y   = coefs[[fam]][[par]],
+        se  = coefs_se[[fam]][[par]],
+        prior_mu  = prior_mu,
+        prior_tau = prior_tau,
+        ...)
 
 
       # deal with the negative parametrization for exp and gamma family
@@ -238,8 +254,8 @@ calibrate_meta_analytic  <- function(datasets, distributions = c("exp-aft", "wei
         priors_int[[.flex2RoBSA_distribution(fam)]] <- prior(
           distribution = "normal",
           parameters   = list(
-            mean = - temp_fit$estimates["d", "mean"],
-            sd   = sqrt(temp_fit$estimates["d", "sd"]^2 + temp_fit$estimates["tau", "mean"]^2)
+            mean = - temp_fit["mu", "Mean"],
+            sd   = sqrt(temp_fit["mu", "SD"]^2 + temp_fit["tau", "Mean"]^2)
           ))
 
       }else{
@@ -249,8 +265,8 @@ calibrate_meta_analytic  <- function(datasets, distributions = c("exp-aft", "wei
           priors_int[[.flex2RoBSA_distribution(fam)]] <- prior(
             distribution = "normal",
             parameters   = list(
-              mean = temp_fit$estimates["d", "mean"],
-              sd   = sqrt(temp_fit$estimates["d", "sd"]^2 + temp_fit$estimates["tau", "mean"]^2)
+              mean = temp_fit["mu", "Mean"],
+              sd   = sqrt(temp_fit["mu", "SD"]^2 + temp_fit["tau", "Mean"]^2)
           ))
 
         }else{
@@ -258,8 +274,8 @@ calibrate_meta_analytic  <- function(datasets, distributions = c("exp-aft", "wei
           priors_aux[[.flex2RoBSA_distribution(fam)]] <- prior(
             distribution = "lognormal",
             parameters   = list(
-              meanlog = temp_fit$estimates["d", "mean"],
-              sdlog   = sqrt(temp_fit$estimates["d", "sd"]^2 + temp_fit$estimates["tau", "mean"]^2)
+              meanlog = temp_fit["mu", "Mean"],
+              sdlog   = sqrt(temp_fit["mu", "SD"]^2 + temp_fit["tau", "Mean"]^2)
           ))
 
         }
@@ -272,6 +288,25 @@ calibrate_meta_analytic  <- function(datasets, distributions = c("exp-aft", "wei
     intercept = priors_int,
     aux       = priors_aux
   ))
+}
+
+.random_effects_metaanalysis <- function(y, se, prior_mu, prior_tau, ...){
+
+  model_syntax <- "model{
+        for(i in 1:K){
+          y[i] ~ dnorm(mu, 1/(pow(tau, 2) + pow(se[i], 2)))
+        }
+        }"
+
+  fit <- BayesTools::JAGS_fit(
+    model_syntax = model_syntax,
+    data         = list(y = y, se = se, K = length(y)),
+    prior_list   = list(mu = prior_mu, tau = prior_tau),
+    ...)
+
+  fit_summary <- BayesTools::runjags_estimates_table(fit)
+
+  return(fit_summary)
 }
 
 .RoBSA2flex_distribution <- function(distribution){

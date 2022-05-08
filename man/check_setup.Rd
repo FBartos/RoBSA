@@ -2,7 +2,7 @@
 % Please edit documentation in R/check-input-and-settings.R
 \name{check_setup}
 \alias{check_setup}
-\title{Prints summary of \code{"RoBSA"} ensemble implied by the specified priors}
+\title{Prints summary of \code{"RoBSA"} corresponding to the input}
 \usage{
 check_setup(
   formula,
@@ -39,6 +39,12 @@ check_setup(
 
 \item{data}{data frame containing the data}
 
+\item{priors}{names list of prior distributions for each
+predictor. Allows to specify both the null and alternative
+hypothesis prior distributions by assigning a named list
+(with \code{"null"} and \code{"alt"} object) to the predictor
+predictor.}
+
 \item{test_predictors}{vector of predictor names
 to be tested with Bayesian model-averaged testing.
 Defaults to \code{NULL}, no parameters are tested.}
@@ -49,13 +55,17 @@ survival models}
 \item{distributions_weights}{prior odds for the competing
 distributions}
 
-\item{prior_beta_null}{named list containing null prior
-distribution for the predictors (with names corresponding
-to the predictors)}
+\item{prior_beta_null}{default prior distribution for the
+null hypotheses of continuous predictors}
 
-\item{prior_beta_alt}{named list containing prior
-distribution for the predictors (with names corresponding
-to the predictors)}
+\item{prior_beta_alt}{default prior distribution for the
+alternative hypotheses of continuous predictors}
+
+\item{prior_factor_null}{default prior distribution for the
+null hypotheses of categorical predictors}
+
+\item{prior_factor_alt}{default prior distribution for the
+alternative hypotheses of categorical predictors}
 
 \item{prior_intercept}{named list containing prior
 distribution for the intercepts (with names corresponding
@@ -119,8 +129,9 @@ estimating the model. Defaults to \code{FALSE}.}
 }
 \description{
 \code{check_setup} prints summary of \code{"RoBSA"} ensemble
-implied by the specified prior distributions. It is useful for checking
-the ensemble configuration prior to fitting all of the models.
+corresponding to the specified formula, data, and priors.
+This function is useful for checking the ensemble configuration prior
+to fitting all models.
 }
 \seealso{
 \code{\link[=RoBSA]{RoBSA()}}

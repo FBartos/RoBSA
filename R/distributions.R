@@ -32,11 +32,17 @@
 #' @param q vector of quantiles
 #' @param p vector of probabilities
 #' @param n number of observations
-#' @param location vector of locations.
-#' @param log,log.p logical; if \code{TRUE}, probabilities
-#' \code{p} are given as \code{log(p)}.
-#' @param lower.tail logical; if \code{TRUE} (default), probabilities
-#' are \eqn{P[X \le x]}, otherwise, \eqn{P[X \ge x]}.
+#'
+#'
+#' @return \code{exp_aft_density}, \code{exp_aft_hazard}, and
+#' \code{exp_aft_survival} return the density, hazard, and survival
+#' of the specified survival distribution. The \code{exp_aft_log_density},
+#' \code{exp_aft_log_hazard}, \code{exp_aft_log_survival} return log of
+#' the corresponding qualities. \code{exp_aft_mean} and \code{exp_aft_sd}
+#' return the mean and standard deviation of the specified survival distribution.
+#' \code{exp_aft_r}, \code{exp_aft_q}, and \code{exp_aft_p} return a random
+#' generation, quantiles, and cumulative probabilities of the specified
+#' survival distribution.
 #'
 #'
 #' @export exp_aft_log_density
@@ -134,11 +140,17 @@ exp_aft_p    <- function(q, eta){
 #' @param q vector of quantiles
 #' @param p vector of probabilities
 #' @param n number of observations
-#' @param location vector of locations.
-#' @param log,log.p logical; if \code{TRUE}, probabilities
-#' \code{p} are given as \code{log(p)}.
-#' @param lower.tail logical; if \code{TRUE} (default), probabilities
-#' are \eqn{P[X \le x]}, otherwise, \eqn{P[X \ge x]}.
+#'
+#'
+#' @return \code{weibull_aft_density}, \code{weibull_aft_hazard}, and
+#' \code{weibull_aft_survival} return the density, hazard, and survival
+#' of the specified survival distribution. The \code{weibull_aft_log_density},
+#' \code{weibull_aft_log_hazard}, \code{weibull_aft_log_survival} return log of
+#' the corresponding qualities. \code{weibull_aft_mean} and \code{weibull_aft_sd}
+#' return the mean and standard deviation of the specified survival distribution.
+#' \code{weibull_aft_r}, \code{weibull_aft_q}, and \code{weibull_aft_p} return a random
+#' generation, quantiles, and cumulative probabilities of the specified
+#' survival distribution.
 #'
 #'
 #' @export weibull_aft_log_density
@@ -236,11 +248,17 @@ weibull_aft_p    <- function(q, eta, shape){
 #' @param q vector of quantiles
 #' @param p vector of probabilities
 #' @param n number of observations
-#' @param location vector of locations.
-#' @param log,log.p logical; if \code{TRUE}, probabilities
-#' \code{p} are given as \code{log(p)}.
-#' @param lower.tail logical; if \code{TRUE} (default), probabilities
-#' are \eqn{P[X \le x]}, otherwise, \eqn{P[X \ge x]}.
+#'
+#'
+#' @return \code{lnorm_aft_density}, \code{lnorm_aft_hazard}, and
+#' \code{lnorm_aft_survival} return the density, hazard, and survival
+#' of the specified survival distribution. The \code{lnorm_aft_log_density},
+#' \code{lnorm_aft_log_hazard}, \code{lnorm_aft_log_survival} return log of
+#' the corresponding qualities. \code{lnorm_aft_mean} and \code{lnorm_aft_sd}
+#' return the mean and standard deviation of the specified survival distribution.
+#' \code{lnorm_aft_r}, \code{lnorm_aft_q}, and \code{lnorm_aft_p} return a random
+#' generation, quantiles, and cumulative probabilities of the specified
+#' survival distribution.
 #'
 #'
 #' @export lnorm_aft_log_density
@@ -333,15 +351,21 @@ lnorm_aft_p    <- function(q, eta, sd){
 #'
 #' @param t vector of survival times
 #' @param eta linear predictor
-#' @param sd auxiliary parameter
+#' @param shape auxiliary parameter
 #' @param q vector of quantiles
 #' @param p vector of probabilities
 #' @param n number of observations
-#' @param location vector of locations.
-#' @param log,log.p logical; if \code{TRUE}, probabilities
-#' \code{p} are given as \code{log(p)}.
-#' @param lower.tail logical; if \code{TRUE} (default), probabilities
-#' are \eqn{P[X \le x]}, otherwise, \eqn{P[X \ge x]}.
+#'
+#'
+#' @return \code{llogis_aft_density}, \code{llogis_aft_hazard}, and
+#' \code{llogis_aft_survival} return the density, hazard, and survival
+#' of the specified survival distribution. The \code{llogis_aft_log_density},
+#' \code{llogis_aft_log_hazard}, \code{llogis_aft_log_survival} return log of
+#' the corresponding qualities. \code{llogis_aft_mean} and \code{llogis_aft_sd}
+#' return the mean and standard deviation of the specified survival distribution.
+#' \code{llogis_aft_r}, \code{llogis_aft_q}, and \code{llogis_aft_p} return a random
+#' generation, quantiles, and cumulative probabilities of the specified
+#' survival distribution.
 #'
 #'
 #' @export llogis_aft_log_density
@@ -439,15 +463,21 @@ llogis_aft_p    <- function(q, eta, shape){
 #'
 #' @param t vector of survival times
 #' @param eta linear predictor
-#' @param sd auxiliary parameter
+#' @param shape auxiliary parameter
 #' @param q vector of quantiles
 #' @param p vector of probabilities
 #' @param n number of observations
-#' @param location vector of locations.
-#' @param log,log.p logical; if \code{TRUE}, probabilities
-#' \code{p} are given as \code{log(p)}.
-#' @param lower.tail logical; if \code{TRUE} (default), probabilities
-#' are \eqn{P[X \le x]}, otherwise, \eqn{P[X \ge x]}.
+#'
+#'
+#' @return \code{gamma_aft_density}, \code{gamma_aft_hazard}, and
+#' \code{gamma_aft_survival} return the density, hazard, and survival
+#' of the specified survival distribution. The \code{gamma_aft_log_density},
+#' \code{gamma_aft_log_hazard}, \code{gamma_aft_log_survival} return log of
+#' the corresponding qualities. \code{gamma_aft_mean} and \code{gamma_aft_sd}
+#' return the mean and standard deviation of the specified survival distribution.
+#' \code{gamma_aft_r}, \code{gamma_aft_q}, and \code{gamma_aft_p} return a random
+#' generation, quantiles, and cumulative probabilities of the specified
+#' survival distribution.
 #'
 #'
 #' @export gamma_aft_log_density

@@ -10,10 +10,12 @@ Authors@R: c(
     comment = c(ORCID = "0000-0001-5122-706X"))
     )
 Description: A framework for estimating ensembles of parametric survival models
-    and using Bayesian model averaging to combine them. The
-    ensembles use Bayes factors to test for the presence or absence of the
-    individual components (e.g., treatment effect, parametric family, etc...) and 
-    model-averages parameter estimates based on posterior model probabilities. 
+    with different parametric families. The RoBSA framework uses Bayesian 
+    model-averaging to combine the competing parametric survival models into 
+    a model ensemble, weights the posterior parameter distributions based on 
+    posterior model probabilities and uses Bayes factors to test for the 
+    presence or absence of the individual predictors or preference for a 
+    parametric family (Bartoš, Aust & Haaf, 2021, <doi:10.48550/arXiv.2112.08311>).
     The user can define a wide range of informative priors for all parameters 
     of interest. The package provides convenient functions for summary, visualizations, 
     fit diagnostics, and prior distribution calibration.
@@ -24,20 +26,24 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
+SystemRequirements: JAGS >= 4.3.0 (https://mcmc-jags.sourceforge.io/)
+Depends:
+    R (>= 4.0.0)
 Imports:
     BayesTools (>= 0.2.10),
     survival,
     rjags,
     runjags,
     bridgesampling,
+    scales,
     coda, 
     stats,
     graphics,
     Rdpack
 Suggests:
-    ggplot2,
     parallel,
-    metaBMA,
+    ggplot2,
+    flexsurv,
     testthat,
     vdiffr,
     knitr,

@@ -1,8 +1,10 @@
 #' @title Fit Robust Bayesian Survival Analysis
 #'
-#' @description Fits a RoBSA model. Please note
-#' that the fitting function only supports dummy
-#' coded predictors and cannot deal with factors.
+#' @description \code{RoBSA} is used to estimate a robust Bayesian
+#' survival analysis. The interface allows a complete customization of
+#' the ensemble with different prior distributions for the null and
+#' alternative hypothesis of each parameter.
+#' (See README for an example.)
 #'
 #' @param formula formula for the survival model
 #' @param data data frame containing the data
@@ -11,14 +13,21 @@
 #' @param test_predictors vector of predictor names
 #' to be tested with Bayesian model-averaged testing.
 #' Defaults to \code{NULL}, no parameters are tested.
+#' @param priors names list of prior distributions for each
+#' predictor. Allows to specify both the null and alternative
+#' hypothesis prior distributions by assigning a named list
+#' (with \code{"null"} and \code{"alt"} object) to the predictor
+#' predictor.
 #' @param distributions_weights prior odds for the competing
 #' distributions
-#' @param prior_beta_null named list containing null prior
-#' distribution for the predictors (with names corresponding
-#' to the predictors)
-#' @param prior_beta_alt named list containing prior
-#' distribution for the predictors (with names corresponding
-#' to the predictors)
+#' @param prior_beta_null default prior distribution for the
+#' null hypotheses of continuous predictors
+#' @param prior_beta_alt default prior distribution for the
+#' alternative hypotheses of continuous predictors
+#' @param prior_factor_null default prior distribution for the
+#' null hypotheses of categorical predictors
+#' @param prior_factor_alt default prior distribution for the
+#' alternative hypotheses of categorical predictors
 #' @param prior_intercept named list containing prior
 #' distribution for the intercepts (with names corresponding
 #' to the distributions)
@@ -61,6 +70,36 @@
 #' estimating the model. Defaults to \code{FALSE}.
 #' @param ... additional arguments.
 #'
+#' @examples \dontrun{
+#' # example from the README (more details and explanation therein)
+#' data(cancer, package = "survival")
+#' priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
+#' df <- data.frame(
+#'   time         = veteran$time / 12,
+#'   status       = veteran$status,
+#'   treatment    = factor(ifelse(veteran$trt == 1, "standard", "new"), levels = c("standard", "new")),
+#'   karno_scaled = veteran$karno / 100
+#' )
+#' RoBSA.options(check_scaling = FALSE)
+#' fit <- RoBSA(
+#'   Surv(time, status) ~ treatment + karno_scaled,
+#'   data   = df,
+#'   priors = list(
+#'     treatment    = prior_factor("normal", parameters = list(mean = 0.30, sd = 0.15),
+#'                                 truncation = list(0, Inf), contrast = "treatment"),
+#'     karno_scaled = prior("normal", parameters = list(mean = 0, sd = 1))
+#'   ),
+#'   test_predictors = "treatment",
+#'   prior_intercept = priors[["intercept"]],
+#'   prior_aux       = priors[["aux"]],
+#'   parallel = TRUE, seed = 1
+#' )
+#' summary(fit)
+#'
+#' }
+#'
+#' @return \code{RoBSA} returns an object of class 'RoBSA'.
+#'
 #' @rdname RoBSA
 #' @aliases RoBSA
 #' @export
@@ -91,8 +130,9 @@ RoBSA <- function(
 
 
   ### prepare & check the data
-  object$data    <- .prepare_data(formula, data, rescale_data)
-  object$formula <- formula
+  object$data_input <- data
+  object$data       <- .prepare_data(formula, data, rescale_data)
+  object$formula    <- formula
 
 
   ### check MCMC settings
@@ -102,10 +142,11 @@ RoBSA <- function(
 
 
   ### prepare and check the settings
-  object$priors  <- .check_and_list_priors(priors = priors, distributions = distributions, data = object[["data"]], test_predictors = test_predictors,
-                                           default_prior_beta_null = prior_beta_null, default_prior_beta_alt = prior_beta_alt,
-                                           default_prior_factor_null = prior_factor_null, default_prior_factor_alt = prior_factor_alt,
-                                           default_prior_intercept = prior_intercept, default_prior_aux = prior_aux)
+  object$priors  <- .check_and_list_priors(
+    priors = priors, distributions = distributions, data = object[["data"]], test_predictors = test_predictors,
+    default_prior_beta_null = prior_beta_null, default_prior_beta_alt = prior_beta_alt,
+    default_prior_factor_null = prior_factor_null, default_prior_factor_alt = prior_factor_alt,
+    default_prior_intercept = prior_intercept, default_prior_aux = prior_aux)
   object$models  <- .prepare_models(object$priors, distributions, distributions_weights)
 
 
@@ -208,31 +249,27 @@ RoBSA <- function(
 #'
 #' @details See [RoBSA()] for more details.
 #'
-#'
-#'
-#' @return \code{RoBSA} returns an object of class 'RoBSA'.
+#' @return \code{update.RoBSA} returns an object of class 'RoBSA'.
 #'
 #' @seealso [RoBSA()], [summary.RoBSA()], [prior()], [check_setup()]
 #' @export
-update.RoBSA <- function(object, refit_failed = TRUE,
+update.RoBSA <- function(
+  object, refit_failed = TRUE,
 
-                         distribution  = NULL,
-                         model_weights = NULL,
+  formula = NULL, priors = NULL, test_predictors = "", distribution = NULL, model_weights = 1,
 
-                         # default prior distribution
-                         prior_beta_null   = get_default_prior_beta_null(),
-                         prior_beta_alt    = get_default_prior_beta_alt(),
-                         prior_factor_null = get_default_prior_factor_null(),
-                         prior_factor_alt  = get_default_prior_factor_alt(),
-                         prior_intercept   = get_default_prior_intercept(),
-                         prior_aux         = get_default_prior_aux(),
+  # default prior distribution
+  prior_beta_null   = get_default_prior_beta_null(),
+  prior_beta_alt    = get_default_prior_beta_alt(),
+  prior_factor_null = get_default_prior_factor_null(),
+  prior_factor_alt  = get_default_prior_factor_alt(),
+  prior_intercept   = get_default_prior_intercept(),
+  prior_aux         = get_default_prior_aux(),
 
-                         chains = NULL, adapt = NULL, burnin = NULL, sample = NULL, thin = NULL, autofit = NULL, parallel = NULL,
-                         autofit_control = NULL, convergence_checks = NULL,
-                         save = "all", seed = NULL, silent = TRUE, ...){
+  chains = NULL, adapt = NULL, burnin = NULL, sample = NULL, thin = NULL, autofit = NULL, parallel = NULL,
+  autofit_control = NULL, convergence_checks = NULL,
+  save = "all", seed = NULL, silent = TRUE, ...){
 
-  # TODO: add ability to change the output scale
-  output_scale <- NULL
 
   if(object$add_info$save == "min")
     stop("Models cannot be updated because individual model posteriors were not save during the fitting process. Set 'save' parameter to 'all' in while fitting the model (see ?RoBSA for more details).")
@@ -242,23 +279,49 @@ update.RoBSA <- function(object, refit_failed = TRUE,
   if(!is.null(distribution)){
 
     what_to_do <- "fit_new_model"
-    new_priors  <- .check_and_list_priors(priors = priors, distributions = distributions, data = object[["data"]], test_predictors = test_predictors,
-                                          default_prior_beta_null = prior_beta_null, default_prior_beta_alt = prior_beta_alt,
-                                          default_prior_factor_null = prior_factor_null, default_prior_factor_alt = prior_factor_alt,
-                                          default_prior_intercept = prior_intercept, default_prior_aux = prior_aux)
-    object$models[length(object$models) + 1]  <- list(.prepare_models(new_priors, distributions, distributions_weights)[[1]])
+    BayesTools::check_real(model_weights, "model_weights", lower = 0)
 
-    if(!is.null(model_weights)){
-      object$models[[length(object$models)]]$model_weights     <- model_weights
-      object$models[[length(object$models)]]$model_weights_set <- model_weights
+    # use the old formula if new is not supplied (i.e., adding models with different priors / distributions)
+    if(!is.null(formula)){
+      object$data    <- .prepare_data(formula, object[["data_input"]], object$add_info[["rescale_data"]])
+      object$formula <- formula
     }
+
+    # use the old priors if new is not supplied
+    if(!is.null(priors)){
+      priors  <- .check_and_list_priors(
+        priors = priors, distributions = distribution, data = object[["data"]], test_predictors = test_predictors,
+        default_prior_beta_null = prior_beta_null, default_prior_beta_alt = prior_beta_alt,
+        default_prior_factor_null = prior_factor_null, default_prior_factor_alt = prior_factor_alt,
+        default_prior_intercept = prior_intercept, default_prior_aux = prior_aux)
+    }else{
+      priors  <- .check_and_list_priors(
+        priors = object[["priors"]][["terms"]], distributions = distribution, data = object[["data"]], test_predictors = test_predictors,
+        default_prior_beta_null = prior_beta_null, default_prior_beta_alt = prior_beta_alt,
+        default_prior_factor_null = prior_factor_null, default_prior_factor_alt = prior_factor_alt,
+        default_prior_intercept = prior_intercept, default_prior_aux = prior_aux)
+    }
+
+
+    # update add info
+    object$add_info <- .update_add_info(
+      old_add_info     = object[["add_info"]],
+      distribution     = distribution,
+      predictors       = attr(priors, "terms"),
+      predictors_test  = attr(priors, "terms_test")
+    )
+
+    object$models[length(object$models) + 1]  <- list(.prepare_models(priors, distribution, model_weights)[[1]])
+
+    object$models[[length(object$models)]]$model_weights     <- model_weights
+    object$models[[length(object$models)]]$model_weights_set <- model_weights
 
 
   }else if(!is.null(model_weights)){
 
     what_to_do <- "update_model_weights"
-    if(length(model_weights) != length(object$models))
-      stop("The number of newly specified prior odds does not match the number of models. See '?update.RoBSA' for more details.")
+    BayesTools::check_real(model_weights, "model_weights", check_length = length(object[["models"]]), lower = 0)
+
     for(i in 1:length(object$models)){
       object$models[[i]]$prior_weights     <- model_weights[i]
       object$models[[i]]$prior_weights_set <- model_weights[i]
@@ -319,5 +382,7 @@ update.RoBSA <- function(object, refit_failed = TRUE,
     object <- .remove_model_margliks(object)
   }
 
+
+  class(object) <- "RoBSA"
   return(object)
 }

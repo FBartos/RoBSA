@@ -60,12 +60,33 @@ ways. See \code{type} for the different model types.
 }
 \examples{
 \dontrun{
-# using the example data from Anderson et al. 2010 and fitting the default model
-# (note that the model can take a while to fit)
+# example from the README (more details and explanation therein)
+data(cancer, package = "survival")
+priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
+df <- data.frame(
+  time         = veteran$time / 12,
+  status       = veteran$status,
+  treatment    = factor(ifelse(veteran$trt == 1, "standard", "new"), levels = c("standard", "new")),
+  karno_scaled = veteran$karno / 100
+)
+RoBSA.options(check_scaling = FALSE)
+fit <- RoBSA(
+  Surv(time, status) ~ treatment + karno_scaled,
+  data   = df,
+  priors = list(
+    treatment    = prior_factor("normal", parameters = list(mean = 0.30, sd = 0.15),
+                                truncation = list(0, Inf), contrast = "treatment"),
+    karno_scaled = prior("normal", parameters = list(mean = 0, sd = 1))
+  ),
+  test_predictors = "treatment",
+  prior_intercept = priors[["intercept"]],
+  prior_aux       = priors[["aux"]],
+  parallel = TRUE, seed = 1
+)
 
-### ggplot2 version of all of the plots can be obtained by adding 'model_type = "ggplot"
-# the 'plot' function allows to visualize the results of a fitted RoBSA object, for example;
-# the model-averaged effect size estimate
+# plot posterior distribution of the treatment effect
+plot(fit, parameter = "treatment")
+
 }
 
 

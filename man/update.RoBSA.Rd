@@ -7,8 +7,11 @@
 \method{update}{RoBSA}(
   object,
   refit_failed = TRUE,
+  formula = NULL,
+  priors = NULL,
+  test_predictors = "",
   distribution = NULL,
-  model_weights = NULL,
+  model_weights = 1,
   prior_beta_null = get_default_prior_beta_null(),
   prior_beta_alt = get_default_prior_beta_alt(),
   prior_factor_null = get_default_prior_factor_null(),
@@ -36,19 +39,35 @@
 \item{refit_failed}{whether failed models should be refitted. Relevant only
 if new priors or \code{prior_weights} are not supplied. Defaults to \code{TRUE}.}
 
+\item{formula}{formula for the survival model}
+
+\item{priors}{names list of prior distributions for each
+predictor. Allows to specify both the null and alternative
+hypothesis prior distributions by assigning a named list
+(with \code{"null"} and \code{"alt"} object) to the predictor
+predictor.}
+
+\item{test_predictors}{vector of predictor names
+to be tested with Bayesian model-averaged testing.
+Defaults to \code{NULL}, no parameters are tested.}
+
 \item{distribution}{a distribution of the new model.}
 
 \item{model_weights}{either a single value specifying prior model weight
 of a newly specified model using priors argument, or a vector of the
 same length as already fitted models to update their prior weights.}
 
-\item{prior_beta_null}{named list containing null prior
-distribution for the predictors (with names corresponding
-to the predictors)}
+\item{prior_beta_null}{default prior distribution for the
+null hypotheses of continuous predictors}
 
-\item{prior_beta_alt}{named list containing prior
-distribution for the predictors (with names corresponding
-to the predictors)}
+\item{prior_beta_alt}{default prior distribution for the
+alternative hypotheses of continuous predictors}
+
+\item{prior_factor_null}{default prior distribution for the
+null hypotheses of categorical predictors}
+
+\item{prior_factor_alt}{default prior distribution for the
+alternative hypotheses of categorical predictors}
 
 \item{prior_intercept}{named list containing prior
 distribution for the intercepts (with names corresponding
@@ -105,7 +124,7 @@ also suppresses all messages.}
 \item{...}{additional arguments.}
 }
 \value{
-\code{RoBSA} returns an object of class 'RoBSA'.
+\code{update.RoBSA} returns an object of class 'RoBSA'.
 }
 \description{
 \code{update.RoBSA} can be used to

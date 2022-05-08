@@ -28,7 +28,7 @@ RoBSA.options    <- function(...){
 	  if(!names(opts)[i] %in% names(RoBSA.private))
 	    stop(paste("Unmatched or ambiguous option '", names(opts)[i], "'", sep=""))
 
-	  if(!names(opts)[i] == "distribution")
+	  if(names(opts)[i] == "distribution")
 	    stop("List of default distributions cannot be changed.")
 
 	  assign(names(opts)[i], opts[[i]] , envir = RoBSA.private)

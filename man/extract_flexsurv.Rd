@@ -16,6 +16,6 @@ parameter.
 }
 \description{
 \code{extract_flexsurv} extracts estimates from a
-\code{flexsurv} object in and transform them so they match the
+\code{flexsurv} object in and transform them to match the
 \code{RoBSA} output.
 }

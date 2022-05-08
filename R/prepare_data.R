@@ -130,12 +130,12 @@
       data_predictors_info[[names(data_predictors)[i]]] <- list(
         type = "continuous",
         mean = mean(data_predictors[[names(data_predictors)[i]]]),
-        sd   = sd(data_predictors[[names(data_predictors)[i]]])
+        sd   = stats::sd(data_predictors[[names(data_predictors)[i]]])
       )
 
       if(rescale_data){
         data_predictors[[names(data_predictors)[i]]] <- .pred_scale(data_predictors[[names(data_predictors)[i]]], data_predictors_info[[names(data_predictors)[i]]])
-      }else if(RoBSA.get_option("check_scaling") && (abs(mean(data_predictors[[names(data_predictors)[i]]])) > 0.01 | abs(1 - sd(data_predictors[[names(data_predictors)[i]]])) > 0.01)){
+      }else if(RoBSA.get_option("check_scaling") && (abs(mean(data_predictors[[names(data_predictors)[i]]])) > 0.01 | abs(1 - stats::sd(data_predictors[[names(data_predictors)[i]]])) > 0.01)){
         to_warn <- c(to_warn, names(data_predictors)[i])
       }
 

@@ -1,8 +1,9 @@
-#' @title Prints summary of \code{"RoBSA"} ensemble implied by the specified priors
+#' @title Prints summary of \code{"RoBSA"} corresponding to the input
 #'
 #' @description \code{check_setup} prints summary of \code{"RoBSA"} ensemble
-#' implied by the specified prior distributions. It is useful for checking
-#' the ensemble configuration prior to fitting all of the models.
+#' corresponding to the specified formula, data, and priors.
+#' This function is useful for checking the ensemble configuration prior
+#' to fitting all models.
 #'
 #' @inheritParams RoBSA
 #' @param models should the models' details be printed.
@@ -425,9 +426,34 @@ set_convergence_checks  <- function(max_Rhat = 1.05, min_ESS = 500, max_error = 
   ))
 }
 
+.update_add_info <- function(old_add_info, distribution, predictors, predictors_test){
+
+  if(!distribution %in% old_add_info[["distributions"]]){
+    old_add_info[["distributions"]] <- c(old_add_info[["distributions"]], distribution)
+  }
+
+  if(any(!predictors %in% old_add_info[["predictors"]])){
+    old_add_info[["predictors"]] <- c(
+      old_add_info[["predictors"]],
+      predictors[!predictors %in% old_add_info[["predictors"]]])
+  }
+
+  if(any(!predictors_test %in% old_add_info[["predictors_test"]])){
+    old_add_info[["predictors_test"]] <- c(
+      old_add_info[["predictors_test"]],
+      predictors_test[!predictors_test %in% old_add_info[["predictors_test"]]])
+  }
+
+
+  return(old_add_info)
+}
+
+
 #' @title Default prior distributions
 #'
-#' @description Functions for setting default prior distributions.
+#' @description Functions for setting default prior distributions. Note that
+#' these default prior distributions might (and probably won't) apply to your
+#' specific data scenario.
 #'
 #' @return \code{get_default_prior_beta_null} and \code{get_default_prior_beta_alt}
 #' return a prior distribution and \code{get_default_prior_intercept} and

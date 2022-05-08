@@ -9,6 +9,7 @@ for(i in seq_along(saved_files)){
   saved_fits[[i]] <- readRDS(file = file.path("../results/fits", saved_files[i]))
 }
 
+
 test_that("Print functions work", {
 
   # testing consistency across all model specifications
@@ -52,8 +53,8 @@ test_that("Summary functions work", {
       "llogis-aft     2/8       0.167       0.003             4.370"                                ,
       ""                                                                                            ,
       "Components summary:"                                                                         ,
-      "            Models Prior prob. Post. prob. log(Exclusion BF)"                                ,
-      "(mu) x_fac3    4/8       0.500       0.189             1.453"                                ,
+      "       Models Prior prob. Post. prob. log(Exclusion BF)"                                     ,
+      "x_fac3    4/8       0.500       0.189             1.453"                                     ,
       ""                                                                                            ,
       "Model-averaged estimates:"                                                                   ,
       "           Mean Median    0.1   0.5   0.9"                                                   ,

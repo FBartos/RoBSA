@@ -2,9 +2,12 @@
 #'
 #' @param x a fitted RoBSA object.
 #' @param ... additional arguments.
-#' @export  print.RoBSA
-#' @rawNamespace S3method(print, RoBSA)
+#'
+#'
+#' @return \code{print.RoBSA} invisibly returns the print statement.
+#'
 #' @seealso [RoBSA()]
+#' @export
 print.RoBSA <- function(x, ...){
   cat("Call:\n")
   print(x$call)
@@ -25,26 +28,44 @@ print.RoBSA <- function(x, ...){
 #' @param conditional show the conditional estimates (assuming that the
 #' alternative is true). Defaults to \code{FALSE}. Only available for
 #' \code{type == "conditional"}.
-#' @param diagnostics show the maximum R-hat and minimum ESS for the main
-#' parameters in each of the models. Only available for \code{type = "ensemble"}.
+#' @param exp whether exponents of the regression estimates should be also presented
 #' @param probs quantiles of the posterior samples to be displayed.
 #' Defaults to \code{c(.025, .50, .975)}
 #' @param logBF show log of the BFs. Defaults to \code{FALSE}.
 #' @param BF01 show BF in support of the null hypotheses. Defaults to
 #' \code{FALSE}.
-#' @param digits_estimates a number of decimals for rounding the estimates.
-#' Defaults to \code{3}.
-#' @param digits_BF a number of decimals for rounding the BFs. Defaults to \code{3}.
 #' @param transform_orthonormal Whether factors with orthonormal prior
 #' distributions should be transformed to differences from the grand mean. Defaults
 #' to \code{TRUE}.
 #' @param ... additional arguments
+#' @inheritParams BayesTools::BayesTools_ensemble_tables
+#'
 #'
 #' @return summary of a RoBSA object
 #' @examples \dontrun{
-#' # using the example data from Anderson et al. 2010 and fitting the default model
-#' # (note that the model can take a while to fit)
-#' fit <- RoBSA(r = Anderson2010$r, n = Anderson2010$n, study_names = Anderson2010$labels)
+#' # example from the README (more details and explanation therein)
+#' data(cancer, package = "survival")
+#' priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
+#' df <- data.frame(
+#'   time         = veteran$time / 12,
+#'   status       = veteran$status,
+#'   treatment    = factor(ifelse(veteran$trt == 1, "standard", "new"), levels = c("standard", "new")),
+#'   karno_scaled = veteran$karno / 100
+#' )
+#' RoBSA.options(check_scaling = FALSE)
+#' fit <- RoBSA(
+#'   Surv(time, status) ~ treatment + karno_scaled,
+#'   data   = df,
+#'   priors = list(
+#'     treatment    = prior_factor("normal", parameters = list(mean = 0.30, sd = 0.15),
+#'                                 truncation = list(0, Inf), contrast = "treatment"),
+#'     karno_scaled = prior("normal", parameters = list(mean = 0, sd = 1))
+#'   ),
+#'   test_predictors = "treatment",
+#'   prior_intercept = priors[["intercept"]],
+#'   prior_aux       = priors[["aux"]],
+#'   parallel = TRUE, seed = 1
+#' )
 #'
 #' # summary can provide many details about the model
 #' summary(fit)
@@ -60,17 +81,20 @@ print.RoBSA <- function(x, ...){
 #'
 #' # and the model diagnostics overview, containing maximum R-hat and minimum ESS across parameters
 #' # but see '?diagnostics' for diagnostics plots for individual model parameters
-#' summary(fit, type = "models", diagnostics = TRUE)
+#' summary(fit, type = "diagnostics")
 #'
 #' # summary of individual models and their parameters can be further obtained by
 #' summary(fit, type = "individual")
 #'
 #' }
+#'
 #' @note See [diagnostics()] for visual convergence checks of the individual models.
-#' @method summary RoBSA
-#' @export summary.RoBSA
-#' @rawNamespace S3method(summary, RoBSA)
-#' @seealso [RoBSA()] [diagnostics()]
+#'
+#'
+#' @return \code{summary.RoBSA} returns a list of tables of class 'BayesTools_table'.
+#'
+#' @seealso [RoBSA()], [diagnostics()], [check_RoBSA()]
+#' @export
 summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
                                 exp = FALSE, parameters = FALSE, probs = c(.025, .975), logBF = FALSE, BF01 = FALSE,
                                 transform_orthonormal = TRUE, short_name = FALSE, remove_spike_0 = FALSE, ...){
@@ -105,12 +129,15 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
     )
 
     if(length(object$RoBSA[["inference"]]) > 0){
+      for(i in seq_along(object$RoBSA[["inference"]])){
+        attr(object$RoBSA[["inference"]][[i]], "parameter_name") <- gsub("(mu) ", "", attr(object$RoBSA[["inference"]][[i]], "parameter_name"), fixed = TRUE)
+      }
       components <- BayesTools::ensemble_inference_table(
-        inference  = object$RoBSA[["inference"]],
-        parameters = names(object$RoBSA[["inference"]]),
-        logBF      = logBF,
-        BF01       = BF01,
-        title      = "Components summary:"
+        inference      = object$RoBSA[["inference"]],
+        parameters     = names(object$RoBSA[["inference"]]),
+        logBF          = logBF,
+        BF01           = BF01,
+        title          = "Components summary:",
       )
     }else{
       components <- NULL
@@ -365,10 +392,11 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
 #'
 #' @param x a summary of a RoBSA object
 #' @param ... additional arguments
-#' @method print.summary RoBSA
-#' @export print.summary.RoBSA
-#' @rawNamespace S3method(print, summary.RoBSA)
+#'
+#' @return \code{print.summary.RoBSA} invisibly returns the print statement.
+#'
 #' @seealso [RoBSA()]
+#' @export
 print.summary.RoBSA <- function(x, ...){
 
   cat("Call:\n")

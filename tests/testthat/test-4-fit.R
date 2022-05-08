@@ -1,6 +1,6 @@
 context("(4) Fitting and updating functions")
 skip_on_cran()
-skip_on_covr()
+
 
 # test objects
 saved_files <- paste0("fit_", 1:6, ".RDS")
@@ -39,7 +39,7 @@ try_parallel <- function(x, rep = 3){
 }
 
 
-test_that("Default model (RoBMA-PSMA) works", {
+test_that("Fitting function works", {
 
   ### intercept only
   fit1 <- try_parallel(RoBSA(
@@ -185,6 +185,23 @@ test_that("Default model (RoBMA-PSMA) works", {
 
 })
 
+test_that("Updating function works", {
+
+  fit7 <- try_parallel(RoBSA(
+    Surv(time = time, event = event) ~ 1, distributions = c("exp-aft"),
+    data = df, parallel = TRUE, seed = 7
+  ))
+
+  # add distribution
+  fit7 <- suppressWarnings(update(fit7, distribution = "lnorm-aft"))
+  # add a predictor (TODO: specify tests for the added predictor)
+  fit7 <- suppressWarnings(update(fit7, formula = Surv(time = time, event = event) ~ x_cont, distribution = "gamma-aft"))
+  # change model weights
+  fit7 <- suppressWarnings(update(fit7,  model_weights = c(1, 2, 3)))
+
+
+})
+
 #### creating / updating the test settings ####
 if(FALSE){
 
@@ -201,7 +218,7 @@ if(FALSE){
   saveRDS(df, file = file.path("tests/results/fits/", "df.RDS"), compress  = "xz")
 
 
-  saved_fits <- list(fit1, fit2, fit3, fit4, fit5, fit6)
+  saved_fits <- list(fit1, fit2, fit3, fit4, fit5, fit6, fit7)
 
   for(i in 1:length(saved_fits)){
     saved_fits[[i]] <- remove_time(saved_fits[[i]])

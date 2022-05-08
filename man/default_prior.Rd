@@ -33,5 +33,7 @@ return a prior distribution and \code{get_default_prior_intercept} and
 \code{get_default_prior_aux} return a list of prior distributions.
 }
 \description{
-Functions for setting default prior distributions.
+Functions for setting default prior distributions. Note that
+these default prior distributions might (and probably won't) apply to your
+specific data scenario.
 }

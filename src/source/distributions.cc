@@ -3,11 +3,6 @@
 #include <JRmath.h>
 #include <cmath>
 
-using std::exp;
-using std::sqrt;
-using std::pow;
-using std::log;
-
 double exp_aft_log_density  (double t, double eta){
   return exp_aft_log_hazard(eta) + exp_aft_log_survival(t, eta);
 }
@@ -15,17 +10,17 @@ double exp_aft_log_hazard   (double eta){
   return -eta;
 }
 double exp_aft_log_survival (double t, double eta){
-  return -t * exp(-eta);
+  return -t * std::exp(-eta);
 }
 
 double weibull_aft_log_density  (double t, double eta, double shape){
   return weibull_aft_log_hazard(t, eta, shape) + weibull_aft_log_survival(t, eta, shape);
 }
 double weibull_aft_log_hazard   (double t, double eta, double shape){
-  return log(shape) + (shape - 1) * log(t) - shape * eta;
+  return std::log(shape) + (shape - 1) * std::log(t) - shape * eta;
 }
 double weibull_aft_log_survival (double t, double eta, double shape){
-  return -pow(t, shape) * exp(-shape * eta);
+  return -std::pow(t, shape) * std::exp(-shape * eta);
 }
 
 double lnorm_aft_log_density  (double t, double eta, double sd){
@@ -39,21 +34,21 @@ double lnorm_aft_log_survival (double t, double eta, double sd){
 }
 
 double llogis_aft_log_density  (double t, double eta, double shape){
-  return log(shape) - eta + (shape - 1) * (log(t) - eta) - 2 * log(1 + pow( t / exp(eta), shape));
+  return std::log(shape) - eta + (shape - 1) * (std::log(t) - eta) - 2 * std::log(1 + std::pow( t / std::exp(eta), shape));
 }
 double llogis_aft_log_hazard   (double t, double eta, double shape){
   return llogis_aft_log_density(t, eta, shape) - llogis_aft_log_survival(t, eta, shape);
 }
 double llogis_aft_log_survival (double t, double eta, double shape){
-  return - log(1 + pow(t / exp(eta), shape));
+  return - std::log(1 + std::pow(t / std::exp(eta), shape));
 }
 
 double gamma_aft_log_density  (double t, double eta, double shape){
-  return dgamma(t, shape, 1/ exp(-eta), true);
+  return dgamma(t, shape, 1/ std::exp(-eta), true);
 }
 double gamma_aft_log_hazard   (double t, double eta, double shape){
   return gamma_aft_log_density(t, eta, shape) - gamma_aft_log_survival(t, eta, shape);
 }
 double gamma_aft_log_survival (double t, double eta, double shape){
-  return pgamma(t, shape, 1/ exp(-eta), false, true);
+  return pgamma(t, shape, 1/ std::exp(-eta), false, true);
 }

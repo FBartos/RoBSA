@@ -8,27 +8,18 @@
 \alias{RoBSA.package}
 \title{RoBSA: Robust Bayesian survival analysis}
 \description{
-A framework for estimating ensembles of parametric survival models
-and using Bayesian model averaging to combine them. The
-ensembles use Bayes factors to test for the presence or absence of the
-individual components (e.g., treatment effect, parametric family, etc...) and
-model-averages parameter estimates based on posterior model probabilities.
-The user can define a wide range of informative priors for all parameters
-of interest. The package provides convenient functions for summary, visualizations,
-fit diagnostics, and prior distribution calibration.
-}
-\details{
-\code{\link{RoBSA}} fits parametric models ....
+Bayesian model-averaged parametric survival analysis
+with ability to specify informed prior distributions and draw inference with
+inclusion Bayes factors. See \insertCite{bartos2021informed;textual}{RoBSA}
+for more details about the methodology.
 }
 \section{User guide}{
- The \bold{RoBSA user guide} vignette explains the
-methods in detail, and gives several worked examples.  A further vignette
-\bold{RoBSA-examples} gives a few more complicated examples, and users
-are encouraged to submit their own.
+ See \insertCite{bartos2021informed;textual}{RoBSA},
+for details regarding the RoBSA methodology.
 }
 
 \references{
-
+\insertAllCited{}
 }
 \seealso{
 Useful links:

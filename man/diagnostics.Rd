@@ -84,7 +84,7 @@ of class 'ggplot2' if \code{plot_type = "ggplot2"}.
 \code{diagnostics} creates visual
 checks of individual models convergence. Numerical
 overview of individual models can be obtained by
-\code{summary(object, type = "models", diagnostics = TRUE)},
+\code{summary(object, type = "diagnostics")},
 or even more detailed information by
 \code{summary(object, type = "individual")}.
 }

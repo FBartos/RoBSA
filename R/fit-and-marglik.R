@@ -56,7 +56,7 @@
     if(inherits(fit, "error")){
 
       if(grepl("Unknown function", fit$message))
-        stop("The RoBSA module could not be loaded. Check whether the RoBMA package was installed correctly and whether 'RoBMA::RoBMA.private$module_location' contains path to the RoBMA JAGS module.")
+        stop("The RoBSA module could not be loaded. Check whether the RoBSA package was installed correctly and whether 'RoBSA::RoBSA.private$module_location' contains path to the RoBSA JAGS module.")
 
       fit            <- list()
       converged      <- FALSE
@@ -123,14 +123,14 @@
 
   }else{
 
-    fit_data                <- .fit_data(object[["data"]], priors, add_info[["effect_direction"]], add_info[["prior_scale"]])
+    fit_data                <- .fit_data(object[["data"]])
     converged               <- TRUE
     has_posterior           <- FALSE
     fit                     <- list()
     attr(fit, "prior_list") <- priors
     class(fit)              <- "null_model"
     marglik                 <- list()
-    marglik$logml           <- .marglik_function_null(priors, data)
+    marglik$logml           <- .marglik_function_null(priors, data, model[["distribution"]])
     class(marglik)          <- "bridge"
 
   }
@@ -255,7 +255,7 @@
 
   return(log_lik)
 }
-.marglik_function_null <- function(priors, data){
+.marglik_function_null <- function(priors, data, distribution){
 
   types <- attr(data[["survival"]], "type")
 
@@ -273,7 +273,7 @@
 
     log_lik <- log_lik + .marglik_survival_likelihood(
       distribution = distribution,
-      type         = types[type],
+      type         = types[i],
       x            = data[["time"]][from:to],
       mu           = priors[["intercept"]]$parameters[["location"]],
       aux          = priors[["aux"]]$parameters[["location"]])

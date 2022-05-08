@@ -38,6 +38,12 @@ RoBSA(
 
 \item{data}{data frame containing the data}
 
+\item{priors}{names list of prior distributions for each
+predictor. Allows to specify both the null and alternative
+hypothesis prior distributions by assigning a named list
+(with \code{"null"} and \code{"alt"} object) to the predictor
+predictor.}
+
 \item{test_predictors}{vector of predictor names
 to be tested with Bayesian model-averaged testing.
 Defaults to \code{NULL}, no parameters are tested.}
@@ -48,13 +54,17 @@ survival models}
 \item{distributions_weights}{prior odds for the competing
 distributions}
 
-\item{prior_beta_null}{named list containing null prior
-distribution for the predictors (with names corresponding
-to the predictors)}
+\item{prior_beta_null}{default prior distribution for the
+null hypotheses of continuous predictors}
 
-\item{prior_beta_alt}{named list containing prior
-distribution for the predictors (with names corresponding
-to the predictors)}
+\item{prior_beta_alt}{default prior distribution for the
+alternative hypotheses of continuous predictors}
+
+\item{prior_factor_null}{default prior distribution for the
+null hypotheses of categorical predictors}
+
+\item{prior_factor_alt}{default prior distribution for the
+alternative hypotheses of categorical predictors}
 
 \item{prior_intercept}{named list containing prior
 distribution for the intercepts (with names corresponding
@@ -113,8 +123,43 @@ estimating the model. Defaults to \code{FALSE}.}
 
 \item{...}{additional arguments.}
 }
+\value{
+\code{RoBSA} returns an object of class 'RoBSA'.
+}
 \description{
-Fits a RoBSA model. Please note
-that the fitting function only supports dummy
-coded predictors and cannot deal with factors.
+\code{RoBSA} is used to estimate a robust Bayesian
+survival analysis. The interface allows a complete customization of
+the ensemble with different prior distributions for the null and
+alternative hypothesis of each parameter.
+(See README for an example.)
+}
+\examples{
+\dontrun{
+# example from the README (more details and explanation therein)
+data(cancer, package = "survival")
+priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
+df <- data.frame(
+  time         = veteran$time / 12,
+  status       = veteran$status,
+  treatment    = factor(ifelse(veteran$trt == 1, "standard", "new"), levels = c("standard", "new")),
+  karno_scaled = veteran$karno / 100
+)
+RoBSA.options(check_scaling = FALSE)
+fit <- RoBSA(
+  Surv(time, status) ~ treatment + karno_scaled,
+  data   = df,
+  priors = list(
+    treatment    = prior_factor("normal", parameters = list(mean = 0.30, sd = 0.15),
+                                truncation = list(0, Inf), contrast = "treatment"),
+    karno_scaled = prior("normal", parameters = list(mean = 0, sd = 1))
+  ),
+  test_predictors = "treatment",
+  prior_intercept = priors[["intercept"]],
+  prior_aux       = priors[["aux"]],
+  parallel = TRUE, seed = 1
+)
+summary(fit)
+
+}
+
 }

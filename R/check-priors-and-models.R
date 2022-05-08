@@ -175,7 +175,7 @@
 
   attr(priors, "distributions")  <- distributions
   attr(priors, "terms")          <- predictors
-  attr(priors, "terms_test")     <- test_predictors
+  attr(priors, "terms_test")     <- if(length(test_predictors) == 1 && test_predictors == "") NULL else test_predictors
 
   return(priors)
 }

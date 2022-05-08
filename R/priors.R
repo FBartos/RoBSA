@@ -15,9 +15,9 @@ prior_factor <- BayesTools::prior_factor
 
 #' @name prior_informed
 #' @inherit BayesTools::prior_informed
-#' @details Further details can be found in \insertCite{erp2017estimates;textual}{RoBSA},
-#' \insertCite{gronau2017bayesian;textual}{RoBSA}, and
-#' \insertCite{bartos2021bayesian;textual}{RoBSA}.
+#' @details Further details can be found in \insertCite{erp2017estimates;textual}{BayesTools},
+#' \insertCite{gronau2017bayesian;textual}{BayesTools}, and
+#' \insertCite{bartos2021bayesian;textual}{BayesTools}.
 #' @references
 #' \insertAllCited{}
 #' @export

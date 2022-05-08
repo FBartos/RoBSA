@@ -25,10 +25,14 @@
 #' @param conditional whether only models assuming presence of the specified
 #' \code{predictor} should be used
 #' @param samples number of posterior samples to be evaluated
+#' @param ... additional arguments (unused)
+#'
+#' @return a list with predictions (or a list of lists in case that predictions for each
+#' individual model are requested \code{averaged = FALSE})
 #' @export
 predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL, covariates_data = NULL,
                           type = c("survival", "hazard", "density", "mean", "sd"),
-                          summarize = TRUE, averaged = TRUE, conditional = FALSE, samples = 10000){
+                          summarize = TRUE, averaged = TRUE, conditional = FALSE, samples = 10000, ...){
 
   predictors_all  <- attr(object$data$predictors, "variables")
   predictors_info <- attr(object$data$predictors, "variables_info")
@@ -199,8 +203,8 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
           warning("Some of the model returned undefined predictions. The returned summary ommits all NA samples and might be biased.", immediate. = TRUE)
 
         out <- data.frame(
-          mean   = apply(predictions, 1, mean, na.rm = TRUE),
-          sd     = apply(predictions, 1, sd,   na.rm = TRUE),
+          mean   = apply(predictions, 1, mean,      na.rm = TRUE),
+          sd     = apply(predictions, 1, stats::sd, na.rm = TRUE),
           lCI    = apply(predictions, 1, stats::quantile, probs = 0.025, na.rm = TRUE),
           median = apply(predictions, 1, stats::quantile, probs = 0.500, na.rm = TRUE),
           uCI    = apply(predictions, 1, stats::quantile, probs = 0.975, na.rm = TRUE)
@@ -235,8 +239,8 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
           warning("Some of the model returned undefined predictions. The returned summary ommits all NA samples and might be biased.", immediate. = TRUE)
 
         data_predictions <- data.frame(
-          mean   = apply(data_predictions, 1, mean, na.rm = TRUE),
-          sd     = apply(data_predictions, 1, sd,   na.rm = TRUE),
+          mean   = apply(data_predictions, 1, mean,      na.rm = TRUE),
+          sd     = apply(data_predictions, 1, stats::sd, na.rm = TRUE),
           lCI    = apply(data_predictions, 1, stats::quantile, probs = 0.025, na.rm = TRUE),
           median = apply(data_predictions, 1, stats::quantile, probs = 0.500, na.rm = TRUE),
           uCI    = apply(data_predictions, 1, stats::quantile, probs = 0.975, na.rm = TRUE)
@@ -299,8 +303,8 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
         out <- lapply(seq_along(predictions), function(i){
           out <- data.frame(
             time   = time,
-            mean   = apply(predictions[[i]], 1, mean, na.rm = TRUE),
-            sd     = apply(predictions[[i]], 1, sd,   na.rm = TRUE),
+            mean   = apply(predictions[[i]], 1, mean,      na.rm = TRUE),
+            sd     = apply(predictions[[i]], 1, stats::sd, na.rm = TRUE),
             lCI    = apply(predictions[[i]], 1, stats::quantile, probs = 0.025, na.rm = TRUE),
             median = apply(predictions[[i]], 1, stats::quantile, probs = 0.500, na.rm = TRUE),
             uCI    = apply(predictions[[i]], 1, stats::quantile, probs = 0.975, na.rm = TRUE)
@@ -344,8 +348,8 @@ predict.RoBSA <- function(object, time = NULL, new_data = NULL, predictor = NULL
 
           return(data.frame(
             time   = time,
-            mean   = apply(predictions, 1, mean, na.rm = TRUE),
-            sd     = apply(predictions, 1, sd,   na.rm = TRUE),
+            mean   = apply(predictions, 1, mean,      na.rm = TRUE),
+            sd     = apply(predictions, 1, stats::sd, na.rm = TRUE),
             lCI    = apply(predictions, 1, stats::quantile, probs = 0.025, na.rm = TRUE),
             median = apply(predictions, 1, stats::quantile, probs = 0.500, na.rm = TRUE),
             uCI    = apply(predictions, 1, stats::quantile, probs = 0.975, na.rm = TRUE)

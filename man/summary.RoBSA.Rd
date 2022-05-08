@@ -30,6 +30,13 @@ for the individual models (\code{"individual"}).}
 alternative is true). Defaults to \code{FALSE}. Only available for
 \code{type == "conditional"}.}
 
+\item{exp}{whether exponents of the regression estimates should be also presented}
+
+\item{parameters}{character vector of parameters (or a
+named list with of character vectors for summary and
+diagnostics tables) specifying the parameters
+(and their grouping) for the summary table}
+
 \item{probs}{quantiles of the posterior samples to be displayed.
 Defaults to \code{c(.025, .50, .975)}}
 
@@ -42,18 +49,18 @@ Defaults to \code{c(.025, .50, .975)}}
 distributions should be transformed to differences from the grand mean. Defaults
 to \code{TRUE}.}
 
+\item{short_name}{whether the prior distribution names should be
+shortened. Defaults to \code{FALSE}.}
+
+\item{remove_spike_0}{whether prior distributions equal to spike
+at 0 should be removed from the \code{prior_list}}
+
 \item{...}{additional arguments}
-
-\item{diagnostics}{show the maximum R-hat and minimum ESS for the main
-parameters in each of the models. Only available for \code{type = "ensemble"}.}
-
-\item{digits_estimates}{a number of decimals for rounding the estimates.
-Defaults to \code{3}.}
-
-\item{digits_BF}{a number of decimals for rounding the BFs. Defaults to \code{3}.}
 }
 \value{
 summary of a RoBSA object
+
+\code{summary.RoBSA} returns a list of tables of class 'BayesTools_table'.
 }
 \description{
 \code{summary.RoBSA} creates a numerical
@@ -64,9 +71,29 @@ See \code{\link[=diagnostics]{diagnostics()}} for visual convergence checks of t
 }
 \examples{
 \dontrun{
-# using the example data from Anderson et al. 2010 and fitting the default model
-# (note that the model can take a while to fit)
-fit <- RoBSA(r = Anderson2010$r, n = Anderson2010$n, study_names = Anderson2010$labels)
+# example from the README (more details and explanation therein)
+data(cancer, package = "survival")
+priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
+df <- data.frame(
+  time         = veteran$time / 12,
+  status       = veteran$status,
+  treatment    = factor(ifelse(veteran$trt == 1, "standard", "new"), levels = c("standard", "new")),
+  karno_scaled = veteran$karno / 100
+)
+RoBSA.options(check_scaling = FALSE)
+fit <- RoBSA(
+  Surv(time, status) ~ treatment + karno_scaled,
+  data   = df,
+  priors = list(
+    treatment    = prior_factor("normal", parameters = list(mean = 0.30, sd = 0.15),
+                                truncation = list(0, Inf), contrast = "treatment"),
+    karno_scaled = prior("normal", parameters = list(mean = 0, sd = 1))
+  ),
+  test_predictors = "treatment",
+  prior_intercept = priors[["intercept"]],
+  prior_aux       = priors[["aux"]],
+  parallel = TRUE, seed = 1
+)
 
 # summary can provide many details about the model
 summary(fit)
@@ -82,13 +109,14 @@ summary(fit, type = "models")
 
 # and the model diagnostics overview, containing maximum R-hat and minimum ESS across parameters
 # but see '?diagnostics' for diagnostics plots for individual model parameters
-summary(fit, type = "models", diagnostics = TRUE)
+summary(fit, type = "diagnostics")
 
 # summary of individual models and their parameters can be further obtained by
 summary(fit, type = "individual")
 
 }
+
 }
 \seealso{
-\code{\link[=RoBSA]{RoBSA()}} \code{\link[=diagnostics]{diagnostics()}}
+\code{\link[=RoBSA]{RoBSA()}}, \code{\link[=diagnostics]{diagnostics()}}, \code{\link[=check_RoBSA]{check_RoBSA()}}
 }

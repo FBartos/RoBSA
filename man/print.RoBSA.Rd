@@ -11,6 +11,9 @@
 
 \item{...}{additional arguments.}
 }
+\value{
+\code{print.RoBSA} invisibly returns the print statement.
+}
 \description{
 Prints a fitted RoBSA object
 }

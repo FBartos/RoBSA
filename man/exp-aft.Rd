@@ -47,14 +47,17 @@ exp_aft_p(q, eta)
 \item{p}{vector of probabilities}
 
 \item{q}{vector of quantiles}
-
-\item{location}{vector of locations.}
-
-\item{log, log.p}{logical; if \code{TRUE}, probabilities
-\code{p} are given as \code{log(p)}.}
-
-\item{lower.tail}{logical; if \code{TRUE} (default), probabilities
-are \eqn{P[X \le x]}, otherwise, \eqn{P[X \ge x]}.}
+}
+\value{
+\code{exp_aft_density}, \code{exp_aft_hazard}, and
+\code{exp_aft_survival} return the density, hazard, and survival
+of the specified survival distribution. The \code{exp_aft_log_density},
+\code{exp_aft_log_hazard}, \code{exp_aft_log_survival} return log of
+the corresponding qualities. \code{exp_aft_mean} and \code{exp_aft_sd}
+return the mean and standard deviation of the specified survival distribution.
+\code{exp_aft_r}, \code{exp_aft_q}, and \code{exp_aft_p} return a random
+generation, quantiles, and cumulative probabilities of the specified
+survival distribution.
 }
 \description{
 (log) density, hazard, and survival
