@@ -8,17 +8,18 @@
 ###  Note:  This windows makefile requires the JAGS_ROOT variable to be set
 ###
 ###  This file allows compilation with JAGS 4 (or later) without modifying RoBSA.
-###  To force the package to compile assuming a given JAGS version is installed, use the 
+###  To force the package to compile assuming a given JAGS version is installed, use the
 ###  JAGS_MAJOR_FORCED environmental variable.  This might be necessary on windows if you have
 ###  JAGS installed in a non-standard location.
-###  
+###
 ######################################################################################################
 
 ## Conditionally set the JAGS_ROOT variable (if it is not already set) to a location specified by the CRAN team:
 JAGS_ROOT ?= /c/progra~1/JAGS/JAGS-4.3.0
 
 ## Use the old ABI to match JAGS 4.x compilation on Windows:
-PKG_CXXFLAGS = -D_GLIBCXX_USE_CXX11_ABI=0
+#PKG_CXXFLAGS = -D_GLIBCXX_USE_CXX11_ABI=0
+PKG_CXXFLAGS=
 ## Note: this behaviour will be changed (and RoBSA updated) before JAGS 5 is released
 ## If you are trying to compile this version of RoBSA against JAGS 5 you may need to remove this PKG_CXXFLAGS line
 
@@ -61,6 +62,7 @@ endif
 
 # Set the CPPFLAGS accordingly
 # Prepending 0 to JAGS_MAJOR_VERSION prevents it being set as blank (the C++ code requires a number)
+JAGS_MAJOR_ASSUMED := 4
 PKG_CPPFLAGS=-I"$(JAGS_ROOT)/include" -D JAGS_MAJOR_ASSUMED=$(JAGS_MAJOR_ASSUMED) -D JAGS_MAJOR_FORCED=0$(JAGS_MAJOR_VERSION)
 
 PKG_LIBS=-L"$(JAGS_ROOT)/${R_ARCH}/bin" -ljags-$(JAGS_MAJOR) -ljrmath-0
@@ -68,6 +70,7 @@ PKG_LIBS=-L"$(JAGS_ROOT)/${R_ARCH}/bin" -ljags-$(JAGS_MAJOR) -ljrmath-0
 
 ###############
 ### Objects to be compiled
+### NB: the objects in distributions/jags are only necessary for JAGS <=3, and are excluded by the sources when compiling against JAGS >= 4
 ###############
 
 OBJECTS = functions/exp.o functions/gamma.o functions/llogis.o functions/lnorm.o functions/weibull.o \
@@ -89,6 +92,5 @@ OBJECTS = functions/exp.o functions/gamma.o functions/llogis.o functions/lnorm.o
 #			distributions/EXP.o distributions/GAMMA.o distributions/LLOGIS.o distributions/LNORM.o distributions/WEIBULL.o \
 #			source/distributions.o \
 #			init.o RoBSA.o testRoBSA.o
-
 
 ###############

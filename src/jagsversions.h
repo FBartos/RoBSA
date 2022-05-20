@@ -34,11 +34,11 @@
 
 // Check version of JAGS is OK:
 #if JAGS_MAJOR_USED > 4
-#warning "Compiling against a later version of JAGS than has been tested for this version of RoBMA ... you should probably update the RoBMA package!"
+#warning "Compiling against a later version of JAGS than has been tested for this version of RoBSA ... you should probably update the RoBSA package!"
 #endif
 
 #if JAGS_MAJOR_USED < 4
-#error "This version of the RoBMA package requires compilation against JAGS version 4 or later"
+#error "This version of the RoBSA package requires compilation against JAGS version 4 or later"
 #endif
 
 

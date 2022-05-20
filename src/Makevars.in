@@ -5,7 +5,7 @@
 ###  The previous file is based on that in the rjags package (version 4-10)
 ###  Original file is Copyright (C) Martyn Plummer, licensed under GPL-2
 ###
-###  This file allows compilation with JAGS 4 without modifying RoBMA.
+###  This file allows compilation with JAGS 4 without modifying RoBSA.
 ###  To force the package to compile assuming a given JAGS version is installed, use the
 ###  JAGS_MAJOR_FORCED environmental variable.  This should not be necessary on unix.
 ###
