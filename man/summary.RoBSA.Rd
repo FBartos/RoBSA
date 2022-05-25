@@ -71,6 +71,7 @@ See \code{\link[=diagnostics]{diagnostics()}} for visual convergence checks of t
 }
 \examples{
 \dontrun{
+# (execution of the example takes several minutes)
 # example from the README (more details and explanation therein)
 data(cancer, package = "survival")
 priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)

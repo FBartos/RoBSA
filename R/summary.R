@@ -43,6 +43,7 @@ print.RoBSA <- function(x, ...){
 #'
 #' @return summary of a RoBSA object
 #' @examples \dontrun{
+#' # (execution of the example takes several minutes)
 #' # example from the README (more details and explanation therein)
 #' data(cancer, package = "survival")
 #' priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
@@ -470,6 +471,8 @@ print.summary.RoBSA <- function(x, ...){
 #' @title Reports whether x is a RoBSA object
 #'
 #' @param x an object to test
+#'
+#' @return is.RoBSA returns a boolean.
 #' @export is.RoBSA
 is.RoBSA            <- function(x){
   inherits(x, "RoBSA")

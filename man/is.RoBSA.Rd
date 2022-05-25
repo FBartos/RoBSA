@@ -9,6 +9,9 @@ is.RoBSA(x)
 \arguments{
 \item{x}{an object to test}
 }
+\value{
+is.RoBSA returns a boolean.
+}
 \description{
 Reports whether x is a RoBSA object
 }

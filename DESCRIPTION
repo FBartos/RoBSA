@@ -4,10 +4,14 @@ Title: Robust Bayesian Survival Analysis
 Version: 1.0.0
 Maintainer: František Bartoš <f.bartos96@gmail.com>
 Authors@R: c( 
-    person("František", "Bartoš",     role = c("aut", "cre"),
-    email   = "f.bartos96@gmail.com", comment = c(ORCID = "0000-0002-0018-5573")),
+    person("František", "Bartoš", role = c("aut", "cre"),
+            email = "f.bartos96@gmail.com", comment = c(ORCID = "0000-0002-0018-5573")),
     person("Julia M.", "Haaf", role = "ths",
-    comment = c(ORCID = "0000-0001-5122-706X"))
+            comment = c(ORCID = "0000-0001-5122-706X")),
+    person("Matthew", "Denwood", role="cph", 
+           comment="Original copyright holder of some modified code where indicated."),
+    person("Martyn", "Plummer", role="cph", 
+           comment="Original copyright holder of some modified code where indicated.")
     )
 Description: A framework for estimating ensembles of parametric survival models
     with different parametric families. The RoBSA framework uses Bayesian 

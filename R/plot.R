@@ -33,6 +33,7 @@
 #' respectively.
 #'
 #' @examples \dontrun{
+#' # (execution of the example takes several minutes)
 #' # example from the README (more details and explanation therein)
 #' data(cancer, package = "survival")
 #' priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
@@ -193,6 +194,7 @@ plot.RoBSA  <- function(x, parameter = NULL, conditional = FALSE, plot_type = "b
 #' @inheritParams plot.RoBSA
 #'
 #' @examples \dontrun{
+#' # (execution of the example takes several minutes)
 #' # example from the README (more details and explanation therein)
 #' data(cancer, package = "survival")
 #' priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
@@ -308,6 +310,7 @@ plot_models <- function(x, parameter = NULL, conditional = FALSE, plot_type = "b
 #' @param ... additional arguments.
 #'
 #' @examples \dontrun{
+#' # (execution of the example takes several minutes)
 #' # example from the README (more details and explanation therein)
 #' data(cancer, package = "survival")
 #' priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
