@@ -10,25 +10,39 @@ RoBSA(
   priors = NULL,
   test_predictors = NULL,
   distributions = c("exp-aft", "weibull-aft", "lnorm-aft", "llogis-aft", "gamma-aft"),
-  distributions_odds = rep(1, length(distributions)),
+  distributions_weights = rep(1, length(distributions)),
   prior_beta_null = get_default_prior_beta_null(),
   prior_beta_alt = get_default_prior_beta_alt(),
+  prior_factor_null = get_default_prior_factor_null(),
+  prior_factor_alt = get_default_prior_factor_alt(),
   prior_intercept = get_default_prior_intercept(),
   prior_aux = get_default_prior_aux(),
-  chains = 2,
-  iter = 5000,
-  burnin = 1000,
+  chains = 3,
+  sample = 5000,
+  burnin = 2000,
+  adapt = 500,
   thin = 1,
   parallel = FALSE,
-  control = NULL,
+  autofit = TRUE,
+  autofit_control = set_autofit_control(),
+  convergence_checks = set_convergence_checks(),
   save = "all",
-  seed = NULL
+  seed = NULL,
+  silent = TRUE,
+  rescale_data = FALSE,
+  ...
 )
 }
 \arguments{
 \item{formula}{formula for the survival model}
 
 \item{data}{data frame containing the data}
+
+\item{priors}{names list of prior distributions for each
+predictor. Allows to specify both the null and alternative
+hypothesis prior distributions by assigning a named list
+(with \code{"null"} and \code{"alt"} object) to the predictor
+predictor.}
 
 \item{test_predictors}{vector of predictor names
 to be tested with Bayesian model-averaged testing.
@@ -37,16 +51,20 @@ Defaults to \code{NULL}, no parameters are tested.}
 \item{distributions}{distributions of parametric
 survival models}
 
-\item{distributions_odds}{prior odds for the competing
+\item{distributions_weights}{prior odds for the competing
 distributions}
 
-\item{prior_beta_null}{named list containing null prior
-distribution for the predictors (with names corresponding
-to the predictors)}
+\item{prior_beta_null}{default prior distribution for the
+null hypotheses of continuous predictors}
 
-\item{prior_beta_alt}{named list containing prior
-distribution for the predictors (with names corresponding
-to the predictors)}
+\item{prior_beta_alt}{default prior distribution for the
+alternative hypotheses of continuous predictors}
+
+\item{prior_factor_null}{default prior distribution for the
+null hypotheses of categorical predictors}
+
+\item{prior_factor_alt}{default prior distribution for the
+alternative hypotheses of categorical predictors}
 
 \item{prior_intercept}{named list containing prior
 distribution for the intercepts (with names corresponding
@@ -56,20 +74,93 @@ to the distributions)}
 distribution for the auxiliary parameters (with names corresponding
 to the distributions)}
 
-\item{chains}{number of chains}
+\item{chains}{a number of chains of the MCMC algorithm.}
 
-\item{iter}{number of sampling iterations}
+\item{sample}{a number of sampling iterations of the MCMC algorithm.
+Defaults to \code{5000}.}
 
-\item{burnin}{number of burnin iterations}
+\item{burnin}{a number of burnin iterations of the MCMC algorithm.
+Defaults to \code{2000}.}
 
-\item{thin}{thinning of the chains}
+\item{adapt}{a number of adaptation iterations of the MCMC algorithm.
+Defaults to \code{500}.}
 
-\item{parallel}{whether the models should be fit in parallel}
+\item{thin}{a thinning of the chains of the MCMC algorithm. Defaults to
+\code{1}.}
+
+\item{parallel}{whether the individual models should be fitted in parallel.
+Defaults to \code{FALSE}. The implementation is not completely stable
+and might cause a connection error.}
+
+\item{autofit}{whether the model should be fitted until the convergence
+criteria (specified in \code{autofit_control}) are satisfied. Defaults to
+\code{TRUE}.}
+
+\item{autofit_control}{allows to pass autofit control settings with the
+\code{\link[=set_autofit_control]{set_autofit_control()}} function. See \code{?set_autofit_control} for
+options and default settings.}
+
+\item{convergence_checks}{automatic convergence checks to assess the fitted
+models, passed with \code{\link[=set_convergence_checks]{set_convergence_checks()}} function. See
+\code{?set_convergence_checks} for options and default settings.}
+
+\item{save}{whether all models posterior distributions should be kept
+after obtaining a model-averaged result. Defaults to \code{"all"} which
+does not remove anything. Set to \code{"min"} to significantly reduce
+the size of final object, however, some model diagnostics and further
+manipulation with the object will not be possible.}
+
+\item{seed}{a seed to be set before model fitting, marginal likelihood
+computation, and posterior mixing for reproducibility of results. Defaults
+to \code{NULL} - no seed is set.}
+
+\item{silent}{whether all print messages regarding the fitting process
+should be suppressed. Defaults to \code{TRUE}. Note that \code{parallel = TRUE}
+also suppresses all messages.}
+
+\item{rescale_data}{whether continuous predictors should be rescaled prior to
+estimating the model. Defaults to \code{FALSE}.}
 
 \item{...}{additional arguments.}
 }
+\value{
+\code{RoBSA} returns an object of class 'RoBSA'.
+}
 \description{
-Fits a RoBSA model. Please note
-that the fitting function only supports dummy
-coded predictors and cannot deal with factors.
+\code{RoBSA} is used to estimate a robust Bayesian
+survival analysis. The interface allows a complete customization of
+the ensemble with different prior distributions for the null and
+alternative hypothesis of each parameter.
+(See README for an example.)
+}
+\examples{
+\dontrun{
+# (execution of the example takes several minutes)
+# example from the README (more details and explanation therein)
+data(cancer, package = "survival")
+priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
+df <- data.frame(
+  time         = veteran$time / 12,
+  status       = veteran$status,
+  treatment    = factor(ifelse(veteran$trt == 1, "standard", "new"), levels = c("standard", "new")),
+  karno_scaled = veteran$karno / 100
+)
+RoBSA.options(check_scaling = FALSE)
+fit <- RoBSA(
+  Surv(time, status) ~ treatment + karno_scaled,
+  data   = df,
+  priors = list(
+    treatment    = prior_factor("normal", parameters = list(mean = 0.30, sd = 0.15),
+                                truncation = list(0, Inf), contrast = "treatment"),
+    karno_scaled = prior("normal", parameters = list(mean = 0, sd = 1))
+  ),
+  test_predictors = "treatment",
+  prior_intercept = priors[["intercept"]],
+  prior_aux       = priors[["aux"]],
+  parallel = TRUE, seed = 1
+)
+summary(fit)
+
+}
+
 }

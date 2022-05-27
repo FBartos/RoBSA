@@ -37,9 +37,18 @@ parameter}
 \item{search_bounds2}{search boundaries for the auxiliary
 parameter}
 }
+\value{
+returns a list of prior distribution for the intercepts
+and auxiliary parameters.
+}
 \description{
 Calibrates prior distributions for parametric
 survival analysis based on median survival and interquartile
 range. Returns a list of prior distribution for the intercepts
 and auxiliary parameters.
+}
+\examples{
+priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
+
+
 }

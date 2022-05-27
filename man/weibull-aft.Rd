@@ -6,6 +6,7 @@
 \alias{weibull_aft_log_hazard}
 \alias{weibull_aft_log_survival}
 \alias{weibull_aft_density}
+\alias{weibull_aft_hazard}
 \alias{weibull_aft_survival}
 \alias{weibull_aft_mean}
 \alias{weibull_aft_sd}
@@ -21,6 +22,8 @@ weibull_aft_log_hazard(t, eta, shape)
 weibull_aft_log_survival(t, eta, shape)
 
 weibull_aft_density(t, eta, shape)
+
+weibull_aft_hazard(t, eta, shape)
 
 weibull_aft_survival(t, eta, shape)
 
@@ -46,14 +49,17 @@ weibull_aft_p(q, eta, shape)
 \item{p}{vector of probabilities}
 
 \item{q}{vector of quantiles}
-
-\item{location}{vector of locations.}
-
-\item{log, log.p}{logical; if \code{TRUE}, probabilities
-\code{p} are given as \code{log(p)}.}
-
-\item{lower.tail}{logical; if \code{TRUE} (default), probabilities
-are \eqn{P[X \le x]}, otherwise, \eqn{P[X \ge x]}.}
+}
+\value{
+\code{weibull_aft_density}, \code{weibull_aft_hazard}, and
+\code{weibull_aft_survival} return the density, hazard, and survival
+of the specified survival distribution. The \code{weibull_aft_log_density},
+\code{weibull_aft_log_hazard}, \code{weibull_aft_log_survival} return log of
+the corresponding qualities. \code{weibull_aft_mean} and \code{weibull_aft_sd}
+return the mean and standard deviation of the specified survival distribution.
+\code{weibull_aft_r}, \code{weibull_aft_q}, and \code{weibull_aft_p} return a random
+generation, quantiles, and cumulative probabilities of the specified
+survival distribution.
 }
 \description{
 (log) density, hazard, and survival

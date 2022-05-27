@@ -6,7 +6,7 @@ bibentry(
   bibtype = "misc",
   title   = "RoBSA: An R Package for Robust Bayesian Survival Analyses",
   author  = person("František", "Bartoš"),
-  year    = 2021,
+  year    = 2022,
   note    = note,
-  url     = "https://github.com/FBartos/RoBSA"
+  url     = "https://CRAN.R-project.org/package=RoBSA"
 )

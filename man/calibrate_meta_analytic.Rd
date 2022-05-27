@@ -7,8 +7,10 @@
 calibrate_meta_analytic(
   datasets,
   distributions = c("exp-aft", "weibull-aft", "lnorm-aft", "llogis-aft", "gamma-aft"),
-  mu_scale = 100,
-  tau_scale = 10
+  prior_mu = prior("cauchy", parameters = list(location = 0, scale = 100)),
+  prior_tau = prior("cauchy", parameters = list(location = 0, scale = 10), truncation =
+    list(0, Inf)),
+  ...
 )
 }
 \arguments{
@@ -20,11 +22,16 @@ with the censoring status.}
 \item{distributions}{vector of parametric families for which
 prior distributions ought to be calibrated}
 
-\item{mu_scale}{scale of the prior Cauchy distribution for the meta-analytic
-mean parameter}
+\item{prior_mu}{prior distribution for the the meta-analytic mean parameter}
 
-\item{tau_scale}{scale of the prior Cauchy distribution for the meta-analytic
-heterogeneity parameter}
+\item{prior_tau}{prior distribution for the the meta-analytic heterogeneity parameter}
+
+\item{...}{additional parameters to be passed to the meta-analytic function.
+See \link[BayesTools:JAGS_fit]{BayesTools::JAGS_fit} for more details.}
+}
+\value{
+returns a list of prior distribution for the intercepts
+and auxiliary parameters.
 }
 \description{
 Calibrates prior distributions for parametric

@@ -4,7 +4,7 @@
 #include <cmath>
 #include <rng/RNG.h>
 #include <JRmath.h>
-#include "distribution_functions.h"
+#include "../source/distributions.h"
 
 using std::vector;
 
@@ -12,7 +12,7 @@ namespace jags {
 	namespace surv {
 
 		DGAMMA::DGAMMA() : VectorDist("gamma_aft_event", 2) {}
-		SGAMMA::SGAMMA() : VectorDist("gamma_aft_rcent", 2) {}
+		SGAMMA::SGAMMA() : VectorDist("gamma_aft_cens_r", 2) {}
 
 		bool DGAMMA::checkParameterLength(vector<unsigned int> const &len) const
 		{

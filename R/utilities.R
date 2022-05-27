@@ -28,6 +28,9 @@ RoBSA.options    <- function(...){
 	  if(!names(opts)[i] %in% names(RoBSA.private))
 	    stop(paste("Unmatched or ambiguous option '", names(opts)[i], "'", sep=""))
 
+	  if(names(opts)[i] == "distribution")
+	    stop("List of default distributions cannot be changed.")
+
 	  assign(names(opts)[i], opts[[i]] , envir = RoBSA.private)
 	}
 
@@ -40,7 +43,7 @@ RoBSA.get_option <- function(name){
 	if(length(name)!=1)
 	  stop("Only 1 option can be retrieved at a time")
 
-	if(!opt %in% names(RoBSA.private))
+	if(!name %in% names(RoBSA.private))
 	  stop(paste("Unmatched or ambiguous option '", name, "'", sep=""))
 
 	# Use eval as some defaults are put in using 'expression' to avoid evaluating at load time:
@@ -57,3 +60,44 @@ assign("RoBSA_version",   utils::packageVersion("RoBSA"),             envir = Ro
 assign("min_jags_major",  4,                                          envir = RoBSA.private)
 assign("max_jags_major",  4,                                          envir = RoBSA.private)
 assign("max_cores",       parallel::detectCores(logical = TRUE) - 1,  envir = RoBSA.private)
+assign("check_scaling",   TRUE,                                       envir = RoBSA.private)
+assign("distributions",   .distributions,                             envir = RoBSA.private)
+
+# check proper BayesTools package version
+.check_BayesTools <- function(){
+
+  RoBSA.version      <- try(utils::packageVersion("RoBSA"))
+  BayesTools.version <- try(utils::packageVersion("BayesTools"))
+
+  if(inherits(RoBSA.version, "try-error") | inherits(BayesTools.version, "try-error")){
+    return(invisible(FALSE))
+  }
+
+  if(is.null(RoBSA.version) | is.null(BayesTools.version)){
+    return(invisible(FALSE))
+  }
+
+  BayesTools_required <- switch(
+    paste0(RoBSA.version, collapse = "."),
+    "1.0.0" = c("0.2.10", "6.6.6"),
+    stop("New RoBSA version needs to be defined in '.check_BayesTools' function!")
+  )
+
+  min_OK <- sum(as.numeric(strsplit(BayesTools_required[1], ".", fixed = TRUE)[[1]]) * c(1e9, 1e6, 1e3)) <=
+    sum(unlist(BayesTools.version) * c(1e9, 1e6, 1e3))
+  max_OK <- sum(as.numeric(strsplit(BayesTools_required[2], ".", fixed = TRUE)[[1]]) * c(1e9, 1e6, 1e3)) >=
+    sum(unlist(BayesTools.version) * c(1e9, 1e6, 1e3))
+
+  if(min_OK && max_OK){
+    return(invisible(TRUE))
+  }else{
+    warning(sprintf(
+      "RoBSA version %1$s requires BayesTools version higher or equal %2$s and lower or equal %3$s.",
+      paste0(RoBSA.version, collapse = "."),
+      BayesTools_required[1],
+      BayesTools_required[2]
+    ), call.=FALSE)
+    return(invisible(FALSE))
+  }
+}
+

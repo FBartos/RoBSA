@@ -1,5 +1,39 @@
-PKG_CPPFLAGS=@JAGS_CFLAGS@
-PKG_LIBS=@JAGS_LIBS@ @JAGS_RPATH@
+######################################################################################################
+###  This file is based on file in the runjags package (version 2.0)
+###  The previous version of the file is Copyright (C) Matthew Denwood, licensed under GPL-2.
+###
+###  The previous file is based on that in the rjags package (version 4-10)
+###  Original file is Copyright (C) Martyn Plummer, licensed under GPL-2
+###
+###  This file allows compilation with JAGS 4 without modifying RoBSA.
+###  To force the package to compile assuming a given JAGS version is installed, use the
+###  JAGS_MAJOR_FORCED environmental variable.  This should not be necessary on unix.
+###
+######################################################################################################
 
-SOURCES = $(wildcard distributions/*.cc) RoBSA.cc
-OBJECTS=$(SOURCES:.cc=.o)
+
+###############
+###  Flags
+###  Prepending 0 to JAGS_MAJOR_VERSION prevents it being set as blank (the C++ code requires a number)
+###  JAGS_MAJOR_ASSUMED is not needed (always 0) on unix
+###############
+
+PKG_CPPFLAGS=@JAGS_CFLAGS@ -D JAGS_MAJOR_FORCED=0$(JAGS_MAJOR_VERSION) -D JAGS_MAJOR_ASSUMED=0
+PKG_LIBS=@JAGS_LIBS@ @JAGS_RPATH@ -ljrmath
+
+###############
+
+
+###############
+###  LIBS and objects to be compiled
+###############
+
+OBJECTS = functions/exp.o functions/gamma.o functions/llogis.o functions/lnorm.o functions/weibull.o \
+		  distributions/EXP.o distributions/GAMMA.o distributions/LLOGIS.o distributions/LNORM.o distributions/WEIBULL.o \
+		  source/distributions.o \
+		  init.o RoBSA.o testRoBSA.o
+
+###############
+
+
+

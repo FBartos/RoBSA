@@ -6,7 +6,46 @@ output:       github_document
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-
+```{r include = FALSE, eval = FALSE}
+library(RoBSA)
+data(cancer, package = "survival")
+priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
+df <- data.frame(
+  time         = veteran$time / 12,
+  status       = veteran$status,
+  treatment    = factor(ifelse(veteran$trt == 1, "standard", "new"), levels = c("standard", "new")),
+  karno_scaled = veteran$karno / 100 
+)
+RoBSA.options(check_scaling = FALSE)
+fit.test <- RoBSA(
+  Surv(time, status) ~ treatment + karno_scaled,
+  data   = df,
+  priors = list(
+    treatment    = prior_factor("normal", parameters = list(mean = 0.30, sd = 0.15),
+                                 truncation = list(0, Inf), contrast = "treatment"),
+    karno_scaled = prior("normal", parameters = list(mean = 0, sd = 1))
+  ),
+  test_predictors = "treatment",
+  prior_intercept = priors[["intercept"]],
+  prior_aux       = priors[["aux"]],
+  parallel = TRUE, seed = 1
+) 
+fit.est <- RoBSA(
+  Surv(time, status) ~ treatment + karno_scaled,
+  data   = df,
+  priors = list(
+    treatment    = prior_factor("normal", parameters = list(mean = 0, sd = 1),
+                                contrast = "treatment"),
+    karno_scaled = prior("normal", parameters = list(mean = 0, sd = 1))
+  ),
+  test_predictors = "",
+  prior_intercept = priors[["intercept"]],
+  prior_aux       = priors[["aux"]],
+  parallel = TRUE, seed = 1
+) 
+saveRDS(fit.test, file = "models/README/fit.test.RDS")
+saveRDS(fit.est,  file = "models/README/fit.est.RDS")
+```
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -24,10 +63,16 @@ predicted_standard     <- readRDS(file = "models/README/predicted_standard.RDS")
 predicted_experimental <- readRDS(file = "models/README/predicted_experimental.test.RDS")
 ```
 
+<!-- badges: start -->
+[![R-CRAN-check](https://github.com/FBartos/RoBSA/workflows/R-CMD-check/badge.svg)](https://github.com/FBartos/RoBSA/actions)
+[![R-tests](https://github.com/FBartos/RoBSA/workflows/R-CMD-tests/badge.svg)](https://github.com/FBartos/RoBSA/actions)
+[![Codecov test coverage](https://codecov.io/gh/FBartos/RoBSA/branch/master/graph/badge.svg)](https://app.codecov.io/gh/FBartos/RoBSA?branch=master)
+[![CRAN status](https://www.r-pkg.org/badges/version/RoBSA)](https://CRAN.R-project.org/package=RoBSA)
+<!-- badges: end -->
 
 # Robust Bayesian Survival Analysis (RoBSA)
 
-This package estimates an ensemble of parametric survival models (with different parametric families) and uses Bayesian model averaging to combine them. The RoBSA ensemble uses Bayes factors to test for the presence or absence of effects of the individual predictors and evaluates the support for each parametric family. The resulting model-averaged parameter estimates are based on posterior model probabilities. The user can define a wide range of prior distributions for the effect size, intercepts, and auxiliary parameters. The package provides convenient functions for summary, visualizations, and fit diagnostics.
+This package estimates an ensemble of parametric survival models with different parametric families and uses Bayesian model averaging to combine them. The RoBSA ensemble uses Bayes factors to test for the presence or absence of effects of the individual predictors and evaluates the support for each parametric family. The resulting model-averaged parameter estimates are based on posterior model probabilities. The user can define a wide range of prior distributions for the effect size, intercepts, and auxiliary parameters. The package provides convenient functions for summary, visualizations, and fit diagnostics.
 
 See our pre-print @bartos2021informed (https://arxiv.org/abs/2112.08311) introducing the methodology.
 
@@ -41,49 +86,50 @@ devtools::install_github("fbartos/RoBSA")
 
 ## Example
 
-To illustrate the functionality of the package, we use the `survival::veteran` data set, containing 137 survival times of patients from a randomized trial of two treatment regimens for lung cancer. We start by loading the packages and data set.
+To illustrate the package's functionality, we use the `veteran` data set from the `survival` package containing 137 survival times of patients from a randomized trial of two treatment regimens for lung cancer. We start by loading the package and data set.
 
 ```{r}
-library("survival")
 library("RoBSA")
-
+data(cancer, package = "survival")
 head(veteran)
 ```
 
-Before we fit the RoBSA ensemble with five accelerated failure times parametric families (exponential, Weibull, log-normal, log-logistic, and gamma), we must specify prior distributions for the intercepts and auxiliary parameters (governing the scales and shapes) of the competing parametric families. Here, we assume that we would expect the median survival type in the standard treatment group to be 5 years with the interquartile range of 10 years and the standard deviation of 0.5 for the prior distributions (quantifying our uncertainty). To obtain those priors, we use the `calibrate_quartiles()` function and print the list object containing priors for the intercepts and auxiliary parameters.
+Before we fit the RoBSA ensemble with five accelerated failure times parametric families (exponential, Weibull, log-normal, log-logistic, and gamma), we must specify prior distributions for the intercepts and auxiliary parameters (governing the scales and shapes) of the competing parametric families. Here, we assume that we would expect the median survival type in the standard treatment group to be 5 years with an interquartile range of 10 years. We set the standard deviation of the prior distributions to 0.5, which provides us with a satisfactory degree of uncertainty about the parameter values. We obtain the corresponding prior distributions by using the `calibrate_quartiles()` function. Subsequently, we print the list containing priors for the intercepts and auxiliary parameters.
 
 ```{r}
 priors <- calibrate_quartiles(median_t = 5, iq_range_t = 10, prior_sd = 0.5)
 priors
 ```
 
-We create new data.frame object containing a fit ready data set. We (1) transform the survival times to years, (2) dummy code the treatment variable, so 0 corresponds to the standard treatment and 1 to the test treatment (i.e., the intercept of the model corresponds to the standard treatment and the treatment estimate to the improvement in the test treatment), and (3) scale the Karnofsky performance score (karno) to range from 0-1 (i.e., the coefficient estimate corresponds to the biggest possible difference).
+We create a new data.frame object containing a fit ready data set. We (1) transform the survival times to years, (2) code the treatment variable as a factor and set `"standard"` as the default level (to test for effect of the `"new"` treatment effect; so the intercept of the model corresponds to the standard treatment and the treatment estimate to the improvement in the test treatment), and (3) scale the Karnofsky performance score (karno) to range from 0-1 (i.e., the coefficient estimate corresponds to the biggest possible difference).
 
 ```{r}
 df <- data.frame(
-  time            = veteran$time / 12,
-  status          = veteran$status,
-  treatment_dummy = as.numeric(veteran$trt == 2),
-  karno_scaled    = veteran$karno / 100 
+  time         = veteran$time / 12,
+  status       = veteran$status,
+  treatment    = factor(ifelse(veteran$trt == 1, "standard", "new"), levels = c("standard", "new")),
+  karno_scaled = veteran$karno / 100 
 )
 head(df)
 ```
 
 ### Hypothesis Testing 
 
-We proceed by specifying a RoBSA model intended to test an informed hypothesis of the presence of the treatment effect centered around the log(AF) of 0.3 with the sd of 0.1,5 via the informed prior distribution $\text{Normal}_+(0.30, 0.15)$ on the dummy coded treatment effect. Furthermore, we adjust for the Karnofsky performance score by setting a wider centered standard normal prior distribution $\text{Normal}(0, 1)$. To only test for the presence of the treatment effect and include the covariate in all models, we set `test_predictors = "treatment_dummy"`. Finally, we pass the appropriate prior distributions to the `priors`, `prior_intercept`, and `prior_aux` arguments.
+We proceed by specifying a RoBSA model intended to test an informed hypothesis of the presence of the treatment effect centered around the log(AF) of 0.3 with the sd of 0.1,5 via the informed prior distribution $\text{Normal}_+(0.30, 0.15)$ on the treatment effect. To set a prior distribution on factor, we use the `prior_factor()` function. This allows us to specify the type of contrast we want to use. Here, we use `"treatment"` contrast to estimate differences from the default level (we could also use `orthonormal` to test for a difference of the individual levels from the grand mean). Furthermore, we adjust for the Karnofsky performance score by setting a wider centered standard normal prior distribution $\text{Normal}(0, 1)$. To test only for the presence of the treatment effect and include the covariate in all models, we set `test_predictors = "treatment"`. Finally, we pass the appropriate prior distributions to the `priors`, `prior_intercept`, `prior_aux` arguments, set `seed = 1` for reproducibility, and use `parallel = TRUE` for speeding up the computation.
 
 ```r
 fit.test <- RoBSA(
-  Surv(time, status) ~ treatment_dummy + karno_scaled,
-  data   = df,
-  priors = list(
-    treatment_dummy = prior("normal", parameters = list(0.30, 0.15), truncation = list(0, Inf)),
-    karno_scaled    = prior("normal", parameters = list(0, 1))
-  ),
-  test_predictors = "treatment_dummy",
-  prior_intercept = priors[["intercept"]],
-  prior_aux       = priors[["aux"]]
+    Surv(time, status) ~ treatment + karno_scaled,
+    data   = df,
+    priors = list(
+        treatment    = prior_factor("normal", parameters = list(mean = 0.30, sd = 0.15),
+                                    truncation = list(0, Inf), contrast = "treatment"),
+        karno_scaled = prior("normal", parameters = list(mean = 0, sd = 1))
+    ),
+    test_predictors = "treatment",
+    prior_intercept = priors[["intercept"]],
+    prior_aux       = priors[["aux"]],
+    parallel = TRUE, seed = 1
 ) 
 ```
 
@@ -93,25 +139,27 @@ The `summary()` functions provides the main summary of the fitted model.
 summary(fit.test)
 ```
 
-In the first table, we see that most posterior model probability is retained by the log-logistic (0.499), exponential (0.322), and log-normal (0.149) family, with the inclusion Bayes factors quantifying the change from prior to posterior model probabilities.
+In the first table, we see that most posterior model probability is retained by the log-logistic (0.499), exponential (0.321), and log-normal (0.149) family, with the inclusion Bayes factors quantifying the change from prior to posterior model probabilities.
 
-The second table then summarizes the model-averaged coefficient estimates. Here, in the RoBSA ensemble intended for testing, we are primary interested in the inclusion Bayes factor for the treatment effect. We find Bayes factor 0.147, indicating that there is moderate evidence in favor of no treatment effect (1/0.147 = 6.8) in comparison to our informed hypothesis of a positive treatment effect.
+The second table then summarizes information about hypothesis tests of the model components. Here, in the RoBSA ensemble intended for testing, we are interested in the inclusion Bayes factor for the treatment effect. We find Bayes factor 0.148, indicating that there is moderate evidence in favor of no treatment effect (1/0.148 = 6.76) in comparison to our informed hypothesis of a positive treatment effect.
 
 ### Parameter Estimation
 
-Now we try to estimate the model-averaged estimate of the difference between the two treatments. To do that, we change the prior distribution from the informed positive treatment effect to a neutral standard normal prior distribution allowing for both positive and negative treatment effect. We further set `test_predictors` to `""` in order to omit models assuming zero treatment effect.
+Now we try to estimate the model-averaged estimate of the difference between the two treatments. We change the prior distribution from the informed positive treatment effect to a neutral standard normal prior distribution allowing for both positive and negative treatment effect. We further set `test_predictors` to `""` in order to omit models assuming zero treatment effect.
 
 ```r
 fit.est <- RoBSA(
-  Surv(time, status) ~ treatment_dummy + karno_scaled,
-  data   = df,
-  priors = list(
-    treatment_dummy = prior("normal", parameters = list(0, 1)),
-    karno_scaled    = prior("normal", parameters = list(0, 1))
-  ),
-  test_predictors = "",
-  prior_intercept = priors[["intercept"]],
-  prior_aux       = priors[["aux"]]
+    Surv(time, status) ~ treatment + karno_scaled,
+    data   = df,
+    priors = list(
+        treatment    = prior_factor("normal", parameters = list(mean = 0, sd = 1),
+                                    contrast = "treatment"),
+        karno_scaled = prior("normal", parameters = list(mean = 0, sd = 1))
+    ),
+    test_predictors = "",
+    prior_intercept = priors[["intercept"]],
+    prior_aux       = priors[["aux"]],
+    parallel = TRUE, seed = 1
 ) 
 ```
 
@@ -119,63 +167,26 @@ fit.est <- RoBSA(
 summary(fit.est)
 ```
 
-We again use the `summary()` function to obtain information about the fitted model. We find out that the experimental treatment actually led to notably shorter survival times with the mean model-averaged log(AF) = -0.18, 95% CI[-0.56, -0.18]. Furthermore, we observe an enormous effect of the scaled Karnofsky performance score, showing that moving from 0 to 1 increases the survival times with the mean model-averaged log(AF) = 2.54, 95% CI [1.74, 3.31].
+We again use the `summary()` function to obtain information about the fitted model. We find out that the experimental treatment led to notably shorter survival times with the mean model-averaged log(AF) = -0.19, 95% CI[-0.55, -0.19]. Furthermore, we observe an enormous effect of the scaled Karnofsky performance score, showing that moving from 0 to 1 increases the survival times with the mean model-averaged log(AF) = 2.53, 95% CI [1.72, 3.35].
 
 ### MCMC Diagnostics
 
 To assess the convergence of the MCMC model, we can use the `diagnostics = TRUE` argument in the `summary()` function. The resulting table shows the maximum MCMC error, min effective sample size and maximum R-hat for each of the models.
 
 ```{r}
-summary(fit.est, diagnostics = TRUE)
+summary(fit.est, type = "diagnostics")
 ```
 
-We find that while the R-hat and max MCMC error is satisfactory for all models from the RoBSA estimation ensemble, we might wish for a larger ESS. To achieve that, we would simply increase the number of sampling MCMC iterations by using the `iter` argument in the `RoBSA()` function.
+We find that while the R-hat and max MCMC error is satisfactory for all models from the RoBSA estimation ensemble, we might wish for a larger ESS. To achieve that, we would simply increase the number of sampling MCMC iterations by using the `iter` argument in the `RoBSA()` function. Furthermore detailed diagnostics such as trace plot, autocorrelation plots, and density plot for each parameter/model are provided via the `diagnostics_trace()`, `diagnostics_autocorrelation()`, and `diagnostics_density()` functions. 
 
 ### Visualizing Predicted Survival
 
-To visualize the predicted model-averaged survival for each group, we first need to create data.frame specifying the values for which we want to predict the survival. Here, we create a monthly based prediction for the first 20 years for the standard treatment (`df_standard`) and the experimental treatment (`df_experimental`) for the median level of the Karnofsky performance score.
-
-```{r}
-df_standard <- data.frame(
-  time            = seq(0, 20*12, 1) / 12,
-  treatment_dummy = 0,
-  karno_scaled    = median(df$karno_scaled)
-)
-
-df_experimental <- data.frame(
-  time            = seq(0, 20*12, 1) / 12,
-  treatment_dummy = 1,
-  karno_scaled    = median(df$karno_scaled)
-)
-```
-
-Then we predict the model-averaged survival with the `predict()` function for each group.
-
-```r
-predicted_standard     <- predict(fit.est, newdata = df_standard,     type = "survival")
-predicted_experimental <- predict(fit.est, newdata = df_experimental, type = "survival")
-```
-
-Now, we can plot the predicted model-averaged survivals and 95% CI for both groups.
+We can also visualize the model ensemble predictions for survival or hazard. We visualize the model-averaged survival for each treatment group via the `plot_survival()` and using the `predictor = "treatment"` argument. By default, the remaining predictors are set to their mean/default level, but predictions for different values can be obtained by specifying the `covariates_data` argument.
 
 ```{r predicted_surival, out.width = "80%", fig.align = "center"}
-plot(NA, type = "n", xlim = c(0, 20), ylim = c(0, 1), xlab = "Time (Years)", ylab = "Survival", las = 1, bty = "n")
-# standard treatment group
-lines(seq(0, 20*12, 1) / 12, predicted_standard$mean, col = "blue", lwd = 2)
-polygon(
-  x   = c(seq(0, 20*12, 1) / 12, rev(seq(0, 20*12, 1) / 12)),
-  y   = c(predicted_standard$lCI, rev(predicted_standard$uCI)),
-  col = "#0000FF33"
-)
-
-# experimental treatment group
-lines(seq(0, 20*12, 1) / 12, predicted_experimental$mean, col = "red", lwd = 2)
-polygon(
-  x   = c(seq(0, 20*12, 1) / 12, rev(seq(0, 20*12, 1) / 12)),
-  y   = c(predicted_experimental$lCI, rev(predicted_experimental$uCI)),
-  col = "#FF000033"
-)
+plot_survival(fit.est, predictor = "treatment")
 ```
 
+In alignment with the previous summary, we see that the model-averaged survival for the new treatment group is below the estimated treatment of the standard treatment group. Similarly, we could also visualize the model-averaged hazard `plot_hazard()` or obtain numerical estimates for the survival, hazard, density, mean survival, and standard deviation of the survival at different levels of detail via the `predict()` function.
 
 ### References
