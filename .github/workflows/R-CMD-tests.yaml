@@ -24,73 +24,96 @@ jobs:
       fail-fast: false
       matrix:
         config:
+        #  - {os: macOS-latest,   r: 'release'}
           - {os: windows-latest, r: 'release'}
-          - {os: ubuntu-latest,  r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
-          - {os: macOS-latest,   r: 'release'}
+          - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
+          - {os: ubuntu-latest,   r: 'release'}
+        #  - {os: ubuntu-latest,   r: 'oldrel-1'}
 
     env:
-      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       RSPM: ${{ matrix.config.rspm }}
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      NOT_CRAN: true
 
     steps:
       - uses: actions/checkout@v2
 
-      - uses: r-lib/actions/setup-r@v1
+      - uses: r-lib/actions/setup-r@master
         with:
           r-version: ${{ matrix.config.r }}
 
-      - uses: r-lib/actions/setup-pandoc@v1
+      - uses: r-lib/actions/setup-pandoc@master
 
       - name: Query dependencies
         run: |
           install.packages('remotes')
           saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
-          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
         shell: Rscript {0}
 
-      - name: Restore R package cache
-        uses: actions/cache@v2
+      - name: Cache R packages
+        if: runner.os != 'Windows'
+        uses: actions/cache@v1
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-
+          key: ${{ runner.os }}-r-${{ matrix.config.r }}-3-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ runner.os }}-r-${{ matrix.config.r }}-3-
 
-      - name: Install system dependencies
-        if: runner.os == 'Linux'
-        run: |
-          while read -r cmd
-          do
-            eval sudo $cmd
-          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
-
-      - name: Install JAGS (windows-latest)
+      - name: Set path for RTools 4.0
+        if: runner.os == 'Windows'
+        run: echo "C:/rtools40/usr/bin;C:/rtools40/mingw64/bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+      
+      - name: Install most Windows system dependencies
         if: runner.os == 'Windows'
         run: |
-          curl.exe -o wjags.exe --url https://deac-fra.dl.sourceforge.net/project/mcmc-jags/JAGS/4.x/Windows/JAGS-4.2.0-Rtools33.exe
-          wjags.exe /S
-          del wjags.exe
+          pacman -Syu mingw-w64-x86_64-make --noconfirm
+          g++ --version
+          Get-Command g++ | Select-Object -ExpandProperty Definition
+          mingw32-make --version
+          Get-Command mingw32-make | Select-Object -ExpandProperty Definition
+          (New-Object System.Net.WebClient).DownloadFile('https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/JAGS-4.3.1.exe', 'C:\JAGS-4.3.1.exe')
+        shell: powershell
+
+      - name: Install JAGS on Windows
+        if: runner.os == 'Windows'
+        run: C:\JAGS-4.3.1.exe /S
         shell: cmd
 
-      - name: Install JAGS (macOS-latest)
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        env:
+          RHUB_PLATFORM: linux-x86_64-ubuntu-gcc
+        run: |
+          sudo apt-get install -y libglpk-dev
+          Rscript -e "remotes::install_github('r-hub/sysreqs')"
+          sysreqs=$(Rscript -e "cat(sysreqs::sysreq_commands('DESCRIPTION'))")
+          sudo -s eval "$sysreqs"
+          sudo -s apt-get install jags
+          sudo -s apt-get install libv8-dev
+          sudo -s apt-get install libnode-dev
+          sudo -s apt-get install libcurl4-openssl-dev
+
+      - name: Install Mac system dependencies
         if: runner.os == 'macOS'
-        run : |
-          rm '/usr/local/bin/gfortran'
-          brew install automake jags
+        run: |
+          brew install jags
+          brew install libgit2
+          
+      - name: Install dependencies
+        run: |
+          remotes::install_deps(dependencies = TRUE, type = ifelse(tolower(Sys.info()["sysname"]) == "linux", "source", "binary"))
+          remotes::install_cran("rcmdcheck")
+          install.packages("devtools")
+          install.packages("testthat")
+          install.packages("vdiffr")
+          devtools::install()
+        shell: Rscript {0}
 
       - name: Install and test RoBSA (non-Windows)
         if: runner.os != 'Windows'
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
-        run: |
-          remotes::install_deps(dependencies = TRUE)
-          remotes::install_cran("rcmdcheck")
-          #remotes::install_version("BayesTools", "0.2.10")
-          remotes::install_github("FBartos/BayesTools@v0.2.10")
-          install.packages("devtools")
-          install.packages("testthat")
-          install.packages("vdiffr")
-          devtools::install()
+        run:
           library(vdiffr)
           library(testthat)
           devtools::test()
@@ -100,17 +123,9 @@ jobs:
         if: runner.os == 'Windows'
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
-          JAGS_ROOT: "/c/progra~1/JAGS/JAGS-4.2.0"
+          JAGS_ROOT: "/c/progra~1/JAGS/JAGS-4.3.1"
           JAGS_MAJOR_VERSION: 4
-        run: |
-          remotes::install_deps(dependencies = TRUE)
-          remotes::install_cran("rcmdcheck")
-          #remotes::install_version("BayesTools", "0.2.10")
-          remotes::install_github("FBartos/BayesTools@v0.2.10")
-          install.packages("devtools")
-          install.packages("testthat")
-          install.packages("vdiffr")
-          devtools::install()
+        run:
           library(vdiffr)
           library(testthat)
           devtools::test()
