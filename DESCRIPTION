@@ -51,5 +51,6 @@ Suggests:
     testthat,
     vdiffr,
     knitr,
-    rmarkdown
+    rmarkdown,
+    covr
 RdMacros: Rdpack
