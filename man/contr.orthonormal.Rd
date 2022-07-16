@@ -3,9 +3,6 @@
 \name{contr.orthonormal}
 \alias{contr.orthonormal}
 \title{Orthornomal contrast matrix}
-\usage{
-contr.orthonormal(n, contrasts = TRUE)
-}
 \arguments{
 \item{n}{a vector of levels for a factor, or the number of levels}
 

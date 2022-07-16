@@ -14,10 +14,9 @@
 #' to be tested with Bayesian model-averaged testing.
 #' Defaults to \code{NULL}, no parameters are tested.
 #' @param priors names list of prior distributions for each
-#' predictor. Allows to specify both the null and alternative
+#' predictor. It allows users to specify both the null and alternative
 #' hypothesis prior distributions by assigning a named list
 #' (with \code{"null"} and \code{"alt"} object) to the predictor
-#' predictor.
 #' @param distributions_weights prior odds for the competing
 #' distributions
 #' @param prior_beta_null default prior distribution for the
