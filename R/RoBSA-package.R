@@ -17,4 +17,5 @@
 #'
 #' @references \insertAllCited{}
 #' @importFrom survival Surv
+#' @importFrom Rdpack reprompt
 "_PACKAGE"

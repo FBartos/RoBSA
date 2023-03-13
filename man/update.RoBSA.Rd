@@ -42,10 +42,9 @@ if new priors or \code{prior_weights} are not supplied. Defaults to \code{TRUE}.
 \item{formula}{formula for the survival model}
 
 \item{priors}{names list of prior distributions for each
-predictor. Allows to specify both the null and alternative
+predictor. It allows users to specify both the null and alternative
 hypothesis prior distributions by assigning a named list
-(with \code{"null"} and \code{"alt"} object) to the predictor
-predictor.}
+(with \code{"null"} and \code{"alt"} object) to the predictor}
 
 \item{test_predictors}{vector of predictor names
 to be tested with Bayesian model-averaged testing.

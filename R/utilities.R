@@ -50,12 +50,13 @@ RoBSA.get_option <- function(name){
 	return(eval(RoBSA.private[[name]]))
 }
 
-
+# export the function directly to suppress import warnings
+.runjags__findjags <- function() runjags::findjags()
 
 # adapted from the runjags package version 2.2.0
 RoBSA.private <- new.env()
 # Use 'expression' for functions to avoid having to evaluate before the package is fully loaded:
-assign("JAGS_path",       expression(runjags::findjags()),            envir = RoBSA.private)
+assign("JAGS_path",       expression(.runjags__findjags()),           envir = RoBSA.private)
 assign("RoBSA_version",   utils::packageVersion("RoBSA"),             envir = RoBSA.private)
 assign("min_jags_major",  4,                                          envir = RoBSA.private)
 assign("max_jags_major",  4,                                          envir = RoBSA.private)
