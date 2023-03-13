@@ -42,6 +42,7 @@ Imports:
     coda, 
     stats,
     graphics,
+    rlang,
     Rdpack
 Suggests:
     parallel,

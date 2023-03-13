@@ -18,4 +18,5 @@
 #' @references \insertAllCited{}
 #' @importFrom survival Surv
 #' @importFrom Rdpack reprompt
+#' @importFrom rlang .data
 "_PACKAGE"
