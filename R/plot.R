@@ -429,11 +429,11 @@ plot_prediction <- function(x, type = "survival", time_range = NULL, new_data = 
     for(i in seq_along(plot_data)){
       plot <- plot + ggplot2::geom_polygon(
         data    = data.frame(
-          x     = c(plot_data[[i]][,"time"], rev(plot_data[[i]][,"time"])),
-          y     = c(plot_data[[i]][,"lCI"],  rev(plot_data[[i]][,"uCI"]))),
-        mapping = ggplot2::aes_string(
-          x = "x",
-          y = "y"),
+          x = c(plot_data[[i]][,"time"], rev(plot_data[[i]][,"time"])),
+          y = c(plot_data[[i]][,"lCI"],  rev(plot_data[[i]][,"uCI"]))),
+        mapping = ggplot2::aes(
+          x = .data[["x"]],
+          y = .data[["y"]]),
         fill    = dots[["col.fill"]][i]
       )
     }
@@ -444,13 +444,12 @@ plot_prediction <- function(x, type = "survival", time_range = NULL, new_data = 
           x     = plot_data[[i]][,"time"],
           y     = plot_data[[i]][,"mean"],
           level = if(dots[["legend"]]) dots[["legend.text"]][i] else ""),
-        mapping = ggplot2::aes_string(
-          x        = "x",
-          y        = "y",
-          size     = if(length(dots[["legend.text"]]) > 1) "level",
-          color    = if(length(dots[["legend.text"]]) > 1) "level",
-          linetype = if(length(dots[["legend.text"]]) > 1) "level",
-          group    = if(length(dots[["legend.text"]]) > 1) "level"),
+        mapping = ggplot2::aes(
+          x         = .data[["x"]],
+          y         = .data[["y"]],
+          color     = if(length(dots[["legend.text"]]) > 1) .data[["level"]],
+          linetype  = if(length(dots[["legend.text"]]) > 1) .data[["level"]],
+          group     = if(length(dots[["legend.text"]]) > 1) .data[["level"]]),
         show.legend = dots[["legend"]])
     }
 
