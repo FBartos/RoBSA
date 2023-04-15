@@ -94,7 +94,29 @@ check_RoBSA <- function(fit){
     }
   })))
 }
+.update_object               <- function(object){
 
+  # no package version number saved prior to 2.4
+  if(!all("version" %in% names(object[["add_info"]]))){
+
+    ### 1.0.0 / 1.0.1 -> 1.0.2
+    # add "meandif" and "independent" argument to posterior samples
+    for(p in c("posteriors","posteriors_conditional","posteriors_intercept","posteriors_aux")){
+      for(i in seq_along(object[["RoBSA"]][[p]])){
+        if(inherits(object[["RoBSA"]][[p]][[i]], "mixed_posteriors.factor")){
+          attr(object[["RoBSA"]][[p]][[i]], "independent") <- FALSE
+          attr(object[["RoBSA"]][[p]][[i]], "meandif")     <- FALSE
+          attr(object[["RoBSA"]][[p]][[i]], "levels")      <- attr(object[["RoBSA"]][[p]][[i]], "levels") - 1
+        }
+      }
+    }
+
+    object[["add_info"]][["version"]] <- "1.0.2"
+
+  }
+
+  return(object)
+}
 
 .has_aux         <- function(distributions){
   distributions != "exp-aft"

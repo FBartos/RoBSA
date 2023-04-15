@@ -34,7 +34,7 @@ print.RoBSA <- function(x, ...){
 #' @param logBF show log of the BFs. Defaults to \code{FALSE}.
 #' @param BF01 show BF in support of the null hypotheses. Defaults to
 #' \code{FALSE}.
-#' @param transform_orthonormal Whether factors with orthonormal prior
+#' @param transform_factors Whether factors with orthonormal prior
 #' distributions should be transformed to differences from the grand mean. Defaults
 #' to \code{TRUE}.
 #' @param ... additional arguments
@@ -98,7 +98,7 @@ print.RoBSA <- function(x, ...){
 #' @export
 summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
                                 exp = FALSE, parameters = FALSE, probs = c(.025, .975), logBF = FALSE, BF01 = FALSE,
-                                transform_orthonormal = TRUE, short_name = FALSE, remove_spike_0 = FALSE, ...){
+                                transform_factors = TRUE, short_name = FALSE, remove_spike_0 = FALSE, ...){
 
   BayesTools::check_bool(conditional, "conditional")
   BayesTools::check_char(type, "type")
@@ -107,9 +107,12 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
   BayesTools::check_real(probs, "probs", allow_NULL = TRUE, check_length = 0)
   BayesTools::check_bool(BF01,  "BF01")
   BayesTools::check_bool(logBF, "logBF")
-  BayesTools::check_bool(transform_orthonormal, "transform_orthonormal")
+  BayesTools::check_bool(transform_factors, "transform_factors")
   BayesTools::check_bool(short_name, "short_name")
   BayesTools::check_bool(remove_spike_0, "remove_spike_0")
+
+  # apply version changes to RoBSA object
+  object <- .update_object(object)
 
   # print diagnostics if all models fail to converge
   if(!any(.get_model_convergence(object))){
@@ -152,7 +155,7 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
         probs                 = probs,
         title                 = "Model-averaged estimates:",
         warnings              = .collect_errors_and_warnings(object),
-        transform_orthonormal = transform_orthonormal,
+        transform_factors = transform_factors,
         formula_prefix        = FALSE
       )
       if(exp){

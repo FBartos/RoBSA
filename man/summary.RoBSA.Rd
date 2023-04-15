@@ -13,7 +13,7 @@
   probs = c(0.025, 0.975),
   logBF = FALSE,
   BF01 = FALSE,
-  transform_orthonormal = TRUE,
+  transform_factors = TRUE,
   short_name = FALSE,
   remove_spike_0 = FALSE,
   ...
@@ -45,7 +45,7 @@ Defaults to \code{c(.025, .50, .975)}}
 \item{BF01}{show BF in support of the null hypotheses. Defaults to
 \code{FALSE}.}
 
-\item{transform_orthonormal}{Whether factors with orthonormal prior
+\item{transform_factors}{Whether factors with orthonormal prior
 distributions should be transformed to differences from the grand mean. Defaults
 to \code{TRUE}.}
 

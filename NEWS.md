@@ -1,3 +1,6 @@
+## version 1.0.2
+- update with version bump of BayesTools
+
 ## version 1.0.1
 ### changes
 - update to R 4.2 and JAGS 4.3.1

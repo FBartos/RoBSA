@@ -227,4 +227,15 @@ if(FALSE){
   for(i in 1:length(saved_fits)){
     saveRDS(saved_fits[[i]], file = file.path("tests/results/fits/", paste0("fit_",i,".RDS")), compress  = "xz")
   }
+
+
+  # package version update
+  # test objects
+  saved_files <- paste0("fit_", 1:7, ".RDS")
+  saved_fits  <- list()
+  for(i in seq_along(saved_files)){
+    temp_fit <- readRDS(file = file.path("tests/results/fits", saved_files[i]))
+    temp_fit <- RoBSA:::.update_object(temp_fit)
+    saveRDS(temp_fit, file = file.path("tests/results/fits/", paste0("fit_",i,".RDS")), compress  = "xz")
+  }
 }

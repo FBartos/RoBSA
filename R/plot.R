@@ -81,6 +81,9 @@ plot.RoBSA  <- function(x, parameter = NULL, conditional = FALSE, plot_type = "b
   BayesTools::check_char(plot_type, "plot_type", allow_values = c("base", "ggplot"))
   BayesTools::check_bool(prior, "prior")
 
+  # apply version changes to RoBSA object
+  x <- .update_object(x)
+
   # verify whether given parameter exists and set a default parameter for plotting
   if(is.null(parameter)){
     parameter <- x$add_info[["predictors"]][1]

@@ -422,7 +422,8 @@ set_convergence_checks  <- function(max_Rhat = 1.05, min_ESS = 500, max_error = 
     save             = save,
     rescale_data     = rescale_data,
     warnings         = warnings,
-    errors           = errors
+    errors           = errors,
+    version          = utils::packageVersion("RoBSA")
   ))
 }
 
