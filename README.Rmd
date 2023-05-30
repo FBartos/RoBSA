@@ -78,10 +78,10 @@ See @bartos2021informed (https://doi.org/10.1186/s12874-022-01676-9) introducing
 
 ## Installation
 
-The package requires [JAGS 4.3.0](https://mcmc-jags.sourceforge.io/) to be installed. The development version of the package can be installed from GitHub:
+The package requires [JAGS 4.3.1](https://mcmc-jags.sourceforge.io/) to be installed. The development version of the package can be installed from GitHub:
 
 ``` r
-devtools::install_github("fbartos/RoBSA")
+devtools::install_github("FBartos/RoBSA")
 ```
 
 ## Example
@@ -167,7 +167,7 @@ fit.est <- RoBSA(
 summary(fit.est)
 ```
 
-We again use the `summary()` function to obtain information about the fitted model. We find out that the experimental treatment led to notably shorter survival times with the mean model-averaged log(AF) = -0.19, 95% CI[-0.55, -0.19]. Furthermore, we observe an enormous effect of the scaled Karnofsky performance score, showing that moving from 0 to 1 increases the survival times with the mean model-averaged log(AF) = 2.53, 95% CI [1.72, 3.35].
+We again use the `summary()` function to obtain information about the fitted model. We find out that the experimental treatment led to notably shorter survival times with the mean model-averaged log(AF) = -0.19, 95% CI[-0.56, -0.19]. Furthermore, we observe an enormous effect of the scaled Karnofsky performance score, showing that moving from 0 to 1 increases the survival times with the mean model-averaged log(AF) = 2.54, 95% CI [1.72, 3.34].
 
 ### MCMC Diagnostics
 

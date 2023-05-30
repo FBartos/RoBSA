@@ -25,17 +25,17 @@ for the effect size, intercepts, and auxiliary parameters. The package
 provides convenient functions for summary, visualizations, and fit
 diagnostics.
 
-See our pre-print Bartoš et al. (2021)
-(<https://arxiv.org/abs/2112.08311>) introducing the methodology.
+See Bartoš et al. (2022) (<https://doi.org/10.1186/s12874-022-01676-9>)
+introducing the methodology.
 
 ## Installation
 
-The package requires [JAGS 4.3.0](https://mcmc-jags.sourceforge.io/) to
+The package requires [JAGS 4.3.1](https://mcmc-jags.sourceforge.io/) to
 be installed. The development version of the package can be installed
 from GitHub:
 
 ``` r
-devtools::install_github("fbartos/RoBSA")
+devtools::install_github("FBartos/RoBSA")
 ```
 
 ## Example
@@ -48,7 +48,6 @@ start by loading the package and data set.
 ``` r
 library("RoBSA")
 #> Loading required namespace: runjags
-#> module RoBSA loaded
 data(cancer, package = "survival")
 head(veteran)
 #>   trt celltype time status karno diagtime age prior
@@ -130,15 +129,15 @@ head(df)
 We proceed by specifying a RoBSA model intended to test an informed
 hypothesis of the presence of the treatment effect centered around the
 log(AF) of 0.3 with the sd of 0.1,5 via the informed prior distribution
-Normal<sub>+</sub>(0.30,0.15) on the treatment effect. To set a prior
+$\text{Normal}_+(0.30, 0.15)$ on the treatment effect. To set a prior
 distribution on factor, we use the `prior_factor()` function. This
 allows us to specify the type of contrast we want to use. Here, we use
 `"treatment"` contrast to estimate differences from the default level
 (we could also use `orthonormal` to test for a difference of the
 individual levels from the grand mean). Furthermore, we adjust for the
 Karnofsky performance score by setting a wider centered standard normal
-prior distribution Normal(0,1). To test only for the presence of the
-treatment effect and include the covariate in all models, we set
+prior distribution $\text{Normal}(0, 1)$. To test only for the presence
+of the treatment effect and include the covariate in all models, we set
 `test_predictors = "treatment"`. Finally, we pass the appropriate prior
 distributions to the `priors`, `prior_intercept`, `prior_aux` arguments,
 set `seed = 1` for reproducibility, and use `parallel = TRUE` for
@@ -257,10 +256,10 @@ summary(fit.est)
 We again use the `summary()` function to obtain information about the
 fitted model. We find out that the experimental treatment led to notably
 shorter survival times with the mean model-averaged log(AF) = -0.19, 95%
-CI\[-0.55, -0.19\]. Furthermore, we observe an enormous effect of the
+CI\[-0.56, -0.19\]. Furthermore, we observe an enormous effect of the
 scaled Karnofsky performance score, showing that moving from 0 to 1
 increases the survival times with the mean model-averaged log(AF) =
-2.53, 95% CI \[1.72, 3.35\].
+2.54, 95% CI \[1.72, 3.34\].
 
 ### MCMC Diagnostics
 
@@ -333,8 +332,9 @@ line-spacing="2">
 
 <div id="ref-bartos2021informed" class="csl-entry">
 
-Bartoš, F., Aust, F., & Haaf, J. M. (2021). *Informed Bayesian survival
-analysis*. arXiv. <https://arxiv.org/abs/2112.08311>
+Bartoš, F., Aust, F., & Haaf, J. M. (2022). Informed Bayesian survival
+analysis. *BMC Medical Research Methodology*.
+<https://doi.org/10.1186/s12874-022-01676-9>
 
 </div>
 
