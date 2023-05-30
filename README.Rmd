@@ -74,7 +74,7 @@ predicted_experimental <- readRDS(file = "models/README/predicted_experimental.t
 
 This package estimates an ensemble of parametric survival models with different parametric families and uses Bayesian model averaging to combine them. The RoBSA ensemble uses Bayes factors to test for the presence or absence of effects of the individual predictors and evaluates the support for each parametric family. The resulting model-averaged parameter estimates are based on posterior model probabilities. The user can define a wide range of prior distributions for the effect size, intercepts, and auxiliary parameters. The package provides convenient functions for summary, visualizations, and fit diagnostics.
 
-See our pre-print @bartos2021informed (https://arxiv.org/abs/2112.08311) introducing the methodology.
+See @bartos2021informed (https://doi.org/10.1186/s12874-022-01676-9) introducing the methodology.
 
 ## Installation
 

@@ -93,7 +93,7 @@ diagnostics <- function(fit, parameter = NULL, type, plot_type = "base", show_mo
       args$plot_type                <- plot_type
       args$lags                     <- lags
       args$transformations          <- NULL
-      args$transform_orthonormal    <- TRUE
+      args$transform_factors    <- TRUE
       args$short_name               <- FALSE
       args$parameter_names          <- FALSE
       args$formula_prefix           <- FALSE

@@ -1,7 +1,7 @@
 Package: RoBSA
 Type: Package
 Title: Robust Bayesian Survival Analysis
-Version: 1.0.1
+Version: 1.0.2
 Maintainer: František Bartoš <f.bartos96@gmail.com>
 Authors@R: c( 
     person("František", "Bartoš", role = c("aut", "cre"),
@@ -19,7 +19,7 @@ Description: A framework for estimating ensembles of parametric survival models
     a model ensemble, weights the posterior parameter distributions based on 
     posterior model probabilities and uses Bayes factors to test for the 
     presence or absence of the individual predictors or preference for a 
-    parametric family (Bartoš, Aust & Haaf, 2021, <doi:10.48550/arXiv.2112.08311>).
+    parametric family (Bartoš, Aust & Haaf, 2022, <doi:10.1186/s12874-022-01676-9>).
     The user can define a wide range of informative priors for all parameters 
     of interest. The package provides convenient functions for summary, visualizations, 
     fit diagnostics, and prior distribution calibration.
@@ -34,7 +34,7 @@ SystemRequirements: JAGS >= 4.3.1 (https://mcmc-jags.sourceforge.io/)
 Depends:
     R (>= 4.0.0)
 Imports:
-    BayesTools (>= 0.2.10),
+    BayesTools (>= 0.2.14),
     survival,
     rjags,
     runjags,

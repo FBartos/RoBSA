@@ -124,13 +124,25 @@
           null  = if(predictors_type[to_test[i]] == "factor") default_prior_factor_null else default_prior_beta_null,
           alt   = priors[[to_test[i]]]
         )
+        # fix possible missalignment of default and custom prior distribution
+        if(BayesTools::is.prior.treatment(priors[[to_test[i]]][["alt"]]) && !BayesTools::is.prior.treatment(priors[[to_test[i]]][["null"]])){
+          priors[[to_test[i]]][["null"]] <- .fix_default_prior_factor_null(priors[[to_test[i]]][["null"]], contrast = "treatment")
+        }else if(BayesTools::is.prior.orthonormal(priors[[to_test[i]]][["alt"]]) && !BayesTools::is.prior.orthonormal(priors[[to_test[i]]][["null"]])){
+          priors[[to_test[i]]][["null"]] <- .fix_default_prior_factor_null(priors[[to_test[i]]][["null"]], contrast = "orthonormal")
+        }else if(BayesTools::is.prior.meandif(priors[[to_test[i]]][["alt"]]) && !BayesTools::is.prior.meandif(priors[[to_test[i]]][["null"]])){
+          priors[[to_test[i]]][["null"]] <- .fix_default_prior_factor_null(priors[[to_test[i]]][["null"]], contrast = "meandif")
+        }
       }else if(length(priors[[to_test[i]]]) == 2 && all(names(priors[[to_test[i]]]) %in% c("null", "alt"))){
         priors[[to_test[i]]] <- list(
           null  = priors[[to_test[i]]][["null"]],
           alt   = priors[[to_test[i]]][["alt"]]
         )
+        if((BayesTools::is.prior.treatment(priors[[to_test[i]]][["alt"]])   && !BayesTools::is.prior.treatment(priors[[to_test[i]]][["null"]]))   |
+           (BayesTools::is.prior.orthonormal(priors[[to_test[i]]][["alt"]]) && !BayesTools::is.prior.orthonormal(priors[[to_test[i]]][["null"]])) |
+           (BayesTools::is.prior.meandif(priors[[to_test[i]]][["alt"]])     && !BayesTools::is.prior.meandif(priors[[to_test[i]]][["null"]])))
+          stop(paste0("The null and alternative prior distribution for '", to_test[i], "' factor must have matching contrasts."))
       }else{
-        stop(paste0("The predictor '", to_test[i], "' is supposed to be used for testing and the prior distributions are not specified properly"))
+        stop(paste0("The predictor '", to_test[i], "' is supposed to be used for testing and the prior distributions are not specified properly."))
       }
     }
 
