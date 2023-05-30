@@ -34,7 +34,7 @@ print.RoBSA <- function(x, ...){
 #' @param logBF show log of the BFs. Defaults to \code{FALSE}.
 #' @param BF01 show BF in support of the null hypotheses. Defaults to
 #' \code{FALSE}.
-#' @param transform_orthonormal Whether factors with orthonormal prior
+#' @param transform_factors Whether factors with orthonormal prior
 #' distributions should be transformed to differences from the grand mean. Defaults
 #' to \code{TRUE}.
 #' @param ... additional arguments
@@ -98,7 +98,7 @@ print.RoBSA <- function(x, ...){
 #' @export
 summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
                                 exp = FALSE, parameters = FALSE, probs = c(.025, .975), logBF = FALSE, BF01 = FALSE,
-                                transform_orthonormal = TRUE, short_name = FALSE, remove_spike_0 = FALSE, ...){
+                                transform_factors = TRUE, short_name = FALSE, remove_spike_0 = FALSE, ...){
 
   BayesTools::check_bool(conditional, "conditional")
   BayesTools::check_char(type, "type")
@@ -107,7 +107,7 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
   BayesTools::check_real(probs, "probs", allow_NULL = TRUE, check_length = 0)
   BayesTools::check_bool(BF01,  "BF01")
   BayesTools::check_bool(logBF, "logBF")
-  BayesTools::check_bool(transform_orthonormal, "transform_orthonormal")
+  BayesTools::check_bool(transform_factors, "transform_factors")
   BayesTools::check_bool(short_name, "short_name")
   BayesTools::check_bool(remove_spike_0, "remove_spike_0")
 
@@ -152,7 +152,7 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
         probs                 = probs,
         title                 = "Model-averaged estimates:",
         warnings              = .collect_errors_and_warnings(object),
-        transform_orthonormal = transform_orthonormal,
+        transform_factors = transform_factors,
         formula_prefix        = FALSE
       )
       if(exp){
@@ -259,16 +259,29 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
       components[[object$add_info[["predictors"]][i]]] <- .BayesTools_parameter_name(object$add_info[["predictors"]][i])
     }
 
-    summary <- BayesTools::ensemble_summary_table(
-      models         = object[["models"]],
-      parameters     = components,
-      title          = "Models overview:",
-      footnotes      = NULL,
-      warnings       = .collect_errors_and_warnings(object),
-      short_name     = short_name,
-      remove_spike_0 = remove_spike_0
-    )
-
+    # trick for dealing with empty models
+    if(length(components) == 0){
+      summary <- BayesTools::ensemble_summary_table(
+        models         = object[["models"]],
+        parameters     = "mu_intercept",
+        title          = "Models overview:",
+        footnotes      = NULL,
+        warnings       = .collect_errors_and_warnings(object),
+        short_name     = short_name,
+        remove_spike_0 = remove_spike_0
+      )
+      summary <- BayesTools::remove_column(summary, 2)
+    }else{
+      summary <- BayesTools::ensemble_summary_table(
+        models         = object[["models"]],
+        parameters     = components,
+        title          = "Models overview:",
+        footnotes      = NULL,
+        warnings       = .collect_errors_and_warnings(object),
+        short_name     = short_name,
+        remove_spike_0 = remove_spike_0
+      )
+    }
 
     # add distribution column to the summary
     summary <- BayesTools::add_column(
@@ -303,15 +316,30 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
       components[[object$add_info[["predictors"]][i]]] <- .BayesTools_parameter_name(object$add_info[["predictors"]][i])
     }
 
-    diagnostics <- BayesTools::ensemble_diagnostics_table(
-      models         = object[["models"]],
-      parameters     = components,
-      title          = "Diagnostics overview:",
-      footnotes      = NULL,
-      warnings       = .collect_errors_and_warnings(object),
-      short_name     = short_name,
-      remove_spike_0 = remove_spike_0
-    )
+
+    # trick for dealing with empty models
+    if(length(components) == 0){
+      diagnostics <- BayesTools::ensemble_diagnostics_table(
+        models         = object[["models"]],
+        parameters     = "mu_intercept",
+        title          = "Diagnostics overview:",
+        footnotes      = NULL,
+        warnings       = .collect_errors_and_warnings(object),
+        short_name     = short_name,
+        remove_spike_0 = remove_spike_0
+      )
+      diagnostics <- BayesTools::remove_column(diagnostics, 2)
+    }else{
+      diagnostics <- BayesTools::ensemble_diagnostics_table(
+        models         = object[["models"]],
+        parameters     = components,
+        title          = "Diagnostics overview:",
+        footnotes      = NULL,
+        warnings       = .collect_errors_and_warnings(object),
+        short_name     = short_name,
+        remove_spike_0 = remove_spike_0
+      )
+    }
 
 
     # add distribution column to the summary

@@ -481,7 +481,7 @@ get_default_prior_beta_alt  <- function(){
 }
 #' @rdname default_prior
 get_default_prior_factor_null  <- function(){
-  prior("spike", parameters = list("location" = 0))
+  prior_factor("spike", parameters = list(location = 0), contrast = "treatment")
 }
 #' @rdname default_prior
 get_default_prior_factor_alt   <- function(){
@@ -506,6 +506,10 @@ get_default_prior_aux       <- function(){
     "llogis-aft"  = prior("normal", list(mean = 0, sd = 1), list(0, Inf)),
     "gamma-aft"   = prior("normal", list(mean = 0, sd = 1), list(0, Inf))
   )
+}
+
+.fix_default_prior_factor_null <- function(old_prior, contrast){
+  prior_factor(distribution = old_prior[["distribution"]], parameters = old_prior[["parameters"]], truncation = old_prior[["truncation"]], prior_weights = old_prior[["prior_weights"]], contrast = contrast)
 }
 
 # some functions for the JASP implementation
