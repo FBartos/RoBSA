@@ -1,3 +1,7 @@
+## version 1.0.3
+### fixes
+- fixing CRAN compilation issues
+
 ## version 1.0.2
 ### features
 - adding meandif contrasts to the `prior_factor()` function 
