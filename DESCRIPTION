@@ -1,7 +1,7 @@
 Package: RoBSA
 Type: Package
 Title: Robust Bayesian Survival Analysis
-Version: 1.0.2
+Version: 1.0.3
 Maintainer: František Bartoš <f.bartos96@gmail.com>
 Authors@R: c( 
     person("František", "Bartoš", role = c("aut", "cre"),
