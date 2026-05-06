@@ -75,8 +75,9 @@
         prior_list   = attr(fit, "prior_list"),
         max_Rhat     = convergence_checks[["max_Rhat"]],
         min_ESS      = convergence_checks[["min_ESS"]],
-        max_error    = convergence_checks[["max_error"]],
-        max_SD_error = convergence_checks[["max_SD_error"]]
+        max_error        = convergence_checks[["max_error"]],
+        max_SD_error     = convergence_checks[["max_SD_error"]],
+        check_indicators = convergence_checks[["check_indicators"]]
       )
       warnings    <- c(warnings, attr(fit, "warnings"), attr(check_fit, "errors"))
       if(convergence_checks[["remove_failed"]] && !check_fit){

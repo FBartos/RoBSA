@@ -230,6 +230,12 @@ check_setup <- function(
 #' @param sample_extend number of samples to extend the fitting process if
 #' the criteria are not satisfied.
 #' Defaults to \code{1000}.
+#' @param restarts number of fitting restarts attempted when the initial JAGS
+#' model fitting fails. Defaults to \code{10}.
+#' @param max_extend maximum number of autofit extensions per model.
+#' Defaults to \code{10}.
+#' @param check_indicators whether convergence checks should include latent
+#' prior inclusion indicators. Defaults to \code{FALSE}.
 #' @param remove_failed whether models not satisfying the convergence checks should
 #' be removed from the inference. Defaults to \code{FALSE} - only a warning is raised.
 #' @param balance_probability whether prior model probability should be balanced
@@ -249,28 +255,34 @@ check_setup <- function(
 NULL
 
 #' @rdname RoBSA_control
-set_autofit_control     <- function(max_Rhat = 1.05, min_ESS = 500, max_error = NULL, max_SD_error = NULL, max_time = list(time = 60, unit = "mins"), sample_extend = 1000){
+set_autofit_control     <- function(max_Rhat = 1.05, min_ESS = 500, max_error = NULL, max_SD_error = NULL, max_time = list(time = 60, unit = "mins"),
+                                    sample_extend = 1000, restarts = 10, max_extend = 10, check_indicators = FALSE){
 
   autofit_settings <- list(
-    max_Rhat      = max_Rhat,
-    min_ESS       = min_ESS,
-    max_error     = max_error,
-    max_SD_error  = max_SD_error,
-    max_time      = max_time,
-    sample_extend = sample_extend
+    max_Rhat         = max_Rhat,
+    min_ESS          = min_ESS,
+    max_error        = max_error,
+    max_SD_error     = max_SD_error,
+    max_time         = max_time,
+    sample_extend    = sample_extend,
+    restarts         = restarts,
+    max_extend       = max_extend,
+    check_indicators = check_indicators
   )
   autofit_settings <- BayesTools::JAGS_check_and_list_autofit_settings(autofit_settings, call = "Checking 'autofit_control':\n\t")
 
   return(autofit_settings)
 }
 #' @rdname RoBSA_control
-set_convergence_checks  <- function(max_Rhat = 1.05, min_ESS = 500, max_error = NULL, max_SD_error = NULL, remove_failed = FALSE, balance_probability = TRUE){
+set_convergence_checks  <- function(max_Rhat = 1.05, min_ESS = 500, max_error = NULL, max_SD_error = NULL,
+                                    check_indicators = FALSE, remove_failed = FALSE, balance_probability = TRUE){
 
   convergence_checks <- list(
     max_Rhat            = max_Rhat,
     min_ESS             = min_ESS,
     max_error           = max_error,
     max_SD_error        = max_SD_error,
+    check_indicators    = check_indicators,
     remove_failed       = remove_failed,
     balance_probability = balance_probability
   )
@@ -347,8 +359,33 @@ set_convergence_checks  <- function(max_Rhat = 1.05, min_ESS = 500, max_error = 
   }else{
     sample_extend <- old_autofit_control[["sample_extend"]]
   }
+  if(!is.null(autofit_control[["restarts"]])){
+    restarts <- autofit_control[["restarts"]]
+  }else{
+    restarts <- old_autofit_control[["restarts"]]
+  }
+  if(!is.null(autofit_control[["max_extend"]])){
+    max_extend <- autofit_control[["max_extend"]]
+  }else{
+    max_extend <- old_autofit_control[["max_extend"]]
+  }
+  if(!is.null(autofit_control[["check_indicators"]])){
+    check_indicators <- autofit_control[["check_indicators"]]
+  }else{
+    check_indicators <- old_autofit_control[["check_indicators"]]
+  }
 
-  new_autofit_control <- set_autofit_control(max_Rhat = max_Rhat, min_ESS = min_ESS, max_error = max_error, max_SD_error = max_SD_error, max_time = max_time, sample_extend = sample_extend)
+  new_autofit_control <- set_autofit_control(
+    max_Rhat         = max_Rhat,
+    min_ESS          = min_ESS,
+    max_error        = max_error,
+    max_SD_error     = max_SD_error,
+    max_time         = max_time,
+    sample_extend    = sample_extend,
+    restarts         = restarts,
+    max_extend       = max_extend,
+    check_indicators = check_indicators
+  )
   new_autofit_control <- BayesTools::JAGS_check_and_list_autofit_settings(autofit_control = new_autofit_control)
 
   return(new_autofit_control)
@@ -375,6 +412,11 @@ set_convergence_checks  <- function(max_Rhat = 1.05, min_ESS = 500, max_error = 
   }else{
     max_SD_error <- old_convergence_checks[["max_SD_error"]]
   }
+  if(!is.null(convergence_checks[["check_indicators"]])){
+    check_indicators <- convergence_checks[["check_indicators"]]
+  }else{
+    check_indicators <- old_convergence_checks[["check_indicators"]]
+  }
   if(!is.null(convergence_checks[["remove_failed"]])){
     remove_failed <- convergence_checks[["remove_failed"]]
   }else{
@@ -386,7 +428,15 @@ set_convergence_checks  <- function(max_Rhat = 1.05, min_ESS = 500, max_error = 
     balance_probability <- old_convergence_checks[["balance_probability"]]
   }
 
-  new_convergence_checks <- set_convergence_checks(max_Rhat = max_Rhat, min_ESS = min_ESS, max_error = max_error, max_SD_error = max_SD_error, remove_failed = remove_failed, balance_probability = balance_probability)
+  new_convergence_checks <- set_convergence_checks(
+    max_Rhat            = max_Rhat,
+    min_ESS             = min_ESS,
+    max_error           = max_error,
+    max_SD_error        = max_SD_error,
+    check_indicators    = check_indicators,
+    remove_failed       = remove_failed,
+    balance_probability = balance_probability
+  )
   new_convergence_checks <- .check_and_list_convergence_checks(new_convergence_checks)
 }
 
