@@ -174,6 +174,29 @@ plot.RoBSA  <- function(x, parameter = NULL, conditional = FALSE, plot_type = "b
   return(dots_prior)
 }
 
+.normalize_fit_summary_quantile_names <- function(fit_summary){
+
+  if(is.null(fit_summary))
+    return(fit_summary)
+
+  columns <- colnames(fit_summary)
+  rename_map  <- c(
+    "lCI"    = "0.025",
+    "Median" = "0.5",
+    "uCI"    = "0.975"
+  )
+
+  for(old_name in names(rename_map)){
+    new_name <- rename_map[[old_name]]
+    if(old_name %in% columns && !(new_name %in% columns)){
+      columns[columns == old_name] <- new_name
+    }
+  }
+
+  colnames(fit_summary) <- columns
+  return(fit_summary)
+}
+
 
 #' @title Models plot for a RoBSA object
 #'
@@ -267,6 +290,11 @@ plot_models <- function(x, parameter = NULL, conditional = FALSE, plot_type = "b
     inference  <- x[["RoBSA"]][["inference"]]
 
   }
+
+  model_list <- lapply(model_list, function(model){
+    model[["fit_summary"]] <- .normalize_fit_summary_quantile_names(model[["fit_summary"]])
+    return(model)
+  })
 
   dots <- list(...)
 

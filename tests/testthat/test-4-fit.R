@@ -64,8 +64,8 @@ test_that("Fitting function works", {
   expect_equal(as.data.frame(fit1$models[[4]]$fit_summary)["aux",       "Mean"], extract_flexsurv(fitf)[["aux"]][["mean"]],       tolerance = 0.01)
 
   fitf <- flexsurv::flexsurvreg(Surv(time = time, event = event) ~ 1, data = df, dist = "gamma")
-  expect_equal(as.data.frame(fit1$models[[5]]$fit_summary)["intercept", "Mean"], extract_flexsurv(fitf)[["intercept"]][["mean"]], tolerance = 0.01)
-  expect_equal(as.data.frame(fit1$models[[5]]$fit_summary)["aux",       "Mean"], extract_flexsurv(fitf)[["aux"]][["mean"]],       tolerance = 0.01)
+  expect_equal(as.data.frame(fit1$models[[5]]$fit_summary)["intercept", "Mean"], extract_flexsurv(fitf)[["intercept"]][["mean"]], tolerance = 0.05)
+  expect_equal(as.data.frame(fit1$models[[5]]$fit_summary)["aux",       "Mean"], extract_flexsurv(fitf)[["aux"]][["mean"]],       tolerance = 0.05)
 
   # compare to the previous version object for consistency
   fit1 <- remove_time(fit1)

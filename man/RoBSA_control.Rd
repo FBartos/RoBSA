@@ -13,7 +13,10 @@ set_autofit_control(
   max_error = NULL,
   max_SD_error = NULL,
   max_time = list(time = 60, unit = "mins"),
-  sample_extend = 1000
+  sample_extend = 1000,
+  restarts = 10,
+  max_extend = 10,
+  check_indicators = FALSE
 )
 
 set_convergence_checks(
@@ -21,6 +24,7 @@ set_convergence_checks(
   min_ESS = 500,
   max_error = NULL,
   max_SD_error = NULL,
+  check_indicators = FALSE,
   remove_failed = FALSE,
   balance_probability = TRUE
 )
@@ -49,6 +53,15 @@ Defaults to \code{list(time = 60, unit = "mins")}.}
 \item{sample_extend}{number of samples to extend the fitting process if
 the criteria are not satisfied.
 Defaults to \code{1000}.}
+
+\item{restarts}{number of fitting restarts attempted when the initial JAGS
+model fitting fails. Defaults to \code{10}.}
+
+\item{max_extend}{maximum number of autofit extensions per model.
+Defaults to \code{10}.}
+
+\item{check_indicators}{whether convergence checks should include latent
+prior inclusion indicators. Defaults to \code{FALSE}.}
 
 \item{remove_failed}{whether models not satisfying the convergence checks should
 be removed from the inference. Defaults to \code{FALSE} - only a warning is raised.}

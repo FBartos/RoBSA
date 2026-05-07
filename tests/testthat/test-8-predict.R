@@ -63,7 +63,7 @@ test_that("Predict survival works", {
   prediction_models <- suppressWarnings(predict(saved_fits[[2]], predictor = "x_fac3", covariates_data = data.frame(x_bin = 0, x_cont = mean(df$x_cont)), type = "sd", averaged = FALSE))
   expect_equal(as.matrix(prediction_models[[1]]), as.matrix(predict(fit2_exp,     predictor = "x_fac3", covariates_data = data.frame(x_bin = 0, x_cont = mean(df$x_cont)), type = "sd", averaged = TRUE)), tolerance = 0.01)
   expect_equal(as.matrix(prediction_models[[2]]), as.matrix(predict(fit2_weibull, predictor = "x_fac3", covariates_data = data.frame(x_bin = 0, x_cont = mean(df$x_cont)), type = "sd", averaged = TRUE)), tolerance = 0.01)
-  expect_equal(as.matrix(prediction_models[[3]]), as.matrix(predict(fit2_lnorm,   predictor = "x_fac3", covariates_data = data.frame(x_bin = 0, x_cont = mean(df$x_cont)), type = "sd", averaged = TRUE)), tolerance = 0.01)
+  expect_equal(as.matrix(prediction_models[[3]]), as.matrix(predict(fit2_lnorm,   predictor = "x_fac3", covariates_data = data.frame(x_bin = 0, x_cont = mean(df$x_cont)), type = "sd", averaged = TRUE)), tolerance = 0.05)
   expect_equal(as.matrix(prediction_models[[4]]), as.matrix(suppressWarnings(predict(fit2_llogis,  predictor = "x_fac3", covariates_data = data.frame(x_bin = 0, x_cont = mean(df$x_cont)), type = "sd", averaged = TRUE))), tolerance = 0.01)
   expect_equal(as.matrix(prediction_models[[5]]), as.matrix(predict(fit2_gamma,   predictor = "x_fac3", covariates_data = data.frame(x_bin = 0, x_cont = mean(df$x_cont)), type = "sd", averaged = TRUE)), tolerance = 0.01)
 

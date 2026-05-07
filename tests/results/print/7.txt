@@ -1,0 +1,7 @@
+"Call:"
+"RoBSA(formula = Surv(time = time, event = event) ~ 1, data = df, "
+"    distributions = c(\"exp-aft\"), parallel = TRUE, seed = 7)"
+""
+"Estimates:"
+"     x_cont "
+"0.001568706 "
