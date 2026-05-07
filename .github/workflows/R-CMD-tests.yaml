@@ -54,11 +54,11 @@ jobs:
 
       - name: Set JAGS environment variables (Windows)
         if: runner.os == 'Windows'
-        shell: cmd
+        shell: pwsh
         run: |
-          echo JAGS_ROOT=/c/progra~1/JAGS/JAGS-4.3.1>> %GITHUB_ENV%
-          echo JAGS_MAJOR_VERSION=4>> %GITHUB_ENV%
-          echo C:\Program Files\JAGS\JAGS-4.3.1\bin>> %GITHUB_PATH%
+          "JAGS_ROOT=/c/progra~1/JAGS/JAGS-4.3.1" >> $env:GITHUB_ENV
+          "JAGS_MAJOR_VERSION=4" >> $env:GITHUB_ENV
+          "C:\Program Files\JAGS\JAGS-4.3.1\bin" >> $env:GITHUB_PATH
 
       - name: Resolve BayesTools source
         id: bayestools
@@ -75,7 +75,22 @@ jobs:
             any::devtools
             any::posterior
 
+      - name: Verify rjags JAGS runtime (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          stopifnot(nzchar(Sys.getenv("JAGS_ROOT")))
+          stopifnot(identical(Sys.getenv("JAGS_MAJOR_VERSION"), "4"))
+          library(rjags)
+          rjags::load.module("bugs", quiet = TRUE)
+          cat("rjags JAGS runtime OK\n")
+        shell: Rscript {0}
+
       - name: Run Unit Tests
         run: |
-          devtools::test(stop_on_failure = TRUE)
+          devtools::install(dependencies = FALSE, upgrade = "never", build_vignettes = FALSE)
+          library(RoBSA)
+          RoBSA:::.load_RoBSA_module()
+          cat("RoBSA JAGS module OK\n")
+          setwd("tests")
+          source("testthat.R")
         shell: Rscript {0}
