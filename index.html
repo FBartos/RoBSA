@@ -6,29 +6,20 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Robust Bayesian Survival Analysis • RoBSA</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
 <script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="Robust Bayesian Survival Analysis">
-<meta property="og:description" content="A framework for estimating ensembles of parametric survival models
-    with different parametric families. The RoBSA framework uses Bayesian 
-    model-averaging to combine the competing parametric survival models into 
-    a model ensemble, weights the posterior parameter distributions based on 
-    posterior model probabilities and uses Bayes factors to test for the 
-    presence or absence of the individual predictors or preference for a 
-    parametric family (Bartoš, Aust &amp; Haaf, 2021, &lt;doi:10.48550/arXiv.2112.08311&gt;).
-    The user can define a wide range of informative priors for all parameters 
-    of interest. The package provides convenient functions for summary, visualizations, 
-    fit diagnostics, and prior distribution calibration.">
+<meta property="og:description" content="A framework for estimating ensembles of parametric survival models with different parametric families. The RoBSA framework uses Bayesian model-averaging to combine the competing parametric survival models into a model ensemble, weights the posterior parameter distributions based on posterior model probabilities and uses Bayes factors to test for the presence or absence of the individual predictors or preference for a parametric family (Bartoš, Aust &amp; Haaf, 2022, &lt;doi:10.1186/s12874-022-01676-9&gt;). The user can define a wide range of informative priors for all parameters of interest. The package provides convenient functions for summary, visualizations, fit diagnostics, and prior distribution calibration.">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
-    
+
 
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -42,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">RoBSA</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.4</span>
       </span>
     </div>
 
@@ -59,7 +50,7 @@
 <li>
   <a href="https://github.com/FBartos/RoBSA/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
-     
+
   </a>
 </li>
       </ul>
@@ -70,7 +61,7 @@
 </div>
 <!--/.navbar -->
 
-      
+
 
       </header><div class="row">
   <div class="contents col-md-9">
@@ -78,19 +69,21 @@
 <div class="section level1">
 <div class="page-header"><h1 id="readme">README<a class="anchor" aria-label="anchor" href="#readme"></a>
 </h1></div>
-<!-- README.md is generated from README.Rmd. Please edit that file --><!-- badges: start -->
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+<!-- badges: start -->
+
 </div>
 <div class="section level1">
 <h1 id="robust-bayesian-survival-analysis-robsa">Robust Bayesian Survival Analysis (RoBSA)<a class="anchor" aria-label="anchor" href="#robust-bayesian-survival-analysis-robsa"></a>
 </h1>
 <p>This package estimates an ensemble of parametric survival models with different parametric families and uses Bayesian model averaging to combine them. The RoBSA ensemble uses Bayes factors to test for the presence or absence of effects of the individual predictors and evaluates the support for each parametric family. The resulting model-averaged parameter estimates are based on posterior model probabilities. The user can define a wide range of prior distributions for the effect size, intercepts, and auxiliary parameters. The package provides convenient functions for summary, visualizations, and fit diagnostics.</p>
-<p>See our pre-print Bartoš et al. (2021) (<a href="https://arxiv.org/abs/2112.08311" class="external-link uri">https://arxiv.org/abs/2112.08311</a>) introducing the methodology.</p>
+<p>See Bartoš et al. (2022) (<a href="https://doi.org/10.1186/s12874-022-01676-9" class="external-link uri">https://doi.org/10.1186/s12874-022-01676-9</a>) introducing the methodology.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>The package requires <a href="https://mcmc-jags.sourceforge.io/" class="external-link">JAGS 4.3.0</a> to be installed. The development version of the package can be installed from GitHub:</p>
+<p>The package requires <a href="https://mcmc-jags.sourceforge.io/" class="external-link">JAGS 4.3.1</a> to be installed. The development version of the package can be installed from GitHub:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"fbartos/RoBSA"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"FBartos/RoBSA"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
@@ -99,7 +92,6 @@
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://fbartos.github.io/RoBSA/" class="external-link">"RoBSA"</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required namespace: runjags</span></span>
-<span><span class="co">#&gt; module RoBSA loaded</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">cancer</span>, package <span class="op">=</span> <span class="st">"survival"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">veteran</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   trt celltype time status karno diagtime age prior</span></span>
@@ -153,7 +145,7 @@
 <div class="section level3">
 <h3 id="hypothesis-testing">Hypothesis Testing<a class="anchor" aria-label="anchor" href="#hypothesis-testing"></a>
 </h3>
-<p>We proceed by specifying a RoBSA model intended to test an informed hypothesis of the presence of the treatment effect centered around the log(AF) of 0.3 with the sd of 0.1,5 via the informed prior distribution Normal<sub>+</sub>(0.30,0.15) on the treatment effect. To set a prior distribution on factor, we use the <code><a href="reference/prior_factor.html">prior_factor()</a></code> function. This allows us to specify the type of contrast we want to use. Here, we use <code>"treatment"</code> contrast to estimate differences from the default level (we could also use <code>orthonormal</code> to test for a difference of the individual levels from the grand mean). Furthermore, we adjust for the Karnofsky performance score by setting a wider centered standard normal prior distribution Normal(0,1). To test only for the presence of the treatment effect and include the covariate in all models, we set <code>test_predictors = "treatment"</code>. Finally, we pass the appropriate prior distributions to the <code>priors</code>, <code>prior_intercept</code>, <code>prior_aux</code> arguments, set <code>seed = 1</code> for reproducibility, and use <code>parallel = TRUE</code> for speeding up the computation.</p>
+<p>We proceed by specifying a RoBSA model intended to test an informed hypothesis of the presence of the treatment effect centered around the log(AF) of 0.3 with the sd of 0.1,5 via the informed prior distribution <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">Normal</mtext><mo>+</mo></msub><mo stretchy="false" form="prefix">(</mo><mn>0.30</mn><mo>,</mo><mn>0.15</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{Normal}_+(0.30, 0.15)</annotation></semantics></math> on the treatment effect. To set a prior distribution on factor, we use the <code><a href="reference/prior_factor.html">prior_factor()</a></code> function. This allows us to specify the type of contrast we want to use. Here, we use <code>"treatment"</code> contrast to estimate differences from the default level (we could also use <code>orthonormal</code> to test for a difference of the individual levels from the grand mean). Furthermore, we adjust for the Karnofsky performance score by setting a wider centered standard normal prior distribution <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Normal</mtext><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{Normal}(0, 1)</annotation></semantics></math>. To test only for the presence of the treatment effect and include the covariate in all models, we set <code>test_predictors = "treatment"</code>. Finally, we pass the appropriate prior distributions to the <code>priors</code>, <code>prior_intercept</code>, <code>prior_aux</code> arguments, set <code>seed = 1</code> for reproducibility, and use <code>parallel = TRUE</code> for speeding up the computation.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit.test</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/RoBSA.html">RoBSA</a></span><span class="op">(</span></span>
 <span>    <span class="fu">Surv</span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">treatment</span> <span class="op">+</span> <span class="va">karno_scaled</span>,</span>
@@ -241,7 +233,7 @@
 <span><span class="co">#&gt;                  Mean Median  0.025 0.975</span></span>
 <span><span class="co">#&gt; treatment[new] -0.179 -0.176 -0.561 0.193</span></span>
 <span><span class="co">#&gt; karno_scaled    2.539  2.544  1.715 3.336</span></span></code></pre></div>
-<p>We again use the <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> function to obtain information about the fitted model. We find out that the experimental treatment led to notably shorter survival times with the mean model-averaged log(AF) = -0.19, 95% CI[-0.55, -0.19]. Furthermore, we observe an enormous effect of the scaled Karnofsky performance score, showing that moving from 0 to 1 increases the survival times with the mean model-averaged log(AF) = 2.53, 95% CI [1.72, 3.35].</p>
+<p>We again use the <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> function to obtain information about the fitted model. We find out that the experimental treatment led to notably shorter survival times with the mean model-averaged log(AF) = -0.19, 95% CI[-0.56, -0.19]. Furthermore, we observe an enormous effect of the scaled Karnofsky performance score, showing that moving from 0 to 1 increases the survival times with the mean model-averaged log(AF) = 2.54, 95% CI [1.72, 3.34].</p>
 </div>
 <div class="section level3">
 <h3 id="mcmc-diagnostics">MCMC Diagnostics<a class="anchor" aria-label="anchor" href="#mcmc-diagnostics"></a>
@@ -285,7 +277,11 @@
 <div class="section level3">
 <h3 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h3>
-<div id="refs" class="references csl-bib-body hanging-indent" line-spacing="2"><div id="ref-bartos2021informed" class="csl-entry"><p>Bartoš, F., Aust, F., &amp; Haaf, J. M. (2021). <em>Informed Bayesian survival analysis</em>. arXiv. <a href="https://arxiv.org/abs/2112.08311" class="external-link uri">https://arxiv.org/abs/2112.08311</a></p></div></div>
+<div id="refs" class="references csl-bib-body hanging-indent" line-spacing="2">
+<div id="ref-bartos2021informed" class="csl-entry">
+Bartoš, F., Aust, F., &amp; Haaf, J. M. (2022). Informed Bayesian survival analysis. <em>BMC Medical Research Methodology</em>. <a href="https://doi.org/10.1186/s12874-022-01676-9" class="external-link uri">https://doi.org/10.1186/s12874-022-01676-9</a>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -320,7 +316,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>František Bartoš <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-0018-5573" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>František Bartoš <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-0018-5573" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 <li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
@@ -346,16 +342,16 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
       </footer>
 </div>
 
-  
 
 
-  
+
+
 
   </body>
 </html>
