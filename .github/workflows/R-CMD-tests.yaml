@@ -87,7 +87,7 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          devtools::install(dependencies = FALSE, upgrade = "never", build_vignettes = FALSE)
+          devtools::install(dependencies = FALSE, upgrade = FALSE, build_vignettes = FALSE)
           library(RoBSA)
           RoBSA:::.load_RoBSA_module()
           cat("RoBSA JAGS module OK\n")
