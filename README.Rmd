@@ -78,7 +78,7 @@ See @bartos2021informed (https://doi.org/10.1186/s12874-022-01676-9) introducing
 
 ## Installation
 
-The package requires [JAGS 4.3.1](https://mcmc-jags.sourceforge.io/) to be installed. The development version of the package can be installed from GitHub:
+The package requires [JAGS 5.0.0](https://mcmc-jags.sourceforge.io/) to be installed. The development version of the package can be installed from GitHub:
 
 ``` r
 devtools::install_github("FBartos/RoBSA")

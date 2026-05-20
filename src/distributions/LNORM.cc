@@ -1,4 +1,3 @@
-
 #include "LNORM.h"
 #include <util/nainf.h>
 #include <cmath>
@@ -14,30 +13,29 @@ namespace jags {
 		DLNORM::DLNORM() : VectorDist("lnorm_aft_event", 2) {}
 		SLNORM::SLNORM() : VectorDist("lnorm_aft_cens_r", 2) {}
 
-		bool DLNORM::checkParameterLength(vector<unsigned int> const &len) const
+		bool DLNORM::checkParameterLength(vector<unsigned long> const &len) const
 		{
 			return true;
 		}
-		bool SLNORM::checkParameterLength(vector<unsigned int> const &len) const
+		bool SLNORM::checkParameterLength(vector<unsigned long> const &len) const
 		{
 			return true;
 		}
 
 		bool DLNORM::checkParameterValue(vector<double const *> const &par,
-						vector<unsigned int> const &len) const
+						vector<unsigned long> const &len) const
 		{
 			return *par[1] > 0.0;
 		}
 		bool SLNORM::checkParameterValue(vector<double const *> const &par,
-						vector<unsigned int> const &len) const
+						vector<unsigned long> const &len) const
 		{
 			return *par[1] > 0.0;
 		}
 
-		double DLNORM::logDensity(double const *x, unsigned int length, PDFType type,
+		double DLNORM::logDensity(double const *x,  PDFType type,
 					vector<double const *> const &par,
-					vector<unsigned int> const &len,
-					double const *lower, double const *upper) const
+					vector<unsigned long> const &len) const
 		{
 			double t      = *x;
 			double eta    = *par[0];
@@ -45,10 +43,9 @@ namespace jags {
 
 			return lnorm_aft_log_density(t, eta, sd);
 		}
-		double SLNORM::logDensity(double const *x, unsigned int length, PDFType type,
+		double SLNORM::logDensity(double const *x,  PDFType type,
 					vector<double const *> const &par,
-					vector<unsigned int> const &len,
-					double const *lower, double const *upper) const
+					vector<unsigned long> const &len) const
 		{
 			double t      = *x;
 			double eta    = *par[0];
@@ -57,64 +54,43 @@ namespace jags {
 			return lnorm_aft_log_survival(t, eta, sd);
 		}
 
-		void DLNORM::randomSample(double *x, unsigned int length,
+		void DLNORM::randomSample(double *x, 
 					vector<double const *> const &par,
-					vector<unsigned int> const &len,
-					double const *lower, double const *upper,
+					vector<unsigned long> const &len,
 					RNG *rng) const
 		{
 			// not implemented
 		}
-		void SLNORM::randomSample(double *x, unsigned int length,
+		void SLNORM::randomSample(double *x, 
 					vector<double const *> const &par,
-					vector<unsigned int> const &len,
-					double const *lower, double const *upper,
+					vector<unsigned long> const &len,
 					RNG *rng) const
 		{
 			// not implemented
 		}
 
-		void DLNORM::support(double *lower, double *upper, unsigned int length,
+		void DLNORM::support(double *lower, double *upper, 
 				vector<double const *> const &par,
-				vector<unsigned int> const &len) const
+				vector<unsigned long> const &len) const
 		{
-			for (unsigned int i = 0; i < length; ++i) {
-				lower[i] = 0;
-				upper[i] = JAGS_POSINF;
-			}
+		    *lower = 0;
+		    *upper = JAGS_POSINF;
 		}
-		void SLNORM::support(double *lower, double *upper, unsigned int length,
+		void SLNORM::support(double *lower, double *upper, 
 				vector<double const *> const &par,
-				vector<unsigned int> const &len) const
+				vector<unsigned long> const &len) const
 		{
-			for (unsigned int i = 0; i < length; ++i) {
-				lower[i] = 0;
-				upper[i] = JAGS_POSINF;
-			}
+		    *lower = 0;
+		    *upper = JAGS_POSINF;
 		}
 
-		unsigned int DLNORM::length(vector<unsigned int> const &len) const
+		unsigned long DLNORM::length(vector<unsigned long> const &len) const
 		{
 			return 1;
 		}
-		unsigned int SLNORM::length(vector<unsigned int> const &len) const
+		unsigned long SLNORM::length(vector<unsigned long> const &len) const
 		{
 			return 1;
-		}
-
-		void DLNORM::typicalValue(double *x, unsigned int length,
-					vector<double const *> const &par,
-					vector<unsigned int> const &len,
-					double const *lower, double const *upper) const
-		{
-			// not implemented
-		}
-		void SLNORM::typicalValue(double *x, unsigned int length,
-					vector<double const *> const &par,
-					vector<unsigned int> const &len,
-					double const *lower, double const *upper) const
-		{
-			// not implemented
 		}
 
 		bool DLNORM::isSupportFixed(vector<bool> const &fixmask) const

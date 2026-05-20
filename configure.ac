@@ -27,7 +27,7 @@ PKG_CONFIG_OK="FALSE"
 AC_PATH_PROG([PKG_CONFIG], [pkg-config], [], [$PATH:/usr/local/bin])
 if test [ -n "${PKG_CONFIG}" ] ; then
    if `${PKG_CONFIG} --exists jags`; then
-       if `${PKG_CONFIG} --exists --atleast-version=4.0.0 jags`; then
+       if `${PKG_CONFIG} --exists --atleast-version=5.0.0 jags`; then
          JAGS_LIBS=`${PKG_CONFIG} --libs jags`
          JAGS_CFLAGS=`${PKG_CONFIG} --cflags jags`
          JAGS_LIBDIR=`${PKG_CONFIG} --variable libdir jags`
