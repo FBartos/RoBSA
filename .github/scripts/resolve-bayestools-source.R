@@ -32,7 +32,7 @@ use_github   <- !is.na(required_version) &&
      utils::compareVersion(required_version, cran_version) > 0)
 
 pak_spec     <- if (use_github) {
-  "github::FBartos/BayesTools@major-refactoring"
+  "github::FBartos/BayesTools"
 } else {
   "any::BayesTools"
 }

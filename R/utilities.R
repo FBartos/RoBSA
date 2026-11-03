@@ -85,6 +85,7 @@ assign("distributions",   .distributions,                             envir = Ro
     "1.0.2" = c("0.2.14", "0.2.23"),
     "1.0.3" = c("0.2.14", "0.2.23"),
     "1.0.4" = c("0.3.0", "999.999.999"),
+    "1.1.0" = c("0.4.0", "999.999.999"),
     stop("New RoBSA version needs to be defined in '.check_BayesTools' function!")
   )
 

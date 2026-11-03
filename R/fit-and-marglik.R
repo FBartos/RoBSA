@@ -62,10 +62,8 @@
       converged      <- FALSE
       has_posterior  <- FALSE
       errors         <- c(errors, fit$message)
-      # deal with failed models
-      marglik        <- list()
-      marglik$logml  <- NA
-      class(marglik) <- "bridge"
+      # deal with failed models (zero evidence, as with earlier BayesTools versions)
+      marglik        <- BayesTools::bridgesampling_object(-Inf)
 
     }else{
 
@@ -91,7 +89,7 @@
     # compute marginal likelihood
     if(length(fit) != 0){
 
-      marglik <- BayesTools::JAGS_bridgesampling(
+      marglik <- tryCatch(BayesTools::JAGS_bridgesampling(
         fit                = fit,
         log_posterior      = .marglik_function,
         data               = data,
@@ -101,17 +99,16 @@
         formula_prior_list = formula_prior_list,
         maxiter            = 50000,
         silent             = fit_control[["silent"]],
+        seed               = fit_control[["seed"]],
         distribution       = model[["distribution"]]
-      )
+      ), error = function(e) e)
 
       # deal with failed marginal likelihoods
       if(inherits(marglik, "error")){
 
         errors         <- c(errors, marglik$message)
         converged      <- FALSE
-        marglik        <- list()
-        marglik$logml  <- NA
-        class(marglik) <- "bridge"
+        marglik        <- BayesTools::bridgesampling_object(-Inf)
 
       }else{
 
@@ -130,9 +127,7 @@
     fit                     <- list()
     attr(fit, "prior_list") <- priors
     class(fit)              <- "null_model"
-    marglik                 <- list()
-    marglik$logml           <- .marglik_function_null(priors, data, model[["distribution"]])
-    class(marglik)          <- "bridge"
+    marglik                 <- BayesTools::bridgesampling_object(.marglik_function_null(priors, data, model[["distribution"]]))
 
   }
 

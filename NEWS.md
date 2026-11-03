@@ -1,3 +1,7 @@
+## version 1.1.0
+### changes
+- update to BayesTools 0.4.0 (seeded results differ from earlier versions and models fitted with earlier versions need to be refitted)
+
 ## version 1.0.3
 ### changes
 - update to BayesTools 0.3.0

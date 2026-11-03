@@ -387,7 +387,8 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE
+    check_indicators = FALSE,
+    allow_not_assessable = FALSE
   ))
 
   expect_equal(set_autofit_control(max_Rhat = 1.01),  list(
@@ -399,7 +400,8 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE
+    check_indicators = FALSE,
+    allow_not_assessable = FALSE
   ))
 
   expect_equal(set_autofit_control(min_ESS = 200),  list(
@@ -411,7 +413,8 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE
+    check_indicators = FALSE,
+    allow_not_assessable = FALSE
   ))
 
   expect_equal(set_autofit_control(max_error = 0.01),  list(
@@ -423,7 +426,8 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE
+    check_indicators = FALSE,
+    allow_not_assessable = FALSE
   ))
 
   expect_equal(set_autofit_control(max_SD_error = 0.01),  list(
@@ -435,7 +439,8 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE
+    check_indicators = FALSE,
+    allow_not_assessable = FALSE
   ))
 
   expect_equal(set_autofit_control(max_time = list(time = 30, unit = "secs")),  list(
@@ -447,7 +452,8 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE
+    check_indicators = FALSE,
+    allow_not_assessable = FALSE
   ))
 
   expect_equal(set_autofit_control(sample_extend = 200),  list(
@@ -459,7 +465,8 @@ test_that("Set autofit control works", {
     sample_extend    = 200,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE
+    check_indicators = FALSE,
+    allow_not_assessable = FALSE
   ))
 
   expect_equal(set_autofit_control(restarts = 5, max_extend = 3, check_indicators = TRUE), list(
@@ -471,7 +478,8 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 5,
     max_extend       = 3,
-    check_indicators = TRUE
+    check_indicators = TRUE,
+    allow_not_assessable = FALSE
   ))
 
 })
@@ -493,6 +501,7 @@ test_that("Set convergence checks works", {
     max_error     = NULL,
     max_SD_error  = NULL,
     check_indicators    = FALSE,
+    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = TRUE
   ))
@@ -503,6 +512,7 @@ test_that("Set convergence checks works", {
     max_error     = NULL,
     max_SD_error  = NULL,
     check_indicators    = FALSE,
+    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = TRUE
   ))
@@ -513,6 +523,7 @@ test_that("Set convergence checks works", {
     max_error     = NULL,
     max_SD_error  = NULL,
     check_indicators    = FALSE,
+    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = TRUE
   ))
@@ -523,6 +534,7 @@ test_that("Set convergence checks works", {
     max_error     = 0.01,
     max_SD_error  = NULL,
     check_indicators    = FALSE,
+    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = TRUE
   ))
@@ -533,6 +545,7 @@ test_that("Set convergence checks works", {
     max_error     = NULL,
     max_SD_error  = 0.01,
     check_indicators    = FALSE,
+    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = TRUE
   ))
@@ -543,6 +556,7 @@ test_that("Set convergence checks works", {
     max_error     = NULL,
     max_SD_error  = NULL,
     check_indicators    = FALSE,
+    allow_not_assessable = FALSE,
     remove_failed       = TRUE,
     balance_probability = TRUE
   ))
@@ -553,6 +567,7 @@ test_that("Set convergence checks works", {
     max_error     = NULL,
     max_SD_error  = NULL,
     check_indicators    = FALSE,
+    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = FALSE
   ))
@@ -563,6 +578,7 @@ test_that("Set convergence checks works", {
     max_error           = NULL,
     max_SD_error        = NULL,
     check_indicators    = TRUE,
+    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = TRUE
   ))
