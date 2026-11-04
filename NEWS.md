@@ -5,15 +5,18 @@
 ### fixes
 - installation on macOS when the pkg-config of the R toolchain does not search `/usr/local/lib/pkgconfig`
 
-## version 1.0.3
+## version 1.0.4
 ### changes
 - update to BayesTools 0.3.0
 - add `restarts`, `max_extend`, and `check_indicators` to `set_autofit_control()`
 - add `check_indicators` to `set_convergence_checks()`
 
 ### fixes
-- fixing CRAN compilation issues
 - fix `plot_models()` compatibility with RoBSA fits saved under older BayesTools versions
+
+## version 1.0.3
+### fixes
+- fixing CRAN compilation issues
 
 ## version 1.0.2
 ### features
