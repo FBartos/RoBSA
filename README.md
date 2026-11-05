@@ -7,7 +7,7 @@ README
 [![R-CRAN-check](https://github.com/FBartos/RoBSA/workflows/R-CMD-check/badge.svg)](https://github.com/FBartos/RoBSA/actions)
 [![R-tests](https://github.com/FBartos/RoBSA/workflows/R-CMD-tests/badge.svg)](https://github.com/FBartos/RoBSA/actions)
 [![Codecov test
-coverage](https://codecov.io/gh/FBartos/RoBSA/branch/master/graph/badge.svg)](https://app.codecov.io/gh/FBartos/RoBSA?branch=master)
+coverage](https://codecov.io/gh/FBartos/RoBSA/branch/development/graph/badge.svg)](https://app.codecov.io/gh/FBartos/RoBSA?branch=development)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/RoBSA)](https://CRAN.R-project.org/package=RoBSA)
 <!-- badges: end -->
@@ -35,7 +35,7 @@ be installed. The development version of the package can be installed
 from GitHub:
 
 ``` r
-devtools::install_github("FBartos/RoBSA")
+devtools::install_github("FBartos/RoBSA@development")
 ```
 
 ## Example
