@@ -64,9 +64,10 @@ predicted_experimental <- readRDS(file = "models/README/predicted_experimental.t
 ```
 
 <!-- badges: start -->
-[![R-CRAN-check](https://github.com/FBartos/RoBSA/workflows/R-CMD-check/badge.svg)](https://github.com/FBartos/RoBSA/actions)
-[![R-tests](https://github.com/FBartos/RoBSA/workflows/R-CMD-tests/badge.svg)](https://github.com/FBartos/RoBSA/actions)
-[![Codecov test coverage](https://codecov.io/gh/FBartos/RoBSA/branch/master/graph/badge.svg)](https://app.codecov.io/gh/FBartos/RoBSA?branch=master)
+[![R-CMD-check](https://github.com/FBartos/RoBSA/actions/workflows/R-CMD-check.yaml/badge.svg?branch=development)](https://github.com/FBartos/RoBSA/actions/workflows/R-CMD-check.yaml)
+[![R-unit-tests](https://github.com/FBartos/RoBSA/actions/workflows/R-CMD-tests.yaml/badge.svg?branch=development)](https://github.com/FBartos/RoBSA/actions/workflows/R-CMD-tests.yaml)
+[![test-coverage](https://github.com/FBartos/RoBSA/actions/workflows/test-coverage.yaml/badge.svg?branch=development)](https://github.com/FBartos/RoBSA/actions/workflows/test-coverage.yaml)
+[![Codecov](https://codecov.io/gh/FBartos/RoBSA/branch/development/graph/badge.svg)](https://app.codecov.io/gh/FBartos/RoBSA?branch=development)
 [![CRAN status](https://www.r-pkg.org/badges/version/RoBSA)](https://CRAN.R-project.org/package=RoBSA)
 <!-- badges: end -->
 
@@ -81,7 +82,7 @@ See @bartos2021informed (https://doi.org/10.1186/s12874-022-01676-9) introducing
 The package requires [JAGS 4.3.1](https://mcmc-jags.sourceforge.io/) to be installed. The development version of the package can be installed from GitHub:
 
 ``` r
-devtools::install_github("FBartos/RoBSA")
+devtools::install_github("FBartos/RoBSA@development")
 ```
 
 ## Example
