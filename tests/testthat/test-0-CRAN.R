@@ -27,7 +27,7 @@ test_that("Basic functionality works", {
       ""                                                                     ,
       "Estimates:"                                                           ,
       "       x_c     x_d[B] "                                               ,
-      "-0.1492768 -0.2029159 "                                               ))
+      "-0.1092297 -0.1960542 "                                               ))
 
   expect_equal(
     capture_output_lines(summary(fit), print = TRUE, width = 150),
@@ -38,26 +38,26 @@ test_that("Basic functionality works", {
       "Robust Bayesian survival analysis"                                                                                                                                  ,
       "Distributions summary:"                                                                                                                                             ,
       "            Models Prior prob. Post. prob. Inclusion BF"                                                                                                            ,
-      "exp-aft       4/20       0.200       0.362        2.272"                                                                                                            ,
-      "weibull-aft   4/20       0.200       0.153        0.721"                                                                                                            ,
-      "lnorm-aft     4/20       0.200       0.149        0.702"                                                                                                            ,
-      "llogis-aft    4/20       0.200       0.142        0.662"                                                                                                            ,
-      "gamma-aft     4/20       0.200       0.194        0.961"                                                                                                            ,
+      "exp-aft       4/20       0.200       0.361        2.263"                                                                                                            ,
+      "weibull-aft   4/20       0.200       0.158        0.752"                                                                                                            ,
+      "lnorm-aft     4/20       0.200       0.141        0.655"                                                                                                            ,
+      "llogis-aft    4/20       0.200       0.153        0.721"                                                                                                            ,
+      "gamma-aft     4/20       0.200       0.187        0.920"                                                                                                            ,
       ""                                                                                                                                                                   ,
       "Components summary:"                                                                                                                                                ,
       "    Models Prior prob. Post. prob. Inclusion BF"                                                                                                                    ,
-      "x_c  10/20       0.500       0.470        0.888"                                                                                                                    ,
-      "x_d  10/20       0.500       0.447        0.807"                                                                                                                    ,
+      "x_c  10/20       0.500       0.478        0.914"                                                                                                                    ,
+      "x_d  10/20       0.500       0.450        0.819"                                                                                                                    ,
       ""                                                                                                                                                                   ,
       "Model-averaged estimates:"                                                                                                                                          ,
       "         Mean Median  0.025 0.975"                                                                                                                                  ,
-      "x_c    -0.149  0.000 -1.596 0.944"                                                                                                                                  ,
-      "x_d[B] -0.203  0.000 -1.568 0.692"                                                                                                                                  ,
+      "x_c    -0.109  0.000 -1.482 0.995"                                                                                                                                  ,
+      "x_d[B] -0.196  0.000 -1.612 0.664"                                                                                                                                  ,
       "\033[0;31mThe continuous predictors 'x_c' are not scaled. Note that extra care need to be taken when specifying prior distributions for unscaled predictors.\033[0m",
-      "\033[0;31mModel (1): ESS 84 is lower than the set target (500).\033[0m"                                                                                             ,
-      "\033[0;31mModel (2): ESS 37 is lower than the set target (500).\033[0m"                                                                                             ,
-      "\033[0;31mModel (3): ESS 33 is lower than the set target (500).\033[0m"                                                                                             ,
-      "\033[0;31mModel (4): ESS 38 is lower than the set target (500).\033[0m"                                                                                             ,
+      "\033[0;31mModel (1): ESS 64 is lower than the set target (500). Failing parameters: 'mu_intercept'.\033[0m"                                                         ,
+      "\033[0;31mModel (2): ESS 42 is lower than the set target (500). Failing parameters: 'mu_intercept', 'aux'.\033[0m"                                                  ,
+      "\033[0;31mModel (3): ESS 43 is lower than the set target (500). Failing parameters: 'mu_intercept', 'aux'.\033[0m"                                                  ,
+      "\033[0;31mModel (4): ESS 59 is lower than the set target (500). Failing parameters: 'mu_intercept', 'aux'.\033[0m"                                                  ,
       "\033[0;31mThere were another 15 warnings. To see all warnings call 'check_RoBSA(fit)'.\033[0m"))
 
 })

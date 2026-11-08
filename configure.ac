@@ -26,6 +26,13 @@ PKG_CONFIG_OK="FALSE"
 
 AC_PATH_PROG([PKG_CONFIG], [pkg-config], [], [$PATH:/usr/local/bin])
 if test [ -n "${PKG_CONFIG}" ] ; then
+   # the official macOS JAGS installer puts jags.pc in /usr/local/lib/pkgconfig, which
+   # the pkg-config of the CRAN macOS toolchain does not search (as in rjags 4-18)
+   if test [ -z "${PKG_CONFIG_PATH}" ]; then
+      export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
+   else
+      export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig"
+   fi
    if `${PKG_CONFIG} --exists jags`; then
        if `${PKG_CONFIG} --exists --atleast-version=4.0.0 jags`; then
          JAGS_LIBS=`${PKG_CONFIG} --libs jags`

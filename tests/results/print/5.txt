@@ -5,5 +5,5 @@
 "    parallel = TRUE, seed = 5, rescale_data = TRUE)"
 ""
 "Estimates:"
-"  x_fac3[1]   x_fac3[2] "
-" 0.02246292 -0.03346320 "
+" x_fac3{1}  x_fac3{2} "
+"0.01605752 0.03545561 "
