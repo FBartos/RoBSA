@@ -6,7 +6,8 @@ name: release-check
 # index.
 on:
   pull_request:
-    branches: [master]
+    # TEMPORARY: development exercised on the CI pull request; removed before merging.
+    branches: [master, development]
   workflow_dispatch:
 
 concurrency:
