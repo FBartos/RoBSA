@@ -6,9 +6,6 @@ on:
   push:
     branches: [development]
   workflow_dispatch:
-  # TEMPORARY: exercised on the CI pull request; removed before merging.
-  pull_request:
-    branches: [development]
 
 concurrency:
   group: post-merge-${{ github.ref }}
