@@ -192,15 +192,16 @@ summary.RoBSA       <- function(object, type = "ensemble", conditional = FALSE,
       }
     }
 
+    # the distribution estimates are passed as plain draws so that the rows are labelled by the distributions
     estimates_intercept <- BayesTools::ensemble_estimates_table(
-      samples    = object$RoBSA[["posteriors_intercept"]],
+      samples    = lapply(object$RoBSA[["posteriors_intercept"]], as.numeric),
       parameters = names(object$RoBSA[["posteriors_intercept"]]),
       probs      = probs,
       title      = "Distribution estimates (intercept):"
     )
     if(!is.null(names(object$RoBSA[["posteriors_aux"]]))){
       estimates_aux <- BayesTools::ensemble_estimates_table(
-        samples    = object$RoBSA[["posteriors_aux"]],
+        samples    = lapply(object$RoBSA[["posteriors_aux"]], as.numeric),
         parameters = names(object$RoBSA[["posteriors_aux"]]),
         probs      = probs,
         title      = "Distribution estimates (auxiliary):"

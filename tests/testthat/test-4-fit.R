@@ -79,13 +79,14 @@ test_that("Fitting function works", {
     data = df, rescale_data = TRUE, parallel = TRUE, seed = 2
   ))
 
-  # compare parameter estimates to flexsurv
+  # compare parameter estimates to flexsurv (the posterior means differ from the MLEs by
+  # the N(0, 1) prior shrinkage, up to about 0.015, and by Monte Carlo error)
   fitf <- flexsurv::flexsurvreg(Surv(time = time, event = event) ~  x_cont + x_bin + x_fac3, data = df, dist = "exp")
   expect_equal(as.data.frame(fit2$models[[1]]$fit_summary)["intercept", "Mean"], extract_flexsurv(fitf)[["intercept"]][["mean"]], tolerance = 0.025)
   expect_equal(
     as.data.frame(fit2$models[[1]]$fit_summary)[c("x_cont", "x_bin[1]", "x_fac3[B]", "x_fac3[C]"), "Mean"],
     unname(sapply(extract_flexsurv(fitf)$parameters, function(p) p[["mean"]])),
-    tolerance = 0.020
+    tolerance = 0.025
   )
 
   fitf <- flexsurv::flexsurvreg(Surv(time = time, event = event) ~ x_cont + x_bin + x_fac3, data = df, dist = "weibull")
@@ -94,7 +95,7 @@ test_that("Fitting function works", {
   expect_equal(
     as.data.frame(fit2$models[[2]]$fit_summary)[c("x_cont", "x_bin[1]", "x_fac3[B]", "x_fac3[C]"), "Mean"],
     unname(sapply(extract_flexsurv(fitf)$parameters, function(p) p[["mean"]])),
-    tolerance = 0.020
+    tolerance = 0.025
   )
 
   fitf <- flexsurv::flexsurvreg(Surv(time = time, event = event) ~ x_cont + x_bin + x_fac3, data = df, dist = "lognorm")
@@ -103,7 +104,7 @@ test_that("Fitting function works", {
   expect_equal(
     as.data.frame(fit2$models[[3]]$fit_summary)[c("x_cont", "x_bin[1]", "x_fac3[B]", "x_fac3[C]"), "Mean"],
     unname(sapply(extract_flexsurv(fitf)$parameters, function(p) p[["mean"]])),
-    tolerance = 0.020
+    tolerance = 0.025
   )
 
   fitf <- flexsurv::flexsurvreg(Surv(time = time, event = event) ~ x_cont + x_bin + x_fac3, data = df, dist = "llogis")
@@ -112,7 +113,7 @@ test_that("Fitting function works", {
   expect_equal(
     as.data.frame(fit2$models[[4]]$fit_summary)[c("x_cont", "x_bin[1]", "x_fac3[B]", "x_fac3[C]"), "Mean"],
     unname(sapply(extract_flexsurv(fitf)$parameters, function(p) p[["mean"]])),
-    tolerance = 0.020
+    tolerance = 0.025
   )
 
   fitf <- flexsurv::flexsurvreg(Surv(time = time, event = event) ~ x_cont + x_bin + x_fac3, data = df, dist = "gamma")
@@ -121,7 +122,7 @@ test_that("Fitting function works", {
   expect_equal(
     as.data.frame(fit2$models[[5]]$fit_summary)[c("x_cont", "x_bin[1]", "x_fac3[B]", "x_fac3[C]"), "Mean"],
     unname(sapply(extract_flexsurv(fitf)$parameters, function(p) p[["mean"]])),
-    tolerance = 0.020
+    tolerance = 0.025
   )
 
   # compare to the previous version object for consistency

@@ -101,12 +101,12 @@ jobs:
         if: failure()
         shell: pwsh
         run: |
-          $failFiles = Get-ChildItem -Path $env:RUNNER_TEMP -Recurse -Filter "testthat.Rout.fail" -ErrorAction SilentlyContinue
+          $failFiles = Get-ChildItem -Path $env:RUNNER_TEMP -Recurse -Filter "*.Rout.fail" -ErrorAction SilentlyContinue
           if ($failFiles) {
             foreach ($file in $failFiles) {
               Write-Host "`n=== Contents of $($file.FullName) ===`n"
               Get-Content $file.FullName
             }
           } else {
-            Write-Host "No testthat.Rout.fail files found in $env:RUNNER_TEMP"
+            Write-Host "No .Rout.fail files found in $env:RUNNER_TEMP"
           }
