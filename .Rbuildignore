@@ -22,3 +22,4 @@ tests/testthat/test-9-priors-calibration.R
 README.Rmd
 ^\.github$
 ^codecov\.yml$
+^_pkgdown\.yml$
