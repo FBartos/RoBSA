@@ -65,10 +65,9 @@ assign("check_scaling",   TRUE,                                       envir = Ro
 assign("distributions",   .distributions,                             envir = RoBSA.private)
 
 # check proper BayesTools package version
-.check_BayesTools <- function(){
-
-  RoBSA.version      <- try(utils::packageVersion("RoBSA"))
-  BayesTools.version <- try(utils::packageVersion("BayesTools"))
+.check_BayesTools <- function(
+    RoBSA.version      = try(utils::packageVersion("RoBSA")),
+    BayesTools.version = try(utils::packageVersion("BayesTools"))){
 
   if(inherits(RoBSA.version, "try-error") | inherits(BayesTools.version, "try-error")){
     return(invisible(FALSE))
@@ -78,8 +77,11 @@ assign("distributions",   .distributions,                             envir = Ro
     return(invisible(FALSE))
   }
 
+  # a development version (x.y.z.9001) requires what its release requires
+  RoBSA.release <- paste0(unlist(RoBSA.version)[1:3], collapse = ".")
+
   BayesTools_required <- switch(
-    paste0(RoBSA.version, collapse = "."),
+    RoBSA.release,
     "1.0.0" = c("0.2.10", "0.2.13"),
     "1.0.1" = c("0.2.10", "0.2.13"),
     "1.0.2" = c("0.2.14", "0.2.23"),
@@ -89,10 +91,8 @@ assign("distributions",   .distributions,                             envir = Ro
     stop("New RoBSA version needs to be defined in '.check_BayesTools' function!")
   )
 
-  min_OK <- sum(as.numeric(strsplit(BayesTools_required[1], ".", fixed = TRUE)[[1]]) * c(1e9, 1e6, 1e3)) <=
-    sum(unlist(BayesTools.version) * c(1e9, 1e6, 1e3))
-  max_OK <- sum(as.numeric(strsplit(BayesTools_required[2], ".", fixed = TRUE)[[1]]) * c(1e9, 1e6, 1e3)) >=
-    sum(unlist(BayesTools.version) * c(1e9, 1e6, 1e3))
+  min_OK <- BayesTools.version >= BayesTools_required[1]
+  max_OK <- BayesTools.version <= BayesTools_required[2]
 
   if(min_OK && max_OK){
     return(invisible(TRUE))
