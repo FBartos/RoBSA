@@ -61,3 +61,16 @@ test_that("Basic functionality works", {
       "\033[0;31mThere were another 15 warnings. To see all warnings call 'check_RoBSA(fit)'.\033[0m"))
 
 })
+
+test_that("BayesTools version check accepts development versions", {
+
+  expect_true(RoBSA:::.check_BayesTools(package_version("1.1.0"),      package_version("0.4.0")))
+  expect_true(RoBSA:::.check_BayesTools(package_version("1.1.0.9001"), package_version("0.4.0.9001")))
+  expect_true(RoBSA:::.check_BayesTools(package_version("1.1.0"),      package_version("0.10.0")))
+
+  expect_warning(
+    ok <- RoBSA:::.check_BayesTools(package_version("1.1.0.9001"), package_version("0.3.0")),
+    "RoBSA version 1.1.0.9001 requires BayesTools version higher or equal 0.4.0"
+  )
+  expect_false(ok)
+})

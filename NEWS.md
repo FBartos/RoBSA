@@ -1,3 +1,7 @@
+## development version
+### fixes
+- spurious BayesTools version warning with development versions of BayesTools
+
 ## version 1.1.0
 ### changes
 - update to BayesTools 0.4.0 (seeded results differ from earlier versions and models fitted with earlier versions need to be refitted)
