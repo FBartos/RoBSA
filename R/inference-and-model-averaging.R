@@ -94,12 +94,11 @@
   if(all(sapply(parameters_null, all))){
     posteriors_conditional <- NULL
   }else{
-    posteriors_conditional <- BayesTools::mix_posteriors(
+    posteriors_conditional <- .mix_posteriors_conditional(
       model_list   = models,
       parameters   = parameters[!sapply(parameters_null, all)],
       is_null_list = parameters_null[!sapply(parameters_null, all)],
-      seed         = object$add_info[["seed"]],
-      conditional  = TRUE
+      seed         = object$add_info[["seed"]]
     )
   }
 
@@ -131,6 +130,24 @@
   return(output)
 }
 
+# conditional posteriors are mixed one parameter at a time since each parameter
+# has its own posterior model probabilities
+.mix_posteriors_conditional <- function(model_list, parameters, is_null_list, seed){
+
+  posteriors_conditional <- lapply(parameters, function(parameter){
+    BayesTools::mix_posteriors(
+      model_list   = model_list,
+      parameters   = parameter,
+      is_null_list = is_null_list[parameter],
+      seed         = seed,
+      conditional  = TRUE
+    )[[parameter]]
+  })
+  names(posteriors_conditional) <- parameters
+  class(posteriors_conditional) <- c(class(posteriors_conditional), "mixed_posteriors")
+
+  return(posteriors_conditional)
+}
 .mix_posteriors_intercept <- function(model_list, distributions, model_distributions, seed){
 
   posteriors_intercept <- list()
