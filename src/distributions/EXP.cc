@@ -14,40 +14,38 @@ namespace jags {
 		DEXP::DEXP() : VectorDist("exp_aft_event", 1) {}
 		SEXP::SEXP() : VectorDist("exp_aft_cens_r", 1) {}
 
-		bool DEXP::checkParameterLength(vector<unsigned int> const &len) const
+		bool DEXP::checkParameterLength(vector<unsigned long> const &len) const
 		{
 			return true;
 		}
-		bool SEXP::checkParameterLength(vector<unsigned int> const &len) const
+		bool SEXP::checkParameterLength(vector<unsigned long> const &len) const
 		{
 			return true;
 		}
 
 		bool DEXP::checkParameterValue(vector<double const *> const &par,
-						vector<unsigned int> const &len) const
+						vector<unsigned long> const &len) const
 		{
 			return true;
 		}
 		bool SEXP::checkParameterValue(vector<double const *> const &par,
-						vector<unsigned int> const &len) const
+						vector<unsigned long> const &len) const
 		{
 			return true;
 		}
 
-		double DEXP::logDensity(double const *x, unsigned int length, PDFType type,
+		double DEXP::logDensity(double const *x,  PDFType type,
 					vector<double const *> const &par,
-					vector<unsigned int> const &len,
-					double const *lower, double const *upper) const
+					vector<unsigned long> const &len) const
 		{
 			double t      = *x;
 			double eta    = *par[0];
 
 			return exp_aft_log_density(t, eta);
 		}
-		double SEXP::logDensity(double const *x, unsigned int length, PDFType type,
+		double SEXP::logDensity(double const *x,  PDFType type,
 					vector<double const *> const &par,
-					vector<unsigned int> const &len,
-					double const *lower, double const *upper) const
+					vector<unsigned long> const &len) const
 		{
 			double t      = *x;
 			double eta    = *par[0];
@@ -55,65 +53,43 @@ namespace jags {
 			return exp_aft_log_survival(t, eta);
 		}
 
-		void DEXP::randomSample(double *x, unsigned int length,
+		void DEXP::randomSample(double *x, 
 					vector<double const *> const &par,
-					vector<unsigned int> const &len,
-					double const *lower, double const *upper,
+					vector<unsigned long> const &len,
 					RNG *rng) const
 		{
 			// not implemented
 		}
-		void SEXP::randomSample(double *x, unsigned int length,
+		void SEXP::randomSample(double *x, 
 					vector<double const *> const &par,
-					vector<unsigned int> const &len,
-					double const *lower, double const *upper,
+					vector<unsigned long> const &len,
 					RNG *rng) const
 		{
 			// not implemented
 		}
 
-		void DEXP::support(double *lower, double *upper, unsigned int length,
+		void DEXP::support(double *lower, double *upper, 
 				vector<double const *> const &par,
-				vector<unsigned int> const &len) const
+				vector<unsigned long> const &len) const
 		{
-			for (unsigned int i = 0; i < length; ++i) {
-				lower[i] = 0;
-				upper[i] = JAGS_POSINF;
-			}
+		    *lower = 0;
+		    *upper = JAGS_POSINF;
 		}
-		void SEXP::support(double *lower, double *upper, unsigned int length,
+		void SEXP::support(double *lower, double *upper, 
 				vector<double const *> const &par,
-				vector<unsigned int> const &len) const
+				vector<unsigned long> const &len) const
 		{
-			for (unsigned int i = 0; i < length; ++i) {
-				lower[i] = 0;
-				upper[i] = JAGS_POSINF;
-			}
+		    *lower = 0;
+		    *upper = JAGS_POSINF;
 		}
 
-		unsigned int DEXP::length(vector<unsigned int> const &len) const
+		unsigned long DEXP::length(vector<unsigned long> const &len) const
 		{
 			return 1;
 		}
-		unsigned int SEXP::length(vector<unsigned int> const &len) const
+		unsigned long SEXP::length(vector<unsigned long> const &len) const
 		{
 			return 1;
-		}
-
-
-		void DEXP::typicalValue(double *x, unsigned int length,
-					vector<double const *> const &par,
-					vector<unsigned int> const &len,
-					double const *lower, double const *upper) const
-		{
-			// not implemented
-		}
-		void SEXP::typicalValue(double *x, unsigned int length,
-					vector<double const *> const &par,
-					vector<unsigned int> const &len,
-					double const *lower, double const *upper) const
-		{
-			// not implemented
 		}
 
 		bool DEXP::isSupportFixed(vector<bool> const &fixmask) const

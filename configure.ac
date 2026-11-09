@@ -34,7 +34,7 @@ if test [ -n "${PKG_CONFIG}" ] ; then
       export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig"
    fi
    if `${PKG_CONFIG} --exists jags`; then
-       if `${PKG_CONFIG} --exists --atleast-version=4.0.0 jags`; then
+       if `${PKG_CONFIG} --exists --atleast-version=5.0.0 jags`; then
          JAGS_LIBS=`${PKG_CONFIG} --libs jags`
          JAGS_CFLAGS=`${PKG_CONFIG} --cflags jags`
          JAGS_LIBDIR=`${PKG_CONFIG} --variable libdir jags`
