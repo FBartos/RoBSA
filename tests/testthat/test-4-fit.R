@@ -19,14 +19,29 @@ remove_time  <- function(fit){
   }
   return(fit)
 }
-clean_all    <- function(fit, only_samples = TRUE){
-  if(only_samples){
-    fit$data     <- NULL
-    fit$add_info <- NULL
-    fit$control  <- NULL
-    fit$models   <- NULL
+# A refit matches a saved fit only up to Monte Carlo error: compilers, math libraries
+# and the state of the R process can change the draws. Each bound is about twice the
+# largest difference from the saved fits across 24 other seeds of these six fits.
+saved_fit_bounds <- c(log_marglik = 0.02, log_BF = 0.015, post_probs = 0.002, model_means = 0.05, mean = 0.025)
+saved_fit_values <- function(fit){
+  fit_summary <- summary(fit, conditional = TRUE)
+  inference   <- c(fit$RoBSA$inference, fit$RoBSA$inference_distributions)
+  values      <- list(
+    log_marglik = vapply(fit$models, function(model) model$marglik$logml, numeric(1)),
+    log_BF      = vapply(inference, attr, numeric(1), "log_BF"),
+    post_probs  = inference[[1]]$post_probs,
+    model_means = unlist(lapply(fit$models, function(model) as.data.frame(model$fit_summary)[["Mean"]])),
+    mean        = c(as.data.frame(fit_summary$estimates)$Mean, as.data.frame(fit_summary$estimates_conditional)$Mean)
+  )
+  return(values[lengths(values) > 0])
+}
+expect_saved_fit <- function(saved_fit, fit){
+  saved_values <- saved_fit_values(saved_fit)
+  fit_values   <- saved_fit_values(fit)
+  expect_identical(lengths(fit_values), lengths(saved_values))
+  for(value in names(saved_values)){
+    expect_lt(max(abs(fit_values[[value]] - saved_values[[value]])), saved_fit_bounds[[value]], label = value)
   }
-  return(fit)
 }
 try_parallel <- function(x, rep = 3){
   temp_fit <- NULL
@@ -68,8 +83,7 @@ test_that("Fitting function works", {
   expect_equal(as.data.frame(fit1$models[[5]]$fit_summary)["aux",       "Mean"], extract_flexsurv(fitf)[["aux"]][["mean"]],       tolerance = 0.05)
 
   # compare to the previous version object for consistency
-  fit1 <- remove_time(fit1)
-  expect_equal(clean_all(saved_fits[[1]]), clean_all(fit1))
+  expect_saved_fit(saved_fits[[1]], fit1)
 
 
   ### with predictors, no test
@@ -126,8 +140,7 @@ test_that("Fitting function works", {
   )
 
   # compare to the previous version object for consistency
-  fit2 <- remove_time(fit2)
-  expect_equal(clean_all(saved_fits[[2]]), clean_all(fit2))
+  expect_saved_fit(saved_fits[[2]], fit2)
 
 
   ### test continuous predictor
@@ -136,8 +149,7 @@ test_that("Fitting function works", {
     data = df, rescale_data = TRUE, parallel = TRUE, seed = 3
   ))
 
-  fit3 <- remove_time(fit3)
-  expect_equal(clean_all(saved_fits[[3]]), clean_all(fit3))
+  expect_saved_fit(saved_fits[[3]], fit3)
 
 
   ### test treatment contrast
@@ -146,8 +158,7 @@ test_that("Fitting function works", {
     data = df, rescale_data = TRUE, parallel = TRUE, seed = 4
   ))
 
-  fit4 <- remove_time(fit4)
-  expect_equal(clean_all(saved_fits[[4]]), clean_all(fit4))
+  expect_saved_fit(saved_fits[[4]], fit4)
 
 
   ### test orthonormal contrast
@@ -158,8 +169,7 @@ test_that("Fitting function works", {
     data = df, rescale_data = TRUE, parallel = TRUE, seed = 5
   ))
 
-  fit5 <- remove_time(fit5)
-  expect_equal(clean_all(saved_fits[[5]]), clean_all(fit5))
+  expect_saved_fit(saved_fits[[5]], fit5)
 
 
   ### test more custom model
@@ -181,8 +191,7 @@ test_that("Fitting function works", {
     data = df, rescale_data = TRUE, parallel = TRUE, seed = 6
   ))
 
-  fit6 <- remove_time(fit6)
-  expect_equal(clean_all(saved_fits[[6]]), clean_all(fit6))
+  expect_saved_fit(saved_fits[[6]], fit6)
 
 })
 
