@@ -74,3 +74,11 @@ test_that("BayesTools version check accepts development versions", {
   )
   expect_false(ok)
 })
+
+test_that("Parallel fitting uses at least one worker", {
+
+  expect_equal(RoBSA:::.parallel_workers(7, 3), 2)
+  expect_equal(RoBSA:::.parallel_workers(3, 3), 1)
+  expect_equal(RoBSA:::.parallel_workers(2, 3), 1)
+  expect_equal(RoBSA:::.parallel_workers(0, 3), 1)
+})
