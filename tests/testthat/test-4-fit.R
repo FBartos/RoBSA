@@ -203,6 +203,20 @@ test_that("Updating function works", {
 
 })
 
+test_that("Parallel fitting works with fewer cores than chains", {
+
+  max_cores <- RoBSA.get_option("max_cores")
+  on.exit(RoBSA.options(max_cores = max_cores))
+  RoBSA.options(max_cores = 2)
+
+  fit <- RoBSA(
+    Surv(time = time, event = event) ~ 1, data = df, distributions = "exp-aft",
+    sample = 500, burnin = 200, adapt = 100, parallel = TRUE, seed = 1
+  )
+
+  expect_s3_class(fit, "RoBSA")
+})
+
 #### creating / updating the test settings ####
 if(FALSE){
 

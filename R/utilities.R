@@ -64,6 +64,12 @@ assign("max_cores",       parallel::detectCores(logical = TRUE) - 1,  envir = Ro
 assign("check_scaling",   TRUE,                                       envir = RoBSA.private)
 assign("distributions",   .distributions,                             envir = RoBSA.private)
 
+# each worker fits whole models, one chain per core; machines with fewer cores
+# than chains still get one worker
+.parallel_workers <- function(max_cores, chains){
+  return(max(1, floor(max_cores / chains)))
+}
+
 # check proper BayesTools package version
 .check_BayesTools <- function(
     RoBSA.version      = try(utils::packageVersion("RoBSA")),
