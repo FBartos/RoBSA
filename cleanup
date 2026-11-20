@@ -22,12 +22,6 @@ rm -rf src/functions/.libs
 rm -rf src/source/.deps
 rm -rf src/source/.libs
 
-rm -f src/Makevars
-rm -f config.*
-rm -rf autom4te.cache
-rm -f config.log
-rm -f config.status
-
 rm -f src/RoBMA.o
 rm -f src/RoBMA.so
 rm -f src/testRoBMA.o
