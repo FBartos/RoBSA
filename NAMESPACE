@@ -95,5 +95,10 @@ export(weibull_aft_r)
 export(weibull_aft_sd)
 export(weibull_aft_survival)
 importFrom(Rdpack,reprompt)
+importFrom(rjags,
+  list.modules,
+  load.pkg.module,
+  unload.module
+)
 importFrom(rlang,.data)
 importFrom(survival,Surv)
