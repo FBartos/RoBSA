@@ -1,4 +1,1 @@
 .gitattributes text eol=lf
-configure text eol=lf
-configure.ac text eol=lf
-cleanup text eol=lf

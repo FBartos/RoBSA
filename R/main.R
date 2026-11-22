@@ -34,14 +34,13 @@
 #' distribution for the auxiliary parameters (with names corresponding
 #' to the distributions)
 #' @param chains a number of chains of the MCMC algorithm.
-#' @param sample a number of sampling iterations of the MCMC algorithm.
-#' Defaults to \code{5000}.
+#' @param sample number of draws to retain per chain, defaulting to \code{5000}.
+#' Each chain runs \code{sample * thin} sampling iterations before any autofit extensions.
 #' @param burnin a number of burnin iterations of the MCMC algorithm.
 #' Defaults to \code{2000}.
 #' @param adapt a number of adaptation iterations of the MCMC algorithm.
 #' Defaults to \code{500}.
-#' @param thin a thinning of the chains of the MCMC algorithm. Defaults to
-#' \code{1}.
+#' @param thin number of sampling iterations between retained draws. Defaults to \code{1}.
 #' @param parallel whether the individual models should be fitted in parallel.
 #' Defaults to \code{FALSE}. The implementation is not completely stable
 #' and might cause a connection error.
@@ -244,6 +243,10 @@ RoBSA <- function(
 #' same length as already fitted models to update their prior weights.
 #' @param refit_failed whether failed models should be refitted. Relevant only
 #' if new priors or \code{prior_weights} are not supplied. Defaults to \code{TRUE}.
+#' @param sample number of draws to retain per chain when fitting a model.
+#' Each chain runs \code{sample * thin} sampling iterations before any autofit extensions.
+#' Defaults to the original fit's setting.
+#' @param thin number of sampling iterations between retained draws. Defaults to the original fit's setting.
 #' @inheritParams RoBSA
 #' @param ... additional arguments.
 #'

@@ -304,7 +304,7 @@ calibrate_meta_analytic  <- function(datasets, distributions = c("exp-aft", "wei
     prior_list   = list(mu = prior_mu, tau = prior_tau),
     ...)
 
-  fit_summary <- BayesTools::runjags_estimates_table(fit)
+  fit_summary <- BayesTools::JAGS_estimates_table(fit)
 
   return(fit_summary)
 }

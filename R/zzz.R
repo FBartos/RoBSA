@@ -1,31 +1,18 @@
-# adapted from the runjags package version 2.2.0
+# Capture the build configuration at installation for the runtime ABI check.
+.RoBSA_jags_build <- rjags::pkg.compile.flags("ALL")
+
 .onLoad <- function(libname, pkgname){
 
-  requireNamespace("runjags")
-
   RoBSA.private$RoBSA_version <- utils::packageDescription(pkgname, fields = 'Version')
-
-  # Get and save the library location, getting rid of any trailing / caused by r_arch being empty:
-  module_location <- gsub('/$','', file.path(libname, pkgname, 'libs', if(.Platform$r_arch!="") .Platform$r_arch else ""))
-  if(!file.exists(file.path(module_location, paste('RoBSA', .Platform$dynlib.ext, sep='')))){
-    module_location <- NULL
-    warning('The RoBSA module could not be loaded.', call. = FALSE)
-  }else{
-    rjags::load.module("RoBSA", path = module_location, quiet = TRUE)
-    if(!"RoBSA" %in% rjags::list.modules()){
-      warning('The RoBSA module could not be loaded.', call. = FALSE)
-    }
-  }
-
-  RoBSA.private$module_location <- module_location
-  RoBSA.private$lib_name        <- libname
+  RoBSA.private$lib_name <- libname
+  .load_RoBSA_module(pkgname)
 
   setopts <- mget('.RoBSA.options', envir=.GlobalEnv, ifnotfound = list(.RoBSA.options = NULL))[[1]]
   if(!is.null(setopts)){
     if(!is.list(setopts)){
       warning('Ignoring invalid (non-list) specification for .RoBSA.options on loading the RoBSA package', call.=FALSE)
     }else{
-      newopts <- do.call('RoBSA.options', args = setopts)
+      do.call('RoBSA.options', args = setopts)
     }
   }
 
@@ -33,33 +20,33 @@
 
 }
 
-.onAttach <- function(libname, pkgname){
-
-  # nothing to do
-
-}
-
 .onUnload <- function(libpath){
-
-  # tricking the dyn.library unload
-  if(!is.null(RoBSA.private$lib_name)){
-    library.dynam("RoBSA", "RoBSA", RoBSA.private$lib_name)
-  }
-
-  # Just in case it is not always safe to try and access an element of an env that is in the process of being deleted (when R quits):
-  if(!is.null(RoBSA.private$module_location)){
-    rjags::unload.module("RoBSA")
+  # Finalize unused models while their distributions are still registered.
+  gc()
+  if("RoBSA" %in% rjags::list.modules()){
+    rjags::unload.module("RoBSA", quiet = TRUE)
   }
 }
 
 .load_RoBSA_module <- function(pkgname = "RoBSA"){
 
-  if(is.null(RoBSA.private$module_location) || (!is.null(RoBSA.private$module_location) && RoBSA.private$module_location == "")){
-    libnames         <- .libPaths()
-    module_locations <- sapply(libnames, function(libname) gsub('/$','', file.path(libname, pkgname, 'libs', if(.Platform$r_arch!="") .Platform$r_arch else "")))
-    sapply(module_locations, function(module_location) rjags::load.module("RoBSA", path = module_location))
+  libname <- RoBSA.private$lib_name
+  dll <- paste0(pkgname, .Platform$dynlib.ext)
+  module_location <- file.path(libname, pkgname, "libs", .Platform$r_arch)
+  if(file.exists(file.path(module_location, dll))){
+    rjags::load.pkg.module(pkgname, libname, .RoBSA_jags_build, quiet = TRUE)
   }else{
-    rjags::load.module("RoBSA", path = RoBSA.private$module_location)
+    # pkgload compiles the development module in the source tree.
+    src <- file.path(getNamespaceInfo(pkgname, "path"), "src")
+    paths <- c(file.path(src, .Platform$r_arch), src)
+    paths <- paths[file.exists(file.path(paths, dll))]
+    if(!length(paths)){
+      stop("The RoBSA JAGS module is missing. Reinstall RoBSA using JAGS 5 or later.", call. = FALSE)
+    }
+    module_location <- paths[[1L]]
+    rjags::load.pkg.module(pkgname, libname, .RoBSA_jags_build, check.only = TRUE)
+    rjags::load.module(pkgname, path = module_location, quiet = TRUE)
   }
-
+  RoBSA.private$module_location <- normalizePath(module_location, winslash = "/")
+  invisible(TRUE)
 }
