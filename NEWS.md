@@ -1,4 +1,7 @@
 ## development version
+### changes
+- fit models directly with rjags and require JAGS 5 or later
+
 ### fixes
 - `parallel = TRUE` on machines with fewer cores than chains
 - spurious BayesTools version warning with development versions of BayesTools

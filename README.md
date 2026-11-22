@@ -28,11 +28,12 @@ introducing the methodology.
 
 ## Installation
 
-The package requires [JAGS 4.3.1](https://mcmc-jags.sourceforge.io/) to
+The package requires [JAGS 5 or later](https://mcmc-jags.sourceforge.io/) to
 be installed. The development version of the package can be installed
 from GitHub:
 
 ``` r
+devtools::install_github("FBartos/BayesTools@development")
 devtools::install_github("FBartos/RoBSA@development")
 ```
 
@@ -45,7 +46,6 @@ start by loading the package and data set.
 
 ``` r
 library("RoBSA")
-#> Loading required namespace: runjags
 data(cancer, package = "survival")
 head(veteran)
 #>   trt celltype time status karno diagtime age prior

@@ -1,7 +1,7 @@
 Package: RoBSA
 Type: Package
 Title: Robust Bayesian Survival Analysis
-Version: 1.1.0.9002
+Version: 1.1.0.9003
 Maintainer: František Bartoš <f.bartos96@gmail.com>
 Authors@R: c( 
     person("František", "Bartoš", role = c("aut", "cre"),
@@ -30,14 +30,13 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
-SystemRequirements: JAGS >= 4.3.1 (https://mcmc-jags.sourceforge.io/)
+SystemRequirements: JAGS (>= 5.0.0) (https://mcmc-jags.sourceforge.io/)
 Depends:
-    R (>= 4.0.0)
+    R (>= 4.3.0)
 Imports:
-    BayesTools (>= 0.4.0),
+    BayesTools (>= 0.4.0.9013),
     survival,
-    rjags,
-    runjags,
+    rjags (>= 5-5),
     scales,
     coda, 
     stats,

@@ -1,0 +1,14 @@
+PKG_CPPFLAGS = $(JAGS_CPPFLAGS)
+PKG_CXXFLAGS = $(JAGS_CXXFLAGS)
+PKG_LIBS = $(JAGS_LIBS) $(JRMATH_LIB)
+
+ROBSA_OBJECTS = functions/exp.o functions/gamma.o functions/llogis.o functions/lnorm.o functions/weibull.o \
+                distributions/EXP.o distributions/GAMMA.o distributions/LLOGIS.o distributions/LNORM.o distributions/WEIBULL.o \
+                source/distributions.o init.o RoBSA.o testRoBSA.o
+
+all: $(SHLIB)
+
+MODULE_OBJECTS = $(filter functions/%.o distributions/%.o,$(OBJECTS))
+$(MODULE_OBJECTS): %.o: %.h
+$(MODULE_OBJECTS) source/distributions.o: source/distributions.h
+RoBSA.o: $(MODULE_OBJECTS:.o=.h)

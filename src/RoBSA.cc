@@ -1,4 +1,8 @@
 #include <module/Module.h>
+#include <version.h>
+
+static_assert(JAGS_MAJOR >= 5, "RoBSA requires JAGS 5.0.0 or later");
+
 #include "distributions/EXP.h"
 #include "distributions/WEIBULL.h"
 #include "distributions/LNORM.h"
