@@ -1,6 +1,6 @@
 ## development version
 ### changes
-- fit models directly with rjags and require JAGS 5 or later
+- fit models directly with rjags and require JAGS 5 or later (seeded draws differ from earlier versions)
 
 ### fixes
 - `parallel = TRUE` on machines with fewer cores than chains

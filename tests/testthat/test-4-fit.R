@@ -213,7 +213,7 @@ test_that("Parallel fitting works with fewer cores than chains", {
 
   expect_warning(fit <- RoBSA(
     Surv(time = time, event = event) ~ 1, data = df, distributions = "exp-aft",
-    sample = 500, burnin = 200, adapt = 100, parallel = TRUE, seed = 1,
+    sample = 500, thin = 2, burnin = 200, adapt = 100, parallel = TRUE, seed = 1,
     autofit_control = set_autofit_control(min_ESS = 1e9, sample_extend = 50, max_extend = 1)
   ), "max_extend")
 
