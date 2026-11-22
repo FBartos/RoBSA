@@ -34,7 +34,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">RoBSA</a>
-        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">1.1.0.9002</span>
+        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">1.1.0.9003</span>
       </span>
     </div>
 
@@ -82,9 +82,10 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>The package requires <a href="https://mcmc-jags.sourceforge.io/" class="external-link">JAGS 4.3.1</a> to be installed. The development version of the package can be installed from GitHub:</p>
+<p>The package requires <a href="https://mcmc-jags.sourceforge.io/" class="external-link">JAGS 5 or later</a> to be installed. The development version of the package can be installed from GitHub:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/install-deprecated.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"FBartos/RoBSA@development"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"FBartos/BayesTools@development"</span><span class="op">)</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"FBartos/RoBSA@development"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
@@ -92,7 +93,6 @@
 <p>To illustrate the package’s functionality, we use the <code>veteran</code> data set from the <code>survival</code> package containing 137 survival times of patients from a randomized trial of two treatment regimens for lung cancer. We start by loading the package and data set.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://fbartos.github.io/RoBSA/">"RoBSA"</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required namespace: runjags</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">cancer</span>, package <span class="op">=</span> <span class="st">"survival"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">veteran</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   trt celltype time status karno diagtime age prior</span></span>

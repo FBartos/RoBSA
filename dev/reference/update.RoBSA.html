@@ -29,7 +29,7 @@ refit_failed == FALSE.
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RoBSA</a>
-        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">1.1.0.9002</span>
+        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">1.1.0.9003</span>
       </span>
     </div>
 
@@ -192,13 +192,13 @@ Defaults to <code>2000</code>.</p></dd>
 
 
 <dt id="arg-sample">sample<a class="anchor" aria-label="anchor" href="#arg-sample"></a></dt>
-<dd><p>a number of sampling iterations of the MCMC algorithm.
-Defaults to <code>5000</code>.</p></dd>
+<dd><p>number of draws to retain per chain when fitting a model.
+Each chain runs <code>sample * thin</code> sampling iterations before any autofit extensions.
+Defaults to the original fit's setting.</p></dd>
 
 
 <dt id="arg-thin">thin<a class="anchor" aria-label="anchor" href="#arg-thin"></a></dt>
-<dd><p>a thinning of the chains of the MCMC algorithm. Defaults to
-<code>1</code>.</p></dd>
+<dd><p>number of sampling iterations between retained draws. Defaults to the original fit's setting.</p></dd>
 
 
 <dt id="arg-autofit">autofit<a class="anchor" aria-label="anchor" href="#arg-autofit"></a></dt>
