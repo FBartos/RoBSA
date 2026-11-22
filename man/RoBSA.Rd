@@ -75,8 +75,8 @@ to the distributions)}
 
 \item{chains}{a number of chains of the MCMC algorithm.}
 
-\item{sample}{a number of sampling iterations of the MCMC algorithm.
-Defaults to \code{5000}.}
+\item{sample}{number of draws to retain per chain, defaulting to \code{5000}.
+Each chain runs \code{sample * thin} sampling iterations before any autofit extensions.}
 
 \item{burnin}{a number of burnin iterations of the MCMC algorithm.
 Defaults to \code{2000}.}
@@ -84,8 +84,7 @@ Defaults to \code{2000}.}
 \item{adapt}{a number of adaptation iterations of the MCMC algorithm.
 Defaults to \code{500}.}
 
-\item{thin}{a thinning of the chains of the MCMC algorithm. Defaults to
-\code{1}.}
+\item{thin}{number of sampling iterations between retained draws. Defaults to \code{1}.}
 
 \item{parallel}{whether the individual models should be fitted in parallel.
 Defaults to \code{FALSE}. The implementation is not completely stable

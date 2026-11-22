@@ -227,8 +227,8 @@ check_setup <- function(
 #' autofitting process per model. Passed to \link[base]{difftime} function
 #' (possible units are \code{"secs", "mins", "hours", "days", "weeks", "years"}).
 #' Defaults to \code{list(time = 60, unit = "mins")}.
-#' @param sample_extend number of samples to extend the fitting process if
-#' the criteria are not satisfied.
+#' @param sample_extend number of additional draws to retain per chain for
+#' each autofit extension.
 #' Defaults to \code{1000}.
 #' @param restarts number of fitting restarts attempted when the initial JAGS
 #' model fitting fails. Defaults to \code{10}.

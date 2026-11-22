@@ -50,8 +50,8 @@ autofitting process per model. Passed to \link[base]{difftime} function
 (possible units are \code{"secs", "mins", "hours", "days", "weeks", "years"}).
 Defaults to \code{list(time = 60, unit = "mins")}.}
 
-\item{sample_extend}{number of samples to extend the fitting process if
-the criteria are not satisfied.
+\item{sample_extend}{number of additional draws to retain per chain for
+each autofit extension.
 Defaults to \code{1000}.}
 
 \item{restarts}{number of fitting restarts attempted when the initial JAGS

@@ -10,15 +10,6 @@ for(i in seq_along(saved_files)){
 }
 df <- readRDS(file = file.path("../results/fits", "df.RDS"))
 
-# functions simplifying the comparison
-remove_time  <- function(fit){
-  for(m in 1:length(fit$models)){
-    if(is.null(fit$models[[m]]$fit))next
-    fit$models[[m]]$fit$timetaken       <- NULL
-    fit$models[[m]]$fit$runjags.version <- NULL
-  }
-  return(fit)
-}
 # A refit matches a saved fit only up to Monte Carlo error: compilers, math libraries
 # and the state of the R process can change the draws. Each bound is about twice the
 # largest difference from the saved fits across 24 other seeds of these six fits.
@@ -206,10 +197,12 @@ test_that("Updating function works", {
   fit7 <- suppressWarnings(update(fit7, distribution = "lnorm-aft"))
   # add a predictor (TODO: specify tests for the added predictor)
   fit7 <- suppressWarnings(update(fit7, formula = Surv(time = time, event = event) ~ x_cont, distribution = "gamma-aft"))
-  # change model weights
-  fit7 <- suppressWarnings(update(fit7,  model_weights = c(1, 2, 3)))
+  expect_true(all(vapply(fit7$models, function(model) inherits(model$fit, "BayesTools_fit"), logical(1))))
 
-
+  # change model weights and retain only the ensemble posteriors
+  fit7 <- suppressWarnings(update(fit7, model_weights = c(1, 2, 3), save = "min"))
+  expect_true(all(vapply(fit7$models, function(model) is.null(model$fit[["mcmc"]]), logical(1))))
+  expect_identical(fit7$add_info$save, "min")
 })
 
 test_that("Parallel fitting works with fewer cores than chains", {
@@ -218,12 +211,21 @@ test_that("Parallel fitting works with fewer cores than chains", {
   on.exit(RoBSA.options(max_cores = max_cores))
   RoBSA.options(max_cores = 2)
 
-  fit <- RoBSA(
+  expect_warning(fit <- RoBSA(
     Surv(time = time, event = event) ~ 1, data = df, distributions = "exp-aft",
-    sample = 500, burnin = 200, adapt = 100, parallel = TRUE, seed = 1
-  )
+    sample = 500, thin = 2, burnin = 200, adapt = 100, parallel = TRUE, seed = 1,
+    autofit_control = set_autofit_control(min_ESS = 1e9, sample_extend = 50, max_extend = 1)
+  ), "max_extend")
 
   expect_s3_class(fit, "RoBSA")
+  model <- fit$models[[1]]
+  expect_s3_class(model$fit, "BayesTools_fit")
+  expect_identical(model$fit$backend$jags, as.character(rjags::jags.version()))
+  expect_identical(model$fit$backend$rjags, as.character(utils::packageVersion("rjags")))
+  chains <- coda::as.mcmc.list(model$fit)
+  expect_equal(length(chains), 3)
+  expect_equal(vapply(chains, NROW, integer(1)), rep(550, 3))
+  expect_true(is.finite(model$marglik$logml))
 })
 
 #### creating / updating the test settings ####
@@ -243,10 +245,6 @@ if(FALSE){
 
 
   saved_fits <- list(fit1, fit2, fit3, fit4, fit5, fit6, fit7)
-
-  for(i in 1:length(saved_fits)){
-    saved_fits[[i]] <- remove_time(saved_fits[[i]])
-  }
 
   for(i in 1:length(saved_fits)){
     saveRDS(saved_fits[[i]], file = file.path("tests/results/fits/", paste0("fit_",i,".RDS")), compress  = "xz")

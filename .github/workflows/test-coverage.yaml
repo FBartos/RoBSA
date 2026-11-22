@@ -30,7 +30,7 @@ jobs:
         uses: r-lib/actions/setup-pandoc@v2
 
       - name: Set up JAGS
-        uses: FBartos/BayesTools/.github/actions/setup-jags@development
+        uses: FBartos/BayesTools/.github/actions/setup-jags5@development
 
       - name: Resolve BayesTools source
         id: bayestools
@@ -40,7 +40,7 @@ jobs:
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
           dependencies: '"all"'
-          cache-version: 3
+          cache-version: 4
           install-pandoc: false
           extra-packages: |
             any::covr

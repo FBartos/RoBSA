@@ -55,13 +55,10 @@
     # assess the model fit and deal with errors
     if(inherits(fit, "error")){
 
-      if(grepl("Unknown function", fit$message))
-        stop("The RoBSA module could not be loaded. Check whether the RoBSA package was installed correctly and whether 'RoBSA::RoBSA.private$module_location' contains path to the RoBSA JAGS module.")
-
+      errors         <- c(errors, conditionMessage(fit))
       fit            <- list()
       converged      <- FALSE
       has_posterior  <- FALSE
-      errors         <- c(errors, fit$message)
       # deal with failed models (zero evidence, as with earlier BayesTools versions)
       marglik        <- BayesTools::bridgesampling_object(-Inf)
 
@@ -133,9 +130,9 @@
 
   # add model summaries
   if(has_posterior){
-    fit_summary <- BayesTools::runjags_estimates_table(fit = fit, warnings = warnings, transform_factors = TRUE, formula_prefix = FALSE)
+    fit_summary <- BayesTools::JAGS_estimates_table(fit = fit, warnings = warnings, transform_factors = TRUE, formula_prefix = FALSE)
   }else{
-    fit_summary <- BayesTools::runjags_estimates_empty_table()
+    fit_summary <- BayesTools::JAGS_estimates_empty_table()
   }
 
   model <- c(

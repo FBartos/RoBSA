@@ -1,11 +1,11 @@
 context("(1) JAGS module functionality")
 skip_on_cran()
 
-### the regression parameterized distributions can be loaded and run
-test_that("Module can be loaded and the one-sided normal distribution works", {
+test_that("JAGS 5 loads the module and samples the exponential survival model", {
 
-  module_location <- gsub('/$','', file.path(.libPaths(), "RoBSA", 'libs', if(.Platform$r_arch!="") .Platform$r_arch else ""))
-  sapply(module_location, function(path) rjags::load.module("RoBSA", path = path))
+  RoBSA:::.load_RoBSA_module()
+  expect_true(rjags::jags.version() >= "5.0.0")
+  expect_true("RoBSA" %in% rjags::list.modules())
 
   model_syntax <- "
   model{
@@ -20,8 +20,9 @@ test_that("Module can be loaded and the one-sided normal distribution works", {
     K      = 10
   )
 
-  RoBSA:::.load_RoBSA_module()
-  model <- rjags::jags.model(file = textConnection(model_syntax), data = data, quiet = TRUE)
+  connection <- textConnection(model_syntax)
+  on.exit(close(connection))
+  model <- rjags::jags.model(file = connection, data = data, quiet = TRUE)
   fit   <- rjags::jags.samples(model = model, variable.names = "mu", n.iter = 100, quiet = TRUE, progress.bar = "none")
 
 

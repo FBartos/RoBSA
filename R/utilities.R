@@ -50,16 +50,24 @@ RoBSA.get_option <- function(name){
 	return(eval(RoBSA.private[[name]]))
 }
 
-# export the function directly to suppress import warnings
-.runjags__findjags <- function() runjags::findjags()
+# Report the executable belonging to the JAGS installation used by rjags.
+.RoBSA_jags_path <- function(){
+  root <- rjags::pkg.compile.flags("JAGS_ROOT", print = FALSE)
+  if(.Platform$OS.type == "windows"){
+    path <- file.path(root, .Platform$r_arch, "bin", "jags-terminal.exe")
+  }else{
+    path <- file.path(root, "bin", "jags")
+  }
+  if(file.exists(path)) path else "JAGS not found"
+}
 
 # adapted from the runjags package version 2.2.0
 RoBSA.private <- new.env()
 # Use 'expression' for functions to avoid having to evaluate before the package is fully loaded:
-assign("JAGS_path",       expression(.runjags__findjags()),           envir = RoBSA.private)
+assign("JAGS_path",       expression(.RoBSA_jags_path()),             envir = RoBSA.private)
 assign("RoBSA_version",   utils::packageVersion("RoBSA"),             envir = RoBSA.private)
-assign("min_jags_major",  4,                                          envir = RoBSA.private)
-assign("max_jags_major",  4,                                          envir = RoBSA.private)
+assign("min_jags_major",  5,                                          envir = RoBSA.private)
+assign("max_jags_major",  Inf,                                        envir = RoBSA.private)
 assign("max_cores",       parallel::detectCores(logical = TRUE) - 1,  envir = RoBSA.private)
 assign("check_scaling",   TRUE,                                       envir = RoBSA.private)
 assign("distributions",   .distributions,                             envir = RoBSA.private)
@@ -83,7 +91,6 @@ assign("distributions",   .distributions,                             envir = Ro
     return(invisible(FALSE))
   }
 
-  # a development version (x.y.z.9001) requires what its release requires
   RoBSA.release <- paste0(unlist(RoBSA.version)[1:3], collapse = ".")
 
   BayesTools_required <- switch(
@@ -93,7 +100,7 @@ assign("distributions",   .distributions,                             envir = Ro
     "1.0.2" = c("0.2.14", "0.2.23"),
     "1.0.3" = c("0.2.14", "0.2.23"),
     "1.0.4" = c("0.3.0", "999.999.999"),
-    "1.1.0" = c("0.4.0", "999.999.999"),
+    "1.1.0" = c(if(RoBSA.version >= "1.1.0.9003") "0.4.0.9013" else "0.4.0", "999.999.999"),
     stop("New RoBSA version needs to be defined in '.check_BayesTools' function!")
   )
 

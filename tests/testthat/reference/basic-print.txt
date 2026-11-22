@@ -1,0 +1,7 @@
+"Call:"
+"RoBSA(formula = Surv(time, cens) ~ x_c + x_d, data = df, chains = 1, "
+"    sample = 100, burnin = 50, autofit = FALSE, seed = 1)"
+""
+"Estimates:"
+"       x_c     x_d[B] "
+"-0.1177164 -0.2048595 "

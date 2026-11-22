@@ -18,10 +18,9 @@ check_RoBSA <- function(fit){
 
 .remove_model_posteriors   <- function(object){
   for(i in seq_along(object[["models"]])){
-    if(inherits(object$models[[i]][["fit"]], "runjags")){
-      object$models[[i]]$fit[["mcmc"]] <- NULL
-    }
+    object$models[[i]]$fit[["mcmc"]] <- NULL
   }
+  object$add_info[["save"]] <- "min"
   return(object)
 }
 .remove_model_margliks     <- function(object){
@@ -153,7 +152,7 @@ check_RoBSA <- function(fit){
 }
 
 .extract_aux_samples <- function(fit){
-  return(as.numeric(suppressWarnings(coda::as.mcmc(fit))[,"aux"]))
+  return(as.numeric(coda::as.mcmc(fit)[,"aux"]))
 }
 
 .BayesTools_parameter_name <- function(parameter){
