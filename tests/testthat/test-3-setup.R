@@ -1,6 +1,13 @@
 context("(3) Model setup")
 skip_on_cran()
 
+# The control lists without the 'allow_not_assessable' element, which RoBSA does not
+# read: the BayesTools validator added it in 0.4.0 and later versions do not.
+expect_control_list <- function(object, expected) {
+  without <- function(x) x[names(x) != "allow_not_assessable"]
+  expect_equal(without(object), expected)
+}
+
 # test model preview
 test_that("Model preview & set-up works", {
 
@@ -378,7 +385,7 @@ test_that("Set autofit control works", {
   expect_error(set_autofit_control(max_extend = 0), "Checking 'autofit_control':\n\tThe 'max_extend' must be equal or higher than 1.")
   expect_error(set_autofit_control(check_indicators = 1), "Checking 'autofit_control':\n\tThe 'check_indicators' argument must be a logical vector.")
 
-  expect_equal(set_autofit_control(), list(
+  expect_control_list(set_autofit_control(), list(
     max_Rhat         = 1.05,
     min_ESS          = 500,
     max_error        = NULL,
@@ -387,11 +394,10 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE,
-    allow_not_assessable = FALSE
+    check_indicators = FALSE
   ))
 
-  expect_equal(set_autofit_control(max_Rhat = 1.01),  list(
+  expect_control_list(set_autofit_control(max_Rhat = 1.01),  list(
     max_Rhat         = 1.01,
     min_ESS          = 500,
     max_error        = NULL,
@@ -400,11 +406,10 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE,
-    allow_not_assessable = FALSE
+    check_indicators = FALSE
   ))
 
-  expect_equal(set_autofit_control(min_ESS = 200),  list(
+  expect_control_list(set_autofit_control(min_ESS = 200),  list(
     max_Rhat         = 1.05,
     min_ESS          = 200,
     max_error        = NULL,
@@ -413,11 +418,10 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE,
-    allow_not_assessable = FALSE
+    check_indicators = FALSE
   ))
 
-  expect_equal(set_autofit_control(max_error = 0.01),  list(
+  expect_control_list(set_autofit_control(max_error = 0.01),  list(
     max_Rhat         = 1.05,
     min_ESS          = 500,
     max_error        = 0.01,
@@ -426,11 +430,10 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE,
-    allow_not_assessable = FALSE
+    check_indicators = FALSE
   ))
 
-  expect_equal(set_autofit_control(max_SD_error = 0.01),  list(
+  expect_control_list(set_autofit_control(max_SD_error = 0.01),  list(
     max_Rhat         = 1.05,
     min_ESS          = 500,
     max_error        = NULL,
@@ -439,11 +442,10 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE,
-    allow_not_assessable = FALSE
+    check_indicators = FALSE
   ))
 
-  expect_equal(set_autofit_control(max_time = list(time = 30, unit = "secs")),  list(
+  expect_control_list(set_autofit_control(max_time = list(time = 30, unit = "secs")),  list(
     max_Rhat         = 1.05,
     min_ESS          = 500,
     max_error        = NULL,
@@ -452,11 +454,10 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE,
-    allow_not_assessable = FALSE
+    check_indicators = FALSE
   ))
 
-  expect_equal(set_autofit_control(sample_extend = 200),  list(
+  expect_control_list(set_autofit_control(sample_extend = 200),  list(
     max_Rhat         = 1.05,
     min_ESS          = 500,
     max_error        = NULL,
@@ -465,11 +466,10 @@ test_that("Set autofit control works", {
     sample_extend    = 200,
     restarts         = 10,
     max_extend       = 10,
-    check_indicators = FALSE,
-    allow_not_assessable = FALSE
+    check_indicators = FALSE
   ))
 
-  expect_equal(set_autofit_control(restarts = 5, max_extend = 3, check_indicators = TRUE), list(
+  expect_control_list(set_autofit_control(restarts = 5, max_extend = 3, check_indicators = TRUE), list(
     max_Rhat         = 1.05,
     min_ESS          = 500,
     max_error        = NULL,
@@ -478,8 +478,7 @@ test_that("Set autofit control works", {
     sample_extend    = 1000,
     restarts         = 5,
     max_extend       = 3,
-    check_indicators = TRUE,
-    allow_not_assessable = FALSE
+    check_indicators = TRUE
   ))
 
 })
@@ -495,90 +494,82 @@ test_that("Set convergence checks works", {
   expect_error(set_convergence_checks(check_indicators = 1), "Checking 'convergence_checks':\n\tThe 'check_indicators' argument must be a logical vector.")
 
 
-  expect_equal(set_convergence_checks(), list(
+  expect_control_list(set_convergence_checks(), list(
     max_Rhat      = 1.05,
     min_ESS       = 500,
     max_error     = NULL,
     max_SD_error  = NULL,
     check_indicators    = FALSE,
-    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = TRUE
   ))
 
-  expect_equal(set_convergence_checks(max_Rhat = 1.01),  list(
+  expect_control_list(set_convergence_checks(max_Rhat = 1.01),  list(
     max_Rhat      = 1.01,
     min_ESS       = 500,
     max_error     = NULL,
     max_SD_error  = NULL,
     check_indicators    = FALSE,
-    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = TRUE
   ))
 
-  expect_equal(set_convergence_checks(min_ESS = 200),  list(
+  expect_control_list(set_convergence_checks(min_ESS = 200),  list(
     max_Rhat      = 1.05,
     min_ESS       = 200,
     max_error     = NULL,
     max_SD_error  = NULL,
     check_indicators    = FALSE,
-    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = TRUE
   ))
 
-  expect_equal(set_convergence_checks(max_error = 0.01),  list(
+  expect_control_list(set_convergence_checks(max_error = 0.01),  list(
     max_Rhat      = 1.05,
     min_ESS       = 500,
     max_error     = 0.01,
     max_SD_error  = NULL,
     check_indicators    = FALSE,
-    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = TRUE
   ))
 
-  expect_equal(set_convergence_checks(max_SD_error = 0.01),  list(
+  expect_control_list(set_convergence_checks(max_SD_error = 0.01),  list(
     max_Rhat      = 1.05,
     min_ESS       = 500,
     max_error     = NULL,
     max_SD_error  = 0.01,
     check_indicators    = FALSE,
-    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = TRUE
   ))
 
-  expect_equal(set_convergence_checks(remove_failed = TRUE),  list(
+  expect_control_list(set_convergence_checks(remove_failed = TRUE),  list(
     max_Rhat      = 1.05,
     min_ESS       = 500,
     max_error     = NULL,
     max_SD_error  = NULL,
     check_indicators    = FALSE,
-    allow_not_assessable = FALSE,
     remove_failed       = TRUE,
     balance_probability = TRUE
   ))
 
-  expect_equal(set_convergence_checks(balance_probability = FALSE),  list(
+  expect_control_list(set_convergence_checks(balance_probability = FALSE),  list(
     max_Rhat      = 1.05,
     min_ESS       = 500,
     max_error     = NULL,
     max_SD_error  = NULL,
     check_indicators    = FALSE,
-    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = FALSE
   ))
 
-  expect_equal(set_convergence_checks(check_indicators = TRUE), list(
+  expect_control_list(set_convergence_checks(check_indicators = TRUE), list(
     max_Rhat            = 1.05,
     min_ESS             = 500,
     max_error           = NULL,
     max_SD_error        = NULL,
     check_indicators    = TRUE,
-    allow_not_assessable = FALSE,
     remove_failed       = FALSE,
     balance_probability = TRUE
   ))
