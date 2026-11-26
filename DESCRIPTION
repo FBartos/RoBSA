@@ -34,7 +34,7 @@ SystemRequirements: JAGS (>= 5.0.0) (https://mcmc-jags.sourceforge.io/)
 Depends:
     R (>= 4.3.0)
 Imports:
-    BayesTools (>= 0.4.0.9013),
+    BayesTools (>= 0.4.0.9020),
     survival,
     rjags (>= 5-5),
     scales,

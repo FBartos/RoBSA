@@ -78,13 +78,19 @@ to the distributions)}
 \item{sample}{number of draws to retain per chain, defaulting to \code{5000}.
 Each chain runs \code{sample * thin} sampling iterations before any autofit extensions.}
 
-\item{burnin}{a number of burnin iterations of the MCMC algorithm.
-Defaults to \code{2000}.}
+\item{burnin}{length of burn-in in draws per chain at the thinning
+\code{thin}, like \code{sample}: each chain runs \code{burnin * thin}
+burn-in iterations. Defaults to \code{2000}.}
 
-\item{adapt}{a number of adaptation iterations of the MCMC algorithm.
-Defaults to \code{500}.}
+\item{adapt}{length of the adaptation phase in draws per chain at the
+thinning \code{thin}: where a sampler adapts, each chain runs
+\code{adapt * thin} adaptation iterations. Defaults to \code{500}.}
 
-\item{thin}{number of sampling iterations between retained draws. Defaults to \code{1}.}
+\item{thin}{number of iterations per retained draw. Defaults to \code{1}.
+\code{adapt}, \code{burnin} and \code{sample} count draws at this
+thinning, so a model runs \code{(adapt + burnin + sample) * thin}
+iterations per chain before any autofit extensions (without the
+adaptation iterations when no sampler adapts).}
 
 \item{parallel}{whether the individual models should be fitted in parallel.
 Defaults to \code{FALSE}. The implementation is not completely stable
