@@ -249,6 +249,12 @@ RoBSA <- function(
 #' same length as already fitted models to update their prior weights.
 #' @param refit_failed whether failed models should be refitted. Relevant only
 #' if new priors or \code{prior_weights} are not supplied. Defaults to \code{TRUE}.
+#' @param adapt length of the adaptation phase in draws per chain at the
+#' thinning \code{thin}: where a sampler adapts, each chain runs
+#' \code{adapt * thin} adaptation iterations. Defaults to the original fit's setting.
+#' @param burnin length of burn-in in draws per chain at the thinning
+#' \code{thin}, like \code{sample}: each chain runs \code{burnin * thin}
+#' burn-in iterations. Defaults to the original fit's setting.
 #' @param sample number of draws to retain per chain when fitting a model.
 #' Each chain runs \code{sample * thin} sampling iterations before any autofit extensions.
 #' Defaults to the original fit's setting.

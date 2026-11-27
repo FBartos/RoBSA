@@ -225,6 +225,8 @@ test_that("Parallel fitting works with fewer cores than chains", {
   chains <- coda::as.mcmc.list(model$fit)
   expect_equal(length(chains), 3)
   expect_equal(vapply(chains, NROW, integer(1)), rep(550, 3))
+  # adapt and burnin count draws at the thinning: (50 + 100) * 2 warm-up iterations
+  expect_identical(coda::mcpar(chains[[1]]), c(301, 1399, 2))
   expect_true(is.finite(model$marglik$logml))
 })
 

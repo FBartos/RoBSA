@@ -80,11 +80,11 @@ to the distributions)}
 
 \item{adapt}{length of the adaptation phase in draws per chain at the
 thinning \code{thin}: where a sampler adapts, each chain runs
-\code{adapt * thin} adaptation iterations. Defaults to \code{500}.}
+\code{adapt * thin} adaptation iterations. Defaults to the original fit's setting.}
 
 \item{burnin}{length of burn-in in draws per chain at the thinning
 \code{thin}, like \code{sample}: each chain runs \code{burnin * thin}
-burn-in iterations. Defaults to \code{2000}.}
+burn-in iterations. Defaults to the original fit's setting.}
 
 \item{sample}{number of draws to retain per chain when fitting a model.
 Each chain runs \code{sample * thin} sampling iterations before any autofit extensions.
