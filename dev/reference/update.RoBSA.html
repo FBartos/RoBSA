@@ -29,7 +29,7 @@ refit_failed == FALSE.
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RoBSA</a>
-        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">1.1.0.9003</span>
+        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">1.1.0.9004</span>
       </span>
     </div>
 
@@ -182,13 +182,15 @@ to the distributions)</p></dd>
 
 
 <dt id="arg-adapt">adapt<a class="anchor" aria-label="anchor" href="#arg-adapt"></a></dt>
-<dd><p>a number of adaptation iterations of the MCMC algorithm.
-Defaults to <code>500</code>.</p></dd>
+<dd><p>length of the adaptation phase in draws per chain at the
+thinning <code>thin</code>: where a sampler adapts, each chain runs
+<code>adapt * thin</code> adaptation iterations. Defaults to the original fit's setting.</p></dd>
 
 
 <dt id="arg-burnin">burnin<a class="anchor" aria-label="anchor" href="#arg-burnin"></a></dt>
-<dd><p>a number of burnin iterations of the MCMC algorithm.
-Defaults to <code>2000</code>.</p></dd>
+<dd><p>length of burn-in in draws per chain at the thinning
+<code>thin</code>, like <code>sample</code>: each chain runs <code>burnin * thin</code>
+burn-in iterations. Defaults to the original fit's setting.</p></dd>
 
 
 <dt id="arg-sample">sample<a class="anchor" aria-label="anchor" href="#arg-sample"></a></dt>
@@ -198,7 +200,8 @@ Defaults to the original fit's setting.</p></dd>
 
 
 <dt id="arg-thin">thin<a class="anchor" aria-label="anchor" href="#arg-thin"></a></dt>
-<dd><p>number of sampling iterations between retained draws. Defaults to the original fit's setting.</p></dd>
+<dd><p>number of iterations per retained draw, at which <code>adapt</code>,
+<code>burnin</code> and <code>sample</code> count draws. Defaults to the original fit's setting.</p></dd>
 
 
 <dt id="arg-autofit">autofit<a class="anchor" aria-label="anchor" href="#arg-autofit"></a></dt>
