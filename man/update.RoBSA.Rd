@@ -78,17 +78,20 @@ to the distributions)}
 
 \item{chains}{a number of chains of the MCMC algorithm.}
 
-\item{adapt}{a number of adaptation iterations of the MCMC algorithm.
-Defaults to \code{500}.}
+\item{adapt}{length of the adaptation phase in draws per chain at the
+thinning \code{thin}: where a sampler adapts, each chain runs
+\code{adapt * thin} adaptation iterations. Defaults to the original fit's setting.}
 
-\item{burnin}{a number of burnin iterations of the MCMC algorithm.
-Defaults to \code{2000}.}
+\item{burnin}{length of burn-in in draws per chain at the thinning
+\code{thin}, like \code{sample}: each chain runs \code{burnin * thin}
+burn-in iterations. Defaults to the original fit's setting.}
 
 \item{sample}{number of draws to retain per chain when fitting a model.
 Each chain runs \code{sample * thin} sampling iterations before any autofit extensions.
 Defaults to the original fit's setting.}
 
-\item{thin}{number of sampling iterations between retained draws. Defaults to the original fit's setting.}
+\item{thin}{number of iterations per retained draw, at which \code{adapt},
+\code{burnin} and \code{sample} count draws. Defaults to the original fit's setting.}
 
 \item{autofit}{whether the model should be fitted until the convergence
 criteria (specified in \code{autofit_control}) are satisfied. Defaults to

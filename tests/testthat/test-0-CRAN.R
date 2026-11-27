@@ -40,7 +40,7 @@ test_that("BayesTools version check accepts development versions", {
   expect_true(RoBSA:::.check_BayesTools(package_version("1.1.0"),      package_version("0.4.0")))
   expect_true(RoBSA:::.check_BayesTools(package_version("1.1.0.9001"), package_version("0.4.0.9001")))
   expect_true(RoBSA:::.check_BayesTools(package_version("1.1.0"),      package_version("0.10.0")))
-  expect_true(RoBSA:::.check_BayesTools(package_version("1.1.0.9003"), package_version("0.4.0.9013")))
+  expect_true(RoBSA:::.check_BayesTools(package_version("1.1.0.9003"), package_version("0.4.0.9020")))
 
   expect_warning(
     ok <- RoBSA:::.check_BayesTools(package_version("1.1.0.9001"), package_version("0.3.0")),
@@ -48,8 +48,8 @@ test_that("BayesTools version check accepts development versions", {
   )
   expect_false(ok)
   expect_warning(
-    ok <- RoBSA:::.check_BayesTools(package_version("1.1.0.9003"), package_version("0.4.0.9012")),
-    "0.4.0.9013", fixed = TRUE
+    ok <- RoBSA:::.check_BayesTools(package_version("1.1.0.9003"), package_version("0.4.0.9019")),
+    "0.4.0.9020", fixed = TRUE
   )
   expect_false(ok)
 })

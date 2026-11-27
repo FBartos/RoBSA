@@ -213,7 +213,7 @@ test_that("Parallel fitting works with fewer cores than chains", {
 
   expect_warning(fit <- RoBSA(
     Surv(time = time, event = event) ~ 1, data = df, distributions = "exp-aft",
-    sample = 500, thin = 2, burnin = 200, adapt = 100, parallel = TRUE, seed = 1,
+    sample = 500, thin = 2, burnin = 100, adapt = 50, parallel = TRUE, seed = 1,
     autofit_control = set_autofit_control(min_ESS = 1e9, sample_extend = 50, max_extend = 1)
   ), "max_extend")
 
@@ -225,6 +225,8 @@ test_that("Parallel fitting works with fewer cores than chains", {
   chains <- coda::as.mcmc.list(model$fit)
   expect_equal(length(chains), 3)
   expect_equal(vapply(chains, NROW, integer(1)), rep(550, 3))
+  # adapt and burnin count draws at the thinning: (50 + 100) * 2 warm-up iterations
+  expect_identical(coda::mcpar(chains[[1]]), c(301, 1399, 2))
   expect_true(is.finite(model$marglik$logml))
 })
 

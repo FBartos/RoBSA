@@ -1,6 +1,7 @@
 ## development version
 ### changes
 - fit models directly with rjags and require JAGS 5 or later (seeded draws differ from earlier versions)
+- `adapt` and `burnin` are counted at the fit's thinning like `sample`, so fits with `thin` above 1 run `thin` times as many warm-up iterations and their draws can differ from earlier versions
 
 ### fixes
 - `parallel = TRUE` on machines with fewer cores than chains
